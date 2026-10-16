@@ -25,7 +25,7 @@ sealed interface ResetListeningStatsState {
     data object Loading : ResetListeningStatsState
     data class Success(val showConfirmation: Boolean) : ResetListeningStatsState
     data object Empty : ResetListeningStatsState
-    data class Error(@param:StringRes val messageRes: Int) : ResetListeningStatsState
+    data class Error(val messageRes: StringResource) : ResetListeningStatsState
 }
 
 class ResetListeningStatsViewModel constructor(

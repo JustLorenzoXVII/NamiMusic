@@ -101,19 +101,6 @@ class SpotifyCanvasSessionRepository constructor(
     private suspend fun harvest(credential: String): SpotifyInternalToken =
         throw IOException("Spotify Canvas non disponibile su questa piattaforma")
 
-    private suspend fun clearCookies(manager: CookieManager) = suspendCancellableCoroutine { continuation ->
-        manager.removeAllCookies { if (continuation.isActive) continuation.resume(Unit) }
-    }
-
-    private suspend fun setCookie(manager: CookieManager, cookie: String) = suspendCancellableCoroutine { continuation ->
-        manager.setCookie(ORIGIN, cookie) { success ->
-            if (continuation.isActive) {
-                if (success) continuation.resume(Unit)
-                else continuation.resumeWith(Result.failure(IOException("Spotify session cookie could not be applied")))
-            }
-        }
-    }
-
     private data class CachedSession(val credential: String, val token: SpotifyInternalToken)
 
     private companion object {

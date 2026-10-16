@@ -96,7 +96,7 @@ fun PlaylistSuggestionsSection(
                     },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(stringResource(android.Res.string.cancel))
+                    Text(stringResource(Res.string.system_cancel))
                 }
                 TextButton(
                     onClick = {

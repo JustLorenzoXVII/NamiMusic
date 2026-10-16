@@ -43,7 +43,7 @@ sealed interface CanvasSettingsState {
     data object Loading : CanvasSettingsState
     data class Success(val model: CanvasSettingsUiModel) : CanvasSettingsState
     data object Empty : CanvasSettingsState
-    data class Error(@param:StringRes val messageRes: Int) : CanvasSettingsState
+    data class Error(val messageRes: StringResource) : CanvasSettingsState
 }
 
 @Immutable
@@ -86,7 +86,7 @@ class CanvasSettingsViewModel constructor(
     private data class Controls(
         val dialog: CanvasSettingsDialog? = null,
         val busy: Boolean = false,
-        @param:StringRes val error: Int? = null,
+        val error: StringResource? = null,
     )
 
     private val controls = MutableStateFlow(Controls())

@@ -7,6 +7,8 @@
 
 package moe.rukamori.archivetune.ui.player
 
+import moe.rukamori.archivetune.compat.platformContext
+
 import archivetunex.shared.generated.resources.*
 
 import kotlinx.coroutines.IO
@@ -577,7 +579,7 @@ private fun ThumbnailBgBlurApi30(
     shouldCropArtwork: Boolean,
 ) {
     val context = LocalContext.current
-    val imageLoader = context.imageLoader
+    val imageLoader = context.platformContext.imageLoader
 
     val blurredBitmap by produceState<Bitmap?>(null, imageUrl, blurAmount) {
         if (imageUrl == null) return@produceState
@@ -586,7 +588,7 @@ private fun ThumbnailBgBlurApi30(
                 try {
                     val request =
                         ImageRequest
-                            .Builder(context)
+                            .Builder(context.platformContext)
                             .data(imageUrl)
                             .memoryCacheKey(imageUrl)
                             .diskCacheKey(imageUrl)

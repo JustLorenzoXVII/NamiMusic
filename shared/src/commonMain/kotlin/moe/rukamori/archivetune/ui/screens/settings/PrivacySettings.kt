@@ -107,7 +107,7 @@ fun PrivacySettings(
                     onClick = { showClearListenHistoryDialog = false },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.cancel))
+                    Text(text = stringResource(Res.string.system_cancel))
                 }
 
                 TextButton(
@@ -119,7 +119,7 @@ fun PrivacySettings(
                     },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.ok))
+                    Text(text = stringResource(Res.string.system_ok))
                 }
             },
         )
@@ -144,7 +144,7 @@ fun PrivacySettings(
                     onClick = { showClearSearchHistoryDialog = false },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.cancel))
+                    Text(text = stringResource(Res.string.system_cancel))
                 }
 
                 TextButton(
@@ -156,7 +156,7 @@ fun PrivacySettings(
                     },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.ok))
+                    Text(text = stringResource(Res.string.system_ok))
                 }
             },
         )
@@ -306,7 +306,7 @@ private fun ResetListeningStatsPreference(
                         onClick = onDismiss,
                         shapes = ButtonDefaults.shapes(),
                     ) {
-                        Text(stringResource(android.Res.string.ok))
+                        Text(stringResource(Res.string.system_ok))
                     }
                 } else {
                     TextButton(
@@ -314,7 +314,7 @@ private fun ResetListeningStatsPreference(
                         enabled = !isResetting,
                         shapes = ButtonDefaults.shapes(),
                     ) {
-                        Text(stringResource(android.Res.string.cancel))
+                        Text(stringResource(Res.string.system_cancel))
                     }
                     TextButton(
                         onClick = onConfirm,

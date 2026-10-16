@@ -116,7 +116,7 @@ class HttpUrl internal constructor(
     }
 }
 
-class MediaType internal constructor(
+class MediaType(
     val value: String,
 ) {
     override fun toString(): String = value
@@ -128,7 +128,7 @@ class MediaType internal constructor(
     }
 }
 
-class RequestBody internal constructor(
+class RequestBody(
     val bytes: ByteArray,
     val contentType: MediaType?,
 ) {
@@ -379,3 +379,101 @@ class Call internal constructor(
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     }
 }
+
+// region WebSocket (OkHttp) su Ktor
+
+interface WebSocket {
+    fun send(text: String): Boolean
+
+    fun close(code: Int, reason: String?): Boolean
+
+    fun cancel()
+
+    fun request(): Request
+}
+
+abstract class WebSocketListener {
+    open fun onOpen(webSocket: WebSocket, response: Response) {}
+
+    open fun onMessage(webSocket: WebSocket, text: String) {}
+
+    open fun onClosing(webSocket: WebSocket, code: Int, reason: String) {}
+
+    open fun onClosed(webSocket: WebSocket, code: Int, reason: String) {}
+
+    open fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {}
+}
+
+private class KtorWebSocket(
+    private val client: OkHttpClient,
+    private val request: Request,
+    private val listener: WebSocketListener,
+) : WebSocket {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val outgoing = kotlinx.coroutines.channels.Channel<String>(kotlinx.coroutines.channels.Channel.UNLIMITED)
+    private var session: io.ktor.websocket.WebSocketSession? = null
+    private var job: Job? = null
+
+    fun start() {
+        job =
+            scope.launch {
+                try {
+                    val ktor =
+                        createPlatformHttpClient(proxy = null, dnsOverHttpsUrl = null) {
+                            install(io.ktor.client.plugins.websocket.WebSockets)
+                        }
+                    ktor.webSocketSessionFor(request).let { ws ->
+                        session = ws
+                        val opened = Response(request, 101, "Switching Protocols", emptyMap(), null)
+                        listener.onOpen(this@KtorWebSocket, opened)
+                        val sender =
+                            launch {
+                                for (text in outgoing) ws.send(io.ktor.websocket.Frame.Text(text))
+                            }
+                        try {
+                            for (frame in ws.incoming) {
+                                if (frame is io.ktor.websocket.Frame.Text) {
+                                    listener.onMessage(this@KtorWebSocket, frame.data.decodeToString())
+                                }
+                            }
+                            val reason = ws.closeReasonOrNull()
+                            listener.onClosing(this@KtorWebSocket, reason?.code?.toInt() ?: 1000, reason?.message.orEmpty())
+                            listener.onClosed(this@KtorWebSocket, reason?.code?.toInt() ?: 1000, reason?.message.orEmpty())
+                        } finally {
+                            sender.cancel()
+                        }
+                    }
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
+                } catch (e: Throwable) {
+                    listener.onFailure(this@KtorWebSocket, e, null)
+                }
+            }
+    }
+
+    override fun send(text: String): Boolean = outgoing.trySend(text).isSuccess
+
+    override fun close(code: Int, reason: String?): Boolean {
+        val ws = session ?: return false
+        scope.launch { runCatching { ws.close(io.ktor.websocket.CloseReason(code.toShort(), reason.orEmpty())) } }
+        return true
+    }
+
+    override fun cancel() {
+        job?.cancel()
+        outgoing.close()
+    }
+
+    override fun request(): Request = request
+}
+
+private suspend fun HttpClient.webSocketSessionFor(request: Request): io.ktor.websocket.DefaultWebSocketSession =
+    io.ktor.client.plugins.websocket.webSocketSession(request.url.toString().replaceFirst("https://", "wss://").replaceFirst("http://", "ws://")) {
+        request.headers.forEach { (k, v) -> header(k, v) }
+    }
+
+private suspend fun io.ktor.websocket.DefaultWebSocketSession.closeReasonOrNull(): io.ktor.websocket.CloseReason? = runCatching { closeReason.await() }.getOrNull()
+
+fun OkHttpClient.newWebSocket(request: Request, listener: WebSocketListener): WebSocket = KtorWebSocket(this, request, listener).also { it.start() }
+
+// endregion

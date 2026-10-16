@@ -124,3 +124,30 @@ class ConcurrentHashMap<K, V> private constructor(
         fun <T> newKeySet(): MutableSet<T> = LinkedHashSet()
     }
 }
+
+/** java.util.concurrent.ConcurrentLinkedQueue (qui una coda normale). */
+class ConcurrentLinkedQueue<E> private constructor(
+    private val deque: ArrayDeque<E>,
+) : MutableCollection<E> by deque {
+    constructor() : this(ArrayDeque())
+
+    fun offer(element: E): Boolean {
+        deque.addLast(element)
+        return true
+    }
+
+    fun poll(): E? = deque.removeFirstOrNull()
+
+    fun peek(): E? = deque.firstOrNull()
+}
+
+/** java.lang.ref.WeakReference: su piattaforme senza GC debole tiene un riferimento normale. */
+class WeakReference<T>(
+    private var referent: T?,
+) {
+    fun get(): T? = referent
+
+    fun clear() {
+        referent = null
+    }
+}

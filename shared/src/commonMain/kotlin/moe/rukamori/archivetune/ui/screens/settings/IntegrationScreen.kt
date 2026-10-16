@@ -9,6 +9,8 @@
 
 package moe.rukamori.archivetune.ui.screens.settings
 
+import moe.rukamori.archivetune.compat.platformContext
+
 import archivetunex.shared.generated.resources.*
 
 import moe.rukamori.archivetune.compat.Intent
@@ -345,7 +347,7 @@ private fun SpotifyAccountIcon(avatarUrl: String?) {
                 ?.takeIf(String::isNotBlank)
                 ?.let {
                     ImageRequest
-                        .Builder(context)
+                        .Builder(context.platformContext)
                         .data(it)
                         .size(requestSize)
                         .build()
@@ -390,7 +392,7 @@ private fun SpotifyErrorDialog(
         title = { Text(stringResource(Res.string.import_failed)) },
         buttons = {
             TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) {
-                Text(stringResource(android.Res.string.ok))
+                Text(stringResource(Res.string.system_ok))
             }
         },
     ) {

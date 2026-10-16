@@ -7,6 +7,8 @@
 
 package moe.rukamori.archivetune.ui.component
 
+import moe.rukamori.archivetune.compat.AndroidColor
+
 import archivetunex.shared.generated.resources.*
 
 import org.jetbrains.compose.resources.StringResource

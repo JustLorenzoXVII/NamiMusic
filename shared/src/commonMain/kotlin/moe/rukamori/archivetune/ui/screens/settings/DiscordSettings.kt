@@ -9,6 +9,8 @@
 
 package moe.rukamori.archivetune.ui.screens.settings
 
+import moe.rukamori.archivetune.compat.platformContext
+
 import archivetunex.shared.generated.resources.*
 
 import moe.rukamori.archivetune.compat.System
@@ -750,7 +752,7 @@ private fun DiscordAccountGroupCard(
         remember(context, avatarUrl) {
             avatarUrl?.takeIf { it.isNotBlank() }?.let {
                 ImageRequest
-                    .Builder(context)
+                    .Builder(context.platformContext)
                     .data(it)
                     .size(256, 256)
                     .build()
@@ -765,10 +767,10 @@ private fun DiscordAccountGroupCard(
 
         val bitmap =
             runCatching {
-                context.imageLoader
+                context.platformContext.imageLoader
                     .execute(
                         ImageRequest
-                            .Builder(context)
+                            .Builder(context.platformContext)
                             .data(avatarUrl)
                             .size(PlayerColorExtractor.Config.IMAGE_SIZE, PlayerColorExtractor.Config.IMAGE_SIZE)
                             .allowHardware(false)

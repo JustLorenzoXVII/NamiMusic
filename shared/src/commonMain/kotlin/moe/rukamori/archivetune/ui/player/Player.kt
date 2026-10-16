@@ -9,6 +9,10 @@
 
 package moe.rukamori.archivetune.ui.player
 
+import moe.rukamori.archivetune.compat.AndroidColor
+
+import moe.rukamori.archivetune.compat.platformContext
+
 import moe.rukamori.archivetune.compat.DeviceVolume
 
 import moe.rukamori.archivetune.compat.contentResolver
@@ -496,7 +500,7 @@ fun BottomSheetPlayer(
                 } else {
                     val request =
                         ImageRequest
-                            .Builder(context)
+                            .Builder(context.platformContext)
                             .data(displayThumbnail)
                             .memoryCacheKey(displayThumbnail)
                             .diskCacheKey(displayThumbnail)
@@ -509,7 +513,7 @@ fun BottomSheetPlayer(
                     val result =
                         runCatching {
                             withContext(Dispatchers.IO) {
-                                context.imageLoader.execute(request)
+                                context.platformContext.imageLoader.execute(request)
                             }
                         }.getOrNull()
 
@@ -2100,7 +2104,7 @@ private fun BackdropBlurApi30(
     onError: ((String) -> Unit)? = null,
 ) {
     val context = LocalContext.current
-    val imageLoader = context.imageLoader
+    val imageLoader = context.platformContext.imageLoader
 
     val blurredBitmap by produceState<Bitmap?>(null, model, blurAmount) {
         if (model == null) return@produceState
@@ -2109,7 +2113,7 @@ private fun BackdropBlurApi30(
                 try {
                     val request =
                         ImageRequest
-                            .Builder(context)
+                            .Builder(context.platformContext)
                             .data(model)
                             .memoryCacheKey(model)
                             .diskCacheKey(model)

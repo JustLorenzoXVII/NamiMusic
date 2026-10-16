@@ -437,12 +437,12 @@ fun UpdateScreen(
                         }
                     },
                 ) {
-                    Text(stringResource(android.Res.string.ok))
+                    Text(stringResource(Res.string.system_ok))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showEnableUpdateNotificationConfirmDialog = false }) {
-                    Text(stringResource(android.Res.string.cancel))
+                    Text(stringResource(Res.string.system_cancel))
                 }
             },
         )
@@ -465,12 +465,12 @@ fun UpdateScreen(
                         onUpdateChannelChange(UpdateChannel.ARTIFACT)
                     },
                 ) {
-                    Text(stringResource(android.Res.string.ok))
+                    Text(stringResource(Res.string.system_ok))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showArtifactChannelConfirmDialog = false }) {
-                    Text(stringResource(android.Res.string.cancel))
+                    Text(stringResource(Res.string.system_cancel))
                 }
             },
         )
@@ -739,7 +739,7 @@ fun UpdateScreen(
                         showUpdateDownloadDialog = false
                     },
                 ) {
-                    Text(text = stringResource(android.Res.string.cancel))
+                    Text(text = stringResource(Res.string.system_cancel))
                 }
             },
         )
@@ -783,7 +783,7 @@ fun UpdateScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showUpdateUpToDateDialog = false }) {
-                    Text(stringResource(android.Res.string.ok))
+                    Text(stringResource(Res.string.system_ok))
                 }
             },
         )
@@ -815,7 +815,7 @@ fun UpdateScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showUpdateErrorDialog = false }) {
-                    Text(stringResource(android.Res.string.ok))
+                    Text(stringResource(Res.string.system_ok))
                 }
             },
         )

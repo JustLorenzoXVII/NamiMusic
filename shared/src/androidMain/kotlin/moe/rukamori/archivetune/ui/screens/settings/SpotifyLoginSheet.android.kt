@@ -69,8 +69,6 @@ import moe.rukamori.archivetune.compat.startActivity
 import moe.rukamori.archivetune.constants.ListenBrainzEnabledKey
 import moe.rukamori.archivetune.constants.ListenBrainzTokenKey
 import moe.rukamori.archivetune.constants.ShowSpotifyPlaylistsKey
-import moe.rukamori.archivetune.spotify.SpotifyAccountUiState
-import moe.rukamori.archivetune.spotify.SpotifyAccountViewModel
 import moe.rukamori.archivetune.spotify.SpotifyAuth
 import moe.rukamori.archivetune.ui.component.DefaultDialog
 import moe.rukamori.archivetune.ui.component.IconButton
@@ -86,15 +84,6 @@ import moe.rukamori.archivetune.utils.resetAuthWebViewSession
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import android.os.Message
-import android.view.ViewGroup
-import android.webkit.CookieManager
-import android.webkit.WebChromeClient
-import android.webkit.WebResourceRequest
-import android.webkit.WebSettings
-import android.webkit.WebView
-import android.webkit.WebViewClient
-import android.widget.FrameLayout
 
 @Composable
 internal actual fun SpotifyLoginSheet(

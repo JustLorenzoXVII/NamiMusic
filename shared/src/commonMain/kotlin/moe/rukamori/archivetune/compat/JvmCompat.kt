@@ -624,3 +624,105 @@ open class UnknownHostException(
 object Proxy {
     enum class Type { DIRECT, HTTP, SOCKS }
 }
+
+/** java.security.SecureRandom (byte casuali sicuri della piattaforma). */
+class SecureRandom {
+    fun nextBytes(bytes: ByteArray) = platformSecureRandomBytes(bytes)
+
+    fun nextInt(bound: Int): Int {
+        val b = ByteArray(4)
+        nextBytes(b)
+        val v = ((b[0].toInt() and 0x7F) shl 24) or ((b[1].toInt() and 0xFF) shl 16) or ((b[2].toInt() and 0xFF) shl 8) or (b[3].toInt() and 0xFF)
+        return v % bound
+    }
+}
+
+internal expect fun platformSecureRandomBytes(bytes: ByteArray)
+
+/** java.net.URL (solo per aprire connessioni HTTP). */
+class URL(
+    private val spec: String,
+) {
+    fun openConnection(): HttpURLConnection = HttpURLConnection(spec)
+
+    override fun toString(): String = spec
+}
+
+/** java.net.HttpURLConnection su OkHttp compat (Ktor): la richiesta parte alla prima lettura. */
+class HttpURLConnection internal constructor(
+    private val url: String,
+) {
+    var requestMethod: String = "GET"
+    var connectTimeout: Int = 0
+    var readTimeout: Int = 0
+    var doOutput: Boolean = false
+    var doInput: Boolean = true
+    var instanceFollowRedirects: Boolean = true
+    var useCaches: Boolean = false
+    private val properties = LinkedHashMap<String, String>()
+    private val body = ByteArrayOutputStream()
+    private var response: moe.rukamori.archivetune.compat.okhttp3.Response? = null
+
+    fun setRequestProperty(key: String, value: String) {
+        properties[key] = value
+    }
+
+    fun addRequestProperty(key: String, value: String) {
+        properties[key] = properties[key]?.let { "$it, $value" } ?: value
+    }
+
+    val outputStream: OutputStream
+        get() = body
+
+    private fun execute(): moe.rukamori.archivetune.compat.okhttp3.Response {
+        response?.let { return it }
+        val builder = moe.rukamori.archivetune.compat.okhttp3.Request.Builder().url(url)
+        properties.forEach { (k, v) -> builder.header(k, v) }
+        if (doOutput || requestMethod != "GET") {
+            val type = properties.entries.firstOrNull { it.key.equals("Content-Type", true) }?.value
+            builder.method(requestMethod, moe.rukamori.archivetune.compat.okhttp3.RequestBody(body.toByteArray(), type?.let { moe.rukamori.archivetune.compat.okhttp3.MediaType(it) }))
+        }
+        val client =
+            moe.rukamori.archivetune.compat.okhttp3.OkHttpClient
+                .Builder()
+                .apply {
+                    if (connectTimeout > 0) connectTimeout(connectTimeout.toLong(), TimeUnit.MILLISECONDS)
+                    if (readTimeout > 0) readTimeout(readTimeout.toLong(), TimeUnit.MILLISECONDS)
+                    followRedirects(instanceFollowRedirects)
+                }.build()
+        return client.newCall(builder.build()).execute().also { response = it }
+    }
+
+    val responseCode: Int
+        get() = execute().code
+
+    val responseMessage: String
+        get() = execute().message
+
+    val inputStream: InputStream
+        get() {
+            val r = execute()
+            if (r.code >= 400) throw kotlinx.io.IOException("HTTP ${r.code}")
+            return ByteArrayInputStream(r.body?.bytes() ?: ByteArray(0))
+        }
+
+    val errorStream: InputStream?
+        get() = execute().takeIf { it.code >= 400 }?.body?.bytes()?.let(::ByteArrayInputStream)
+
+    fun getHeaderField(name: String): String? = execute().header(name)
+
+    val contentLength: Int
+        get() = execute().body?.bytes()?.size ?: -1
+
+    fun connect() {
+        execute()
+    }
+
+    fun disconnect() = Unit
+
+    companion object {
+        const val HTTP_OK = 200
+        const val HTTP_NOT_FOUND = 404
+        const val HTTP_UNAUTHORIZED = 401
+    }
+}

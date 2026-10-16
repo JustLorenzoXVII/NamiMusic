@@ -7,6 +7,8 @@
 
 package moe.rukamori.archivetune.storage
 
+import moe.rukamori.archivetune.compat.platformContext
+
 import moe.rukamori.archivetune.compat.contentResolver
 
 import moe.rukamori.archivetune.compat.getOrDefault
@@ -411,7 +413,7 @@ class StorageLocationRepository constructor(
         }
 
         private suspend fun clearImageCache(onProgress: suspend (StorageCacheClearProgress) -> Unit): Boolean {
-            val imageLoader = context.imageLoader
+            val imageLoader = context.platformContext.imageLoader
             val diskCache = imageLoader.diskCache
             val diskCacheCleared =
                 if (diskCache == null) {

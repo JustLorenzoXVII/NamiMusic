@@ -38,7 +38,7 @@ import moe.rukamori.archivetune.ui.utils.numberFormatter
 class MediaInfoViewModel constructor(
     private val observeMediaInfo: ObserveMediaInfoUseCase,
     private val savedStateHandle: SavedStateHandle,
-    @param:ApplicationContext private val context: Context,
+    private val context: Context,
 ) : ViewModel() {
     private val mutableState = MutableStateFlow<MediaInfoState<MediaInfoUiModel>>(MediaInfoState.Loading)
     val state = mutableState.asStateFlow()

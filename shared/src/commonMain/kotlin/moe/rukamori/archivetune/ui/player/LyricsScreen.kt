@@ -9,6 +9,8 @@
 
 package moe.rukamori.archivetune.ui.player
 
+import moe.rukamori.archivetune.compat.platformContext
+
 import archivetunex.shared.generated.resources.*
 
 import kotlinx.coroutines.IO
@@ -278,7 +280,7 @@ fun LyricsScreen(
 
         val request =
             ImageRequest
-                .Builder(context)
+                .Builder(context.platformContext)
                 .data(thumbnailUrl)
                 .size(Size(PlayerColorExtractor.Config.IMAGE_SIZE, PlayerColorExtractor.Config.IMAGE_SIZE))
                 .allowHardware(false)
@@ -288,7 +290,7 @@ fun LyricsScreen(
             try {
                 val image =
                     withContext(Dispatchers.IO) {
-                        context.imageLoader.execute(request)
+                        context.platformContext.imageLoader.execute(request)
                     }.image
                 if (image == null) {
                     null

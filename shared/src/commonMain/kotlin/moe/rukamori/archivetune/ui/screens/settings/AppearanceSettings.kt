@@ -440,7 +440,7 @@ fun AppearanceSettings(navController: NavController) {
                     onClick = { showSliderOptionDialog = false },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.cancel))
+                    Text(text = stringResource(Res.string.system_cancel))
                 }
             },
             onDismiss = {
@@ -962,7 +962,7 @@ fun AppearanceSettings(navController: NavController) {
                                     },
                                     shapes = ButtonDefaults.shapes(),
                                 ) {
-                                    Text(stringResource(android.Res.string.cancel))
+                                    Text(stringResource(Res.string.system_cancel))
                                 }
                                 TextButton(
                                     onClick = {
@@ -971,7 +971,7 @@ fun AppearanceSettings(navController: NavController) {
                                     },
                                     shapes = ButtonDefaults.shapes(),
                                 ) {
-                                    Text(stringResource(android.Res.string.ok))
+                                    Text(stringResource(Res.string.system_ok))
                                 }
                             },
                         ) {

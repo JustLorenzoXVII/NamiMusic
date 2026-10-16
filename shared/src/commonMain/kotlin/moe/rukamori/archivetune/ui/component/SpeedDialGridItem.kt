@@ -7,6 +7,8 @@
 
 package moe.rukamori.archivetune.ui.component
 
+import moe.rukamori.archivetune.compat.platformContext
+
 import archivetunex.shared.generated.resources.*
 
 import androidx.compose.animation.animateColorAsState
@@ -112,7 +114,7 @@ fun SpeedDialGridItem(
             val request =
                 remember(item.thumbnail, widthPx, heightPx) {
                     ImageRequest
-                        .Builder(context)
+                        .Builder(context.platformContext)
                         .data(
                             item.thumbnail?.resize(
                                 width = widthPx,

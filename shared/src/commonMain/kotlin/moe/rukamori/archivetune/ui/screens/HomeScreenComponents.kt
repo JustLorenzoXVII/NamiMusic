@@ -7,6 +7,8 @@
 
 package moe.rukamori.archivetune.ui.screens
 
+import moe.rukamori.archivetune.compat.platformContext
+
 import archivetunex.shared.generated.resources.*
 
 import androidx.compose.animation.animateColorAsState
@@ -317,7 +319,7 @@ fun QuickPicksSection(
                     val imageRequest =
                         remember(song.song.thumbnailUrl, requestWidthPx, requestHeightPx) {
                             ImageRequest
-                                .Builder(context)
+                                .Builder(context.platformContext)
                                 .data(song.song.thumbnailUrl)
                                 .size(Size(requestWidthPx, requestHeightPx))
                                 .crossfade(true)
@@ -580,7 +582,7 @@ fun RemoteQuickPicksSection(
                     val imageRequest =
                         remember(song.thumbnail, requestWidthPx, requestHeightPx) {
                             ImageRequest
-                                .Builder(context)
+                                .Builder(context.platformContext)
                                 .data(song.thumbnail)
                                 .size(Size(requestWidthPx, requestHeightPx))
                                 .crossfade(true)
@@ -2194,7 +2196,7 @@ fun AccountPlaylistsTitle(
                 val imageRequest =
                     remember(accountImageUrl, avatarSizePx) {
                         ImageRequest
-                            .Builder(context)
+                            .Builder(context.platformContext)
                             .data(accountImageUrl)
                             .size(Size(avatarSizePx, avatarSizePx))
                             .diskCachePolicy(CachePolicy.ENABLED)

@@ -75,20 +75,20 @@ data class MediaInfoData(
     val statistics: MediaInfoState<MediaInfoStatistics>,
 )
 
-enum class MediaInfoTab(@param:StringRes val labelRes: Int) {
+enum class MediaInfoTab(val labelRes: StringResource) {
     Information(Res.string.information),
     Details(Res.string.details),
     Numbers(Res.string.numbers),
 }
 
 @Immutable
-data class MediaInfoQuickFact(@param:DrawableRes val iconRes: Int, val text: String)
+data class MediaInfoQuickFact(val iconRes: DrawableResource, val text: String)
 
 @Immutable
-data class MediaInfoDetail(@param:StringRes val labelRes: Int, val value: String?)
+data class MediaInfoDetail(val labelRes: StringResource, val value: String?)
 
 @Immutable
-data class MediaInfoMetric(@param:StringRes val labelRes: Int, val value: String?)
+data class MediaInfoMetric(val labelRes: StringResource, val value: String?)
 
 @Immutable
 data class MediaInfoUiModel(

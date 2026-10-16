@@ -82,3 +82,6 @@ fun scaleImageBitmap(
     )
     return target
 }
+
+/** Codifica un'immagine in PNG. */
+expect fun encodePng(image: ImageBitmap): ByteArray

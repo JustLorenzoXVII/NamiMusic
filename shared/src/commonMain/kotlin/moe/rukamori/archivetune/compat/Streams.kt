@@ -303,3 +303,119 @@ class PushbackReader(
 
     override fun close() = reader.close()
 }
+
+/** java.nio.ByteOrder. */
+enum class ByteOrder {
+    BIG_ENDIAN,
+    LITTLE_ENDIAN,
+    ;
+
+    companion object {
+        fun nativeOrder(): ByteOrder = LITTLE_ENDIAN
+    }
+}
+
+/** java.nio.ByteBuffer (put/get di interi e array). */
+class ByteBuffer private constructor(
+    private val data: ByteArray,
+) {
+    private var order = ByteOrder.BIG_ENDIAN
+    private var pos = 0
+
+    fun order(order: ByteOrder): ByteBuffer = apply { this.order = order }
+
+    fun order(): ByteOrder = order
+
+    fun array(): ByteArray = data
+
+    fun position(): Int = pos
+
+    fun position(newPosition: Int): ByteBuffer = apply { pos = newPosition }
+
+    fun remaining(): Int = data.size - pos
+
+    fun hasRemaining(): Boolean = pos < data.size
+
+    fun capacity(): Int = data.size
+
+    fun put(b: Byte): ByteBuffer = apply { data[pos++] = b }
+
+    fun put(bytes: ByteArray): ByteBuffer = apply {
+        bytes.copyInto(data, pos)
+        pos += bytes.size
+    }
+
+    fun get(): Byte = data[pos++]
+
+    fun get(index: Int): Byte = data[index]
+
+    fun get(dst: ByteArray): ByteBuffer = apply {
+        data.copyInto(dst, 0, pos, pos + dst.size)
+        pos += dst.size
+    }
+
+    private fun writeInt(index: Int, v: Int) {
+        if (order == ByteOrder.LITTLE_ENDIAN) {
+            for (i in 0 until 4) data[index + i] = (v ushr (8 * i)).toByte()
+        } else {
+            for (i in 0 until 4) data[index + i] = (v ushr (8 * (3 - i))).toByte()
+        }
+    }
+
+    private fun readInt(index: Int): Int {
+        var v = 0
+        for (i in 0 until 4) {
+            val b = data[index + i].toInt() and 0xFF
+            v = if (order == ByteOrder.LITTLE_ENDIAN) v or (b shl (8 * i)) else (v shl 8) or b
+        }
+        return v
+    }
+
+    fun putInt(v: Int): ByteBuffer = apply {
+        writeInt(pos, v)
+        pos += 4
+    }
+
+    fun putInt(index: Int, v: Int): ByteBuffer = apply { writeInt(index, v) }
+
+    fun getInt(): Int = readInt(pos).also { pos += 4 }
+
+    fun getInt(index: Int): Int = readInt(index)
+
+    fun putShort(v: Short): ByteBuffer = apply {
+        val x = v.toInt()
+        if (order == ByteOrder.LITTLE_ENDIAN) {
+            data[pos] = x.toByte()
+            data[pos + 1] = (x ushr 8).toByte()
+        } else {
+            data[pos] = (x ushr 8).toByte()
+            data[pos + 1] = x.toByte()
+        }
+        pos += 2
+    }
+
+    fun getShort(): Short {
+        val a = data[pos].toInt() and 0xFF
+        val b = data[pos + 1].toInt() and 0xFF
+        pos += 2
+        return (if (order == ByteOrder.LITTLE_ENDIAN) (b shl 8) or a else (a shl 8) or b).toShort()
+    }
+
+    fun putLong(v: Long): ByteBuffer = apply {
+        for (i in 0 until 8) {
+            val shift = if (order == ByteOrder.LITTLE_ENDIAN) 8 * i else 8 * (7 - i)
+            data[pos + i] = (v ushr shift).toByte()
+        }
+        pos += 8
+    }
+
+    fun getFloat(): Float = Float.fromBits(getInt())
+
+    fun putFloat(v: Float): ByteBuffer = putInt(v.toRawBits())
+
+    companion object {
+        fun allocate(capacity: Int): ByteBuffer = ByteBuffer(ByteArray(capacity))
+
+        fun wrap(array: ByteArray): ByteBuffer = ByteBuffer(array)
+    }
+}

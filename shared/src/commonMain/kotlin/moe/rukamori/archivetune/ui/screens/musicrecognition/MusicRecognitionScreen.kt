@@ -12,6 +12,8 @@
 
 package moe.rukamori.archivetune.ui.screens.musicrecognition
 
+import moe.rukamori.archivetune.compat.platformContext
+
 import archivetunex.shared.generated.resources.*
 
 import moe.rukamori.archivetune.compat.Manifest
@@ -1314,7 +1316,7 @@ fun CoverArt(
         remember(context, artworkUrl, sizePx) {
             artworkUrl?.let {
                 ImageRequest
-                    .Builder(context)
+                    .Builder(context.platformContext)
                     .data(it)
                     .size(sizePx, sizePx)
                     .allowHardware(true)

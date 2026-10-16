@@ -45,6 +45,10 @@ class Download(
     val isTerminalState: Boolean
         get() = state == STATE_COMPLETED || state == STATE_FAILED
 
+    @Retention(AnnotationRetention.SOURCE)
+    @Target(AnnotationTarget.TYPE, AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.PROPERTY, AnnotationTarget.FUNCTION, AnnotationTarget.LOCAL_VARIABLE)
+    annotation class State
+
     companion object {
         const val STATE_QUEUED = 0
         const val STATE_STOPPED = 1

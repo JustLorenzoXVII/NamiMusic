@@ -7,6 +7,10 @@
 
 package moe.rukamori.archivetune.ui.screens.library
 
+import moe.rukamori.archivetune.compat.AndroidColor
+
+import moe.rukamori.archivetune.compat.platformContext
+
 import archivetunex.shared.generated.resources.*
 
 import androidx.compose.animation.core.Spring
@@ -665,7 +669,7 @@ fun rememberArtworkGradient(
         if (thumbnailUrl == null) return@LaunchedEffect
         val request =
             ImageRequest
-                .Builder(context)
+                .Builder(context.platformContext)
                 .data(thumbnailUrl)
                 .size(PlayerColorExtractor.Config.IMAGE_SIZE, PlayerColorExtractor.Config.IMAGE_SIZE)
                 .allowHardware(false)
@@ -673,7 +677,7 @@ fun rememberArtworkGradient(
 
         val result =
             runCatching {
-                context.imageLoader.execute(request)
+                context.platformContext.imageLoader.execute(request)
             }.getOrNull()
 
         if (result != null) {

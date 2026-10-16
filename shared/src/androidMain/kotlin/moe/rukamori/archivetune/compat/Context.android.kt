@@ -66,6 +66,15 @@ internal actual fun platformSetKeepScreenOn(keepOn: Boolean) {
     }
 }
 
+actual fun platformSetScreenBrightness(level: Float?) {
+    platformRunOnMain {
+        val window = AndroidAppContext.activity?.get()?.window ?: return@platformRunOnMain
+        val lp = window.attributes
+        lp.screenBrightness = level ?: android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+        window.attributes = lp
+    }
+}
+
 actual fun openSystemEqualizerPanel(audioSessionId: Int) {
     val activity = AndroidAppContext.activity?.get() ?: return
     val intent =
@@ -107,3 +116,10 @@ actual object DeviceVolume {
 internal actual fun platformHasPermission(permission: String): Boolean =
     androidx.core.content.ContextCompat.checkSelfPermission(AndroidAppContext.context, permission) ==
         android.content.pm.PackageManager.PERMISSION_GRANTED
+
+actual val Context.platformContext: coil3.PlatformContext
+    get() = AndroidAppContext.context
+
+internal actual fun platformSecureRandomBytes(bytes: ByteArray) {
+    java.security.SecureRandom().nextBytes(bytes)
+}

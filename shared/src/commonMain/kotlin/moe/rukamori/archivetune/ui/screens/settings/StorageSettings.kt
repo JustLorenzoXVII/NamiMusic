@@ -9,6 +9,8 @@
 
 package moe.rukamori.archivetune.ui.screens.settings
 
+import moe.rukamori.archivetune.compat.platformContext
+
 import archivetunex.shared.generated.resources.*
 
 import kotlinx.coroutines.IO
@@ -109,7 +111,7 @@ fun StorageSettings(
     viewModel: StorageSettingsViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
-    val imageDiskCache = context.imageLoader.diskCache ?: return
+    val imageDiskCache = context.platformContext.imageLoader.diskCache ?: return
     val playerCache = LocalPlayerConnection.current?.service?.playerCache ?: return
     val downloadCache = LocalPlayerConnection.current?.service?.downloadCache ?: return
     val screenState by viewModel.state.collectAsStateWithLifecycle()

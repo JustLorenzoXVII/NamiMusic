@@ -12,6 +12,8 @@
 
 package moe.rukamori.archivetune.ui.screens
 
+import moe.rukamori.archivetune.compat.platformContext
+
 import archivetunex.shared.generated.resources.*
 
 import moe.rukamori.archivetune.compat.format
@@ -279,7 +281,7 @@ private fun ViewNewsCarousel(
         val model =
             remember(context, imageUrls.first()) {
                 ImageRequest
-                    .Builder(context)
+                    .Builder(context.platformContext)
                     .data(imageUrls.first())
                     .crossfade(true)
                     .build()
@@ -312,7 +314,7 @@ private fun ViewNewsCarousel(
         val model =
             remember(context, imageUrl) {
                 ImageRequest
-                    .Builder(context)
+                    .Builder(context.platformContext)
                     .data(imageUrl)
                     .crossfade(true)
                     .build()
@@ -411,7 +413,7 @@ private fun ViewNewsFullImageDialog(
         val model =
             remember(context, imageUrl) {
                 ImageRequest
-                    .Builder(context)
+                    .Builder(context.platformContext)
                     .data(imageUrl)
                     .crossfade(true)
                     .build()

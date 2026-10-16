@@ -415,7 +415,7 @@ private fun AiApiTestErrorDialog(
         title = { Text(stringResource(Res.string.ai_api_test_failed)) },
         buttons = {
             TextButton(onClick = onClose, shapes = ButtonDefaults.shapes()) {
-                Text(stringResource(android.Res.string.ok))
+                Text(stringResource(Res.string.system_ok))
             }
         },
     ) {
@@ -486,7 +486,7 @@ private fun AiSettingsEditorDialog(
         title = { Text(stringResource(titleResId)) },
         buttons = {
             TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) {
-                Text(stringResource(android.Res.string.cancel))
+                Text(stringResource(Res.string.system_cancel))
             }
             TextButton(
                 enabled = editor.canSave,

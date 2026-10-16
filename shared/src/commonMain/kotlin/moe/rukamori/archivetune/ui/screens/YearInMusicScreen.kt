@@ -9,6 +9,8 @@
 
 package moe.rukamori.archivetune.ui.screens
 
+import moe.rukamori.archivetune.compat.platformContext
+
 import archivetunex.shared.generated.resources.*
 
 import moe.rukamori.archivetune.compat.format
@@ -1707,7 +1709,7 @@ private fun rememberShareSafeImageRequest(data: Any?): Any? {
     return remember(data, context) {
         data?.let {
             ImageRequest
-                .Builder(context)
+                .Builder(context.platformContext)
                 .data(it)
                 .allowHardware(false)
                 .build()

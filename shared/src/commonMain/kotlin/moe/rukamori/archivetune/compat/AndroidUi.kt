@@ -232,6 +232,9 @@ internal expect fun platformRunOnMainDelayed(
 
 internal expect fun platformSetKeepScreenOn(keepOn: Boolean)
 
+/** Luminosità dello schermo per la schermata AOD (0..1); null = torna a quella di sistema. */
+expect fun platformSetScreenBrightness(level: Float?)
+
 /** Apre il pannello dell'equalizzatore di sistema (solo Android). */
 expect fun openSystemEqualizerPanel(audioSessionId: Int)
 

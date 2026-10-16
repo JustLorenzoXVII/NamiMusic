@@ -10,7 +10,7 @@ package moe.rukamori.archivetune.lyrics.translation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
-import me.bush.translator.Language
+import moe.rukamori.archivetune.compat.Language
 import moe.rukamori.archivetune.ai.AiLyricsDocumentParser
 import moe.rukamori.archivetune.ai.AiLyricsSegment
 import moe.rukamori.archivetune.lyrics.LyricsUtils

@@ -7,6 +7,8 @@
 
 package moe.rukamori.archivetune.ui.screens
 
+import moe.rukamori.archivetune.compat.platformContext
+
 import archivetunex.shared.generated.resources.*
 
 import kotlinx.coroutines.IO
@@ -359,7 +361,7 @@ private fun rememberMoodAndGenresArtworkModel(
 
     return remember(context, artworkUrl, imageCacheKey, requestSizePx) {
         ImageRequest
-            .Builder(context)
+            .Builder(context.platformContext)
             .data(artworkUrl)
             .memoryCacheKey(imageCacheKey)
             .diskCacheKey(imageCacheKey)

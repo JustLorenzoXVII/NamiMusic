@@ -460,7 +460,7 @@ fun BackupAndRestore(
                     onClick = { showRestoreValidationError = false },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(stringResource(android.Res.string.ok))
+                    Text(stringResource(Res.string.system_ok))
                 }
             },
         ) {
@@ -544,7 +544,7 @@ private fun ExportPlaylistPickerDialog(
                 onClick = onDismiss,
                 shapes = ButtonDefaults.shapes(),
             ) {
-                Text(stringResource(android.Res.string.cancel))
+                Text(stringResource(Res.string.system_cancel))
             }
         },
     ) {
@@ -739,7 +739,7 @@ private fun ScheduledBackupDatePickerDialog(
                 enabled = datePickerState.selectedDateMillis != null,
                 shapes = ButtonDefaults.shapes(),
             ) {
-                Text(stringResource(android.Res.string.ok))
+                Text(stringResource(Res.string.system_ok))
             }
         },
         dismissButton = {
@@ -747,7 +747,7 @@ private fun ScheduledBackupDatePickerDialog(
                 onClick = onDismiss,
                 shapes = ButtonDefaults.shapes(),
             ) {
-                Text(stringResource(android.Res.string.cancel))
+                Text(stringResource(Res.string.system_cancel))
             }
         },
     ) {
@@ -807,7 +807,7 @@ private fun BackupOptionsDialog(
         title = { Text(title) },
         buttons = {
             TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) {
-                Text(stringResource(android.Res.string.cancel))
+                Text(stringResource(Res.string.system_cancel))
             }
             TextButton(
                 onClick = { onConfirm(selected) },

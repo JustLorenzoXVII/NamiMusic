@@ -9,6 +9,8 @@
 
 package moe.rukamori.archivetune.ui.player
 
+import moe.rukamori.archivetune.compat.platformContext
+
 import moe.rukamori.archivetune.compat.observeProximity
 import moe.rukamori.archivetune.compat.observeShake
 
@@ -21,6 +23,7 @@ import moe.rukamori.archivetune.compat.System
 import moe.rukamori.archivetune.compat.getSystemService
 
 import moe.rukamori.archivetune.compat.Activity
+import moe.rukamori.archivetune.compat.platformSetScreenBrightness
 import moe.rukamori.archivetune.compat.WindowManager
 import moe.rukamori.archivetune.compat.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -359,25 +362,15 @@ fun AodPlayerScreen(
     }
 
     DisposableEffect(isDimmed, isCovered, aodBrightness, proximityBlackoutEnabled) {
-        val window = (context as? Activity)?.window ?: (context as? android.service.dreams.DreamService)?.window
-        window?.let { w ->
-            val lp = w.attributes
-            if (isCovered && proximityBlackoutEnabled) {
-                lp.screenBrightness = 0.001f
-            } else if (isDimmed) {
-                lp.screenBrightness = aodBrightness.coerceIn(0.01f, 1.0f)
-            } else {
-                lp.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
-            }
-            w.attributes = lp
+        if (isCovered && proximityBlackoutEnabled) {
+            platformSetScreenBrightness(0.001f)
+        } else if (isDimmed) {
+            platformSetScreenBrightness(aodBrightness.coerceIn(0.01f, 1.0f))
+        } else {
+            platformSetScreenBrightness(null)
         }
         onDispose {
-            val window = (context as? Activity)?.window ?: (context as? android.service.dreams.DreamService)?.window
-            window?.let { w ->
-                val lp = w.attributes
-                lp.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
-                w.attributes = lp
-            }
+            platformSetScreenBrightness(null)
         }
     }
     var extractedArtworkColors by remember { mutableStateOf<List<Color>>(emptyList()) }
@@ -385,14 +378,14 @@ fun AodPlayerScreen(
     LaunchedEffect(mediaMetadata.thumbnailUrl) {
         val url = mediaMetadata.thumbnailUrl ?: return@LaunchedEffect
         val fallbackColor = 0xFF121212.toInt()
-        val request = ImageRequest.Builder(context)
+        val request = ImageRequest.Builder(context.platformContext)
             .data(url)
             .size(PlayerColorExtractor.Config.IMAGE_SIZE, PlayerColorExtractor.Config.IMAGE_SIZE)
             .allowHardware(false)
             .build()
         val result = runCatching {
             withContext(Dispatchers.IO) {
-                context.imageLoader.execute(request)
+                context.platformContext.imageLoader.execute(request)
             }
         }.getOrNull()
 
@@ -433,7 +426,7 @@ fun AodPlayerScreen(
     val imageRequest =
         remember(context, mediaMetadata.thumbnailUrl, artworkSizePx) {
             ImageRequest
-                .Builder(context)
+                .Builder(context.platformContext)
                 .data(mediaMetadata.thumbnailUrl)
                 .size(artworkSizePx, artworkSizePx)
                 .allowHardware(true)

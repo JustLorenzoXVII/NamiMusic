@@ -7,6 +7,8 @@
 
 package moe.rukamori.archivetune.ui.player
 
+import moe.rukamori.archivetune.compat.platformContext
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import moe.rukamori.archivetune.compat.LocalContext
@@ -22,7 +24,7 @@ internal fun rememberOfflineArtworkImageRequest(imageUrl: String?): ImageRequest
             ?.takeIf(String::isNotBlank)
             ?.let { url ->
                 ImageRequest
-                    .Builder(context)
+                    .Builder(context.platformContext)
                     .data(url)
                     .memoryCacheKey(url)
                     .diskCacheKey(url)

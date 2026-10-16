@@ -17,7 +17,6 @@ import archivetunex.shared.generated.resources.*
 import moe.rukamori.archivetune.compat.getSystemService
 
 import moe.rukamori.archivetune.compat.Activity
-import moe.rukamori.archivetune.compat.ActivityManager
 import moe.rukamori.archivetune.compat.Context
 import moe.rukamori.archivetune.compat.Bitmap
 import moe.rukamori.archivetune.compat.Build

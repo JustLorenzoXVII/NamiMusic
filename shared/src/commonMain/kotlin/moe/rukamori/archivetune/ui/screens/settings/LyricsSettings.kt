@@ -285,7 +285,7 @@ fun LyricsSettings(
                         },
                         shapes = ButtonDefaults.shapes(),
                     ) {
-                        Text(stringResource(android.Res.string.cancel))
+                        Text(stringResource(Res.string.system_cancel))
                     }
                     TextButton(
                         onClick = {
@@ -294,7 +294,7 @@ fun LyricsSettings(
                         },
                         shapes = ButtonDefaults.shapes(),
                     ) {
-                        Text(stringResource(android.Res.string.ok))
+                        Text(stringResource(Res.string.system_ok))
                     }
                 },
             ) {
@@ -352,7 +352,7 @@ fun LyricsSettings(
                         },
                         shapes = ButtonDefaults.shapes(),
                     ) {
-                        Text(stringResource(android.Res.string.cancel))
+                        Text(stringResource(Res.string.system_cancel))
                     }
                     TextButton(
                         onClick = {
@@ -361,7 +361,7 @@ fun LyricsSettings(
                         },
                         shapes = ButtonDefaults.shapes(),
                     ) {
-                        Text(stringResource(android.Res.string.ok))
+                        Text(stringResource(Res.string.system_ok))
                     }
                 },
             ) {
@@ -722,14 +722,14 @@ private fun LyricsProviderOrderDialog(
                 onClick = onDismiss,
                 shapes = ButtonDefaults.shapes(),
             ) {
-                Text(stringResource(android.Res.string.cancel))
+                Text(stringResource(Res.string.system_cancel))
             }
             Spacer(Modifier.weight(1f))
             TextButton(
                 onClick = { onConfirm(providers.toList()) },
                 shapes = ButtonDefaults.shapes(),
             ) {
-                Text(stringResource(android.Res.string.ok))
+                Text(stringResource(Res.string.system_ok))
             }
         },
     ) {
@@ -845,7 +845,7 @@ private fun PaxsenixStatsDialog(
             }
             Spacer(Modifier.weight(1f))
             TextButton(onClick = onDismiss) {
-                Text(stringResource(android.Res.string.ok))
+                Text(stringResource(Res.string.system_ok))
             }
         },
     ) {

@@ -12,6 +12,8 @@
 
 package moe.rukamori.archivetune.ui.screens
 
+import moe.rukamori.archivetune.compat.platformContext
+
 import archivetunex.shared.generated.resources.*
 
 import moe.rukamori.archivetune.compat.format
@@ -655,7 +657,7 @@ private fun FullImageViewerDialog(
         val model =
             remember(context, imageUrl) {
                 ImageRequest
-                    .Builder(context)
+                    .Builder(context.platformContext)
                     .data(imageUrl)
                     .crossfade(true)
                     .build()
@@ -689,7 +691,7 @@ private fun NewsAsyncImage(
     val model =
         remember(context, imageUrl) {
             ImageRequest
-                .Builder(context)
+                .Builder(context.platformContext)
                 .data(imageUrl)
                 .crossfade(true)
                 .build()

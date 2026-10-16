@@ -1,6 +1,8 @@
 package moe.rukamori.archivetune.compat
 
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.usePinned
 import platform.Foundation.NSCachesDirectory
 import platform.Foundation.NSDate
 import platform.Foundation.NSDocumentDirectory
@@ -69,6 +71,21 @@ internal actual fun platformSetKeepScreenOn(keepOn: Boolean) {
     platformRunOnMain { platform.UIKit.UIApplication.sharedApplication.idleTimerDisabled = keepOn }
 }
 
+private var savedScreenBrightness: Double? = null
+
+actual fun platformSetScreenBrightness(level: Float?) {
+    platformRunOnMain {
+        val screen = platform.UIKit.UIScreen.mainScreen
+        if (level == null) {
+            savedScreenBrightness?.let { screen.brightness = it }
+            savedScreenBrightness = null
+        } else {
+            if (savedScreenBrightness == null) savedScreenBrightness = screen.brightness
+            screen.brightness = level.toDouble()
+        }
+    }
+}
+
 actual fun openSystemEqualizerPanel(audioSessionId: Int) = Unit
 
 actual object DeviceVolume {
@@ -80,3 +97,14 @@ actual object DeviceVolume {
 }
 
 internal actual fun platformHasPermission(permission: String): Boolean = true
+
+actual val Context.platformContext: coil3.PlatformContext
+    get() = coil3.PlatformContext.INSTANCE
+
+@OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+internal actual fun platformSecureRandomBytes(bytes: ByteArray) {
+    if (bytes.isEmpty()) return
+    bytes.usePinned { pinned ->
+        platform.Security.SecRandomCopyBytes(platform.Security.kSecRandomDefault, bytes.size.toULong(), pinned.addressOf(0))
+    }
+}

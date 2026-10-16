@@ -69,11 +69,11 @@ class AndroidLocalSongScanner(
                     val scannedIds = enriched.tracks.map(LocalTrackRecord::id)
                     val scannedIdSet = scannedIds.toSet()
                     val removedIds = localSongIds().filterNot(scannedIdSet::contains)
-                    removedIds.chunked(SqlBatchSize).forEach(::deleteSongsByIds)
+                    removedIds.chunked(SqlBatchSize).forEach { deleteSongsByIds(it) }
                     val existingSongs = loadSongs(scannedIds)
                     val existingLyrics = loadLyrics(scannedIds)
                     val existingFormats = loadFormats(scannedIds)
-                    val resolver = CatalogResolver()
+                    val resolver = CatalogResolver().also { it.load() }
                     val artistCredits = enriched.tracks.flatMap { track ->
                         (track.artists + albumArtistNames(track)).distinct().map { name -> name to track }
                     }.groupBy { LocalMusicIdentity.normalize(it.first) }
@@ -219,16 +219,22 @@ class AndroidLocalSongScanner(
     }
 
     private inner class CatalogResolver {
-        private val artists = database.catalogArtistEntities().associateByTo(linkedMapOf()) { it.id }
-        private val albums = database.catalogAlbumEntities().associateByTo(linkedMapOf()) { it.id }
-        private val albumArtists = database.catalogAlbumArtistMaps().groupBy { it.albumId }
-            .mapValuesTo(mutableMapOf()) { (_, links) ->
-                links.mapNotNull { artists[it.artistId]?.name?.let(LocalMusicIdentity::normalize) }.toSet()
-            }
+        private var artists: LinkedHashMap<String, ArtistEntity> = linkedMapOf()
+        private var albums: LinkedHashMap<String, AlbumEntity> = linkedMapOf()
+        private var albumArtists: MutableMap<String, Set<String>> = mutableMapOf()
+
+        suspend fun load() {
+            artists = database.catalogArtistEntities().associateByTo(linkedMapOf()) { it.id }
+            albums = database.catalogAlbumEntities().associateByTo(linkedMapOf()) { it.id }
+            albumArtists = database.catalogAlbumArtistMaps().groupBy { it.albumId }
+                .mapValuesTo(mutableMapOf()) { (_, links) ->
+                    links.mapNotNull { artists[it.artistId]?.name?.let(LocalMusicIdentity::normalize) }.toSet()
+                }
+        }
 
         fun albumArtwork(id: String): String? = albums[id]?.thumbnailUrl
 
-        fun resolveArtist(name: String, remoteId: String?, thumbnailUrl: String?): String {
+        suspend fun resolveArtist(name: String, remoteId: String?, thumbnailUrl: String?): String {
             val candidates = artists.values.filter { sameName(it.name, name) }
             val remote = candidates.filter { !it.isLocal && it.isYouTubeArtist }.singleOrNull()
             val id = remoteId ?: remote?.id ?: candidates.firstOrNull { it.isLocal }?.id
@@ -247,7 +253,7 @@ class AndroidLocalSongScanner(
             return id
         }
 
-        fun resolveAlbum(tracks: List<LocalTrackRecord>, artistIds: List<String>, previousIds: Set<String>): String {
+        suspend fun resolveAlbum(tracks: List<LocalTrackRecord>, artistIds: List<String>, previousIds: Set<String>): String {
             val first = tracks.first()
             val title = requireNotNull(first.albumName)
             val names = albumArtistNames(first).map(LocalMusicIdentity::normalize).toSet()
@@ -434,7 +440,7 @@ class AndroidLocalSongScanner(
         }
     }
 
-    private fun updateEmbeddedLyrics(
+    private suspend fun updateEmbeddedLyrics(
         track: LocalTrackRecord,
         existingLyrics: LyricsEntity?,
     ) {

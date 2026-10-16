@@ -16,7 +16,7 @@ import moe.rukamori.archivetune.compat.Handler
 import moe.rukamori.archivetune.compat.Looper
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.ProcessLifecycleOwner
+import moe.rukamori.archivetune.compat.ProcessLifecycleOwner
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

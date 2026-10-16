@@ -175,3 +175,6 @@ fun Context.getDatabasePath(name: String): File = File(moe.rukamori.archivetune.
 
 /** File.resolveSibling di Kotlin/JVM. */
 fun File.resolveSibling(name: String): File = File(parentFile, name)
+
+/** Il contesto della piattaforma richiesto da Coil (Context Android / PlatformContext iOS). */
+expect val Context.platformContext: coil3.PlatformContext

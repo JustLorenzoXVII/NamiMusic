@@ -410,7 +410,7 @@ fun LocalPlaylistScreen(
                     onClick = { showRemoveDownloadDialog = false },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.cancel))
+                    Text(text = stringResource(Res.string.system_cancel))
                 }
 
                 TextButton(
@@ -428,7 +428,7 @@ fun LocalPlaylistScreen(
                     },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.ok))
+                    Text(text = stringResource(Res.string.system_ok))
                 }
             },
         )
@@ -454,7 +454,7 @@ fun LocalPlaylistScreen(
                     onClick = { showDeletePlaylistDialog = false },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.cancel))
+                    Text(text = stringResource(Res.string.system_cancel))
                 }
                 TextButton(
                     onClick = {
@@ -469,7 +469,7 @@ fun LocalPlaylistScreen(
                     },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.ok))
+                    Text(text = stringResource(Res.string.system_ok))
                 }
             },
         )

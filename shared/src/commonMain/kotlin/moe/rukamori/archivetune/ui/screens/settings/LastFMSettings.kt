@@ -560,7 +560,7 @@ private fun LastFmServiceEditorDialog(
                 enabled = !editor.isSaving,
                 shapes = ButtonDefaults.shapes(),
             ) {
-                Text(stringResource(android.Res.string.ok))
+                Text(stringResource(Res.string.system_ok))
             }
         },
         dismissButton = {
@@ -569,7 +569,7 @@ private fun LastFmServiceEditorDialog(
                 enabled = !editor.isSaving,
                 shapes = ButtonDefaults.shapes(),
             ) {
-                Text(stringResource(android.Res.string.cancel))
+                Text(stringResource(Res.string.system_cancel))
             }
         },
     )
@@ -645,12 +645,12 @@ private fun LastFmTimingEditorDialog(
         },
         confirmButton = {
             TextButton(onClick = onSave, shapes = ButtonDefaults.shapes()) {
-                Text(stringResource(android.Res.string.ok))
+                Text(stringResource(Res.string.system_ok))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) {
-                Text(stringResource(android.Res.string.cancel))
+                Text(stringResource(Res.string.system_cancel))
             }
         },
     )

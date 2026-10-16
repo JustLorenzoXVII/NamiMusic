@@ -557,5 +557,31 @@ class DateTimeFormatter private constructor(
             pattern: String,
             locale: Any?,
         ): DateTimeFormatter = DateTimeFormatter(pattern)
+
+        fun ofLocalizedDate(style: FormatStyle): DateTimeFormatter =
+            when (style) {
+                FormatStyle.FULL -> DateTimeFormatter("EEEE, MMMM d, yyyy")
+                FormatStyle.LONG -> DateTimeFormatter("MMMM d, yyyy")
+                FormatStyle.MEDIUM -> DateTimeFormatter("MMM d, yyyy")
+                FormatStyle.SHORT -> DateTimeFormatter("M/d/yy")
+            }
+
+        fun ofLocalizedDateTime(style: FormatStyle): DateTimeFormatter =
+            DateTimeFormatter(ofLocalizedDate(style).pattern + ", HH:mm")
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    fun withLocale(locale: Any?): DateTimeFormatter = this
+}
+
+enum class FormatStyle { FULL, LONG, MEDIUM, SHORT }
+
+class Year private constructor(
+    val value: Int,
+) {
+    companion object {
+        fun now(): Year = Year(LocalDate.now().year)
+
+        fun of(year: Int): Year = Year(year)
     }
 }

@@ -9,6 +9,8 @@
 
 package moe.rukamori.archivetune.ui.screens.settings
 
+import moe.rukamori.archivetune.compat.AndroidColor
+
 import moe.rukamori.archivetune.compat.contentResolver
 
 import moe.rukamori.archivetune.compat.toByteArray
@@ -1186,7 +1188,7 @@ fun ThemeCreatorScreen(navController: NavController) {
             onDismissRequest = { showImportErrorDialog = false },
             confirmButton = {
                 TextButton(onClick = { showImportErrorDialog = false }, shapes = ButtonDefaults.shapes()) {
-                    Text(text = stringResource(android.Res.string.ok))
+                    Text(text = stringResource(Res.string.system_ok))
                 }
             },
             title = { Text(text = stringResource(Res.string.theme_import_failed_title)) },

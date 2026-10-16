@@ -13,6 +13,8 @@
 
 package moe.rukamori.archivetune.ui.component
 
+import moe.rukamori.archivetune.compat.platformContext
+
 import archivetunex.shared.generated.resources.*
 
 import kotlinx.coroutines.IO
@@ -161,10 +163,10 @@ fun LyricsShareImageDialog(
         val extractedStyle =
             withContext(Dispatchers.IO) {
                 runCatching {
-                    val loader = ImageLoader(context)
+                    val loader = ImageLoader(context.platformContext)
                     val request =
                         ImageRequest
-                            .Builder(context)
+                            .Builder(context.platformContext)
                             .data(coverUrl)
                             .allowHardware(false)
                             .build()

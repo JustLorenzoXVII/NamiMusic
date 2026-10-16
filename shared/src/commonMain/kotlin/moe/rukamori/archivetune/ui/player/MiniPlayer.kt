@@ -7,6 +7,8 @@
 
 package moe.rukamori.archivetune.ui.player
 
+import moe.rukamori.archivetune.compat.platformContext
+
 import moe.rukamori.archivetune.compat.getOrDefault
 
 import kotlinx.coroutines.IO
@@ -139,7 +141,7 @@ private fun NewMiniPlayer(
 
         val request =
             ImageRequest
-                .Builder(context)
+                .Builder(context.platformContext)
                 .data(thumbnailUrl)
                 .size(PlayerColorExtractor.Config.IMAGE_SIZE, PlayerColorExtractor.Config.IMAGE_SIZE)
                 .allowHardware(false)
@@ -149,7 +151,7 @@ private fun NewMiniPlayer(
             runCatching {
                 val result =
                     withContext(Dispatchers.IO) {
-                        context.imageLoader.execute(request)
+                        context.platformContext.imageLoader.execute(request)
                     }
                 val bitmap = result.image?.toBitmap() ?: return@runCatching emptyList()
                 val palette =

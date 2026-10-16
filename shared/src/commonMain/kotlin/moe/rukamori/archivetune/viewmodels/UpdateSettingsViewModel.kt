@@ -38,7 +38,7 @@ sealed interface UpdateSettingsScreenState {
     data object Empty : UpdateSettingsScreenState
 
     data class Error(
-        @param:StringRes val messageRes: Int,
+        val messageRes: StringResource,
         val lastKnownModel: UpdateSettingsUiModel,
     ) : UpdateSettingsScreenState
 }

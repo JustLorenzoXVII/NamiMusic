@@ -7,6 +7,8 @@
 
 package moe.rukamori.archivetune.ui.component
 
+import moe.rukamori.archivetune.compat.platformContext
+
 import archivetunex.shared.generated.resources.*
 
 import moe.rukamori.archivetune.compat.Build
@@ -178,7 +180,7 @@ fun LyricsImageCard(
     val artworkPainter =
         rememberAsyncImagePainter(
             ImageRequest
-                .Builder(context)
+                .Builder(context.platformContext)
                 .data(coverArtUrl)
                 .crossfade(true)
                 .build(),

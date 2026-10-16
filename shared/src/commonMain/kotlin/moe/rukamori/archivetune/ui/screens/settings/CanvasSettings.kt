@@ -374,7 +374,7 @@ private fun CanvasSettingsDialogs(
                         onClick = onConfirmClear,
                         enabled = !model.busy,
                     ) {
-                        Text(stringResource(android.Res.string.ok))
+                        Text(stringResource(Res.string.system_ok))
                     }
                 },
             ) {

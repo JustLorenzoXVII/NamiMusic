@@ -35,7 +35,7 @@ sealed interface AndroidAutoSettingsState {
     data object Loading : AndroidAutoSettingsState
     data class Success(val model: AndroidAutoSettingsUiModel) : AndroidAutoSettingsState
     data object Empty : AndroidAutoSettingsState
-    data class Error(@param:StringRes val messageRes: Int) : AndroidAutoSettingsState
+    data class Error(val messageRes: StringResource) : AndroidAutoSettingsState
 }
 
 @Immutable
@@ -71,7 +71,7 @@ class AndroidAutoSettingsViewModel constructor(
 ) : ViewModel() {
     private data class Controls(
         val busy: Boolean = false,
-        @param:StringRes val error: Int? = null,
+        val error: StringResource? = null,
     )
 
     private val controls = MutableStateFlow(Controls())

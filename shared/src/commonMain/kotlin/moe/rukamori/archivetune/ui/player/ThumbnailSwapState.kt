@@ -7,6 +7,8 @@
 
 package moe.rukamori.archivetune.ui.player
 
+import moe.rukamori.archivetune.compat.platformContext
+
 import kotlinx.coroutines.IO
 
 import androidx.compose.runtime.Composable
@@ -57,14 +59,14 @@ fun rememberThumbnailSwapState(
 
         if (!shouldAttemptYT || videoId == null) return@LaunchedEffect
 
-        val imageLoader = context.imageLoader
+        val imageLoader = context.platformContext.imageLoader
 
         for (quality in YTThumbQuality.entries) {
             val url = buildYTThumbnailUrl(videoId, quality)
             try {
                 val request =
                     ImageRequest
-                        .Builder(context)
+                        .Builder(context.platformContext)
                         .data(url)
                         .memoryCacheKey(url)
                         .diskCacheKey(url)

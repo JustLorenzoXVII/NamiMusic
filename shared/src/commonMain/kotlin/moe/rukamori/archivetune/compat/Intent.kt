@@ -76,6 +76,8 @@ class Intent() {
         const val EXTRA_TITLE = "android.intent.extra.TITLE"
         const val CATEGORY_BROWSABLE = "android.intent.category.BROWSABLE"
         const val FLAG_ACTIVITY_NEW_TASK = 0x10000000
+        const val FLAG_ACTIVITY_CLEAR_TASK = 0x00008000
+        const val FLAG_ACTIVITY_CLEAR_TOP = 0x04000000
         const val FLAG_GRANT_READ_URI_PERMISSION = 0x00000001
         const val FLAG_GRANT_WRITE_URI_PERMISSION = 0x00000002
         const val URI_INTENT_SCHEME = 1

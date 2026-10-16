@@ -385,7 +385,7 @@ private fun DownloadLibraryScreenContent(
             },
             dismissButton = {
                 TextButton(onClick = onDismissRemoveConfirmation) {
-                    Text(stringResource(android.Res.string.cancel))
+                    Text(stringResource(Res.string.system_cancel))
                 }
             },
         )
@@ -676,7 +676,7 @@ private fun DownloadSectionHeader(
                     PrimaryFilledIconButton(
                         icon = if (inProgress) Res.drawable.close else Res.drawable.delete,
                         contentDescription =
-                            stringResource(if (inProgress) android.Res.string.cancel else Res.string.remove_download),
+                            stringResource(if (inProgress) Res.string.system_cancel else Res.string.remove_download),
                         onClick = onRemove,
                     )
                 }
@@ -809,7 +809,7 @@ private fun DownloadEntry(
                     PrimaryFilledIconButton(
                         icon = if (inProgress) Res.drawable.close else Res.drawable.delete,
                         contentDescription =
-                            stringResource(if (inProgress) android.Res.string.cancel else Res.string.remove_download),
+                            stringResource(if (inProgress) Res.string.system_cancel else Res.string.remove_download),
                         onClick = onRemove,
                     )
                 }

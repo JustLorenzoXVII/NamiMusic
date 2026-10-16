@@ -9,6 +9,8 @@
 
 package moe.rukamori.archivetune.ui.component
 
+import moe.rukamori.archivetune.compat.platformContext
+
 import archivetunex.shared.generated.resources.*
 
 import kotlinx.coroutines.IO
@@ -1013,10 +1015,10 @@ fun LibraryPlaylistFeatureCard(
         if (primaryThumbnailUrl == null) return@LaunchedEffect
         val bitmap =
             runCatching {
-                context.imageLoader
+                context.platformContext.imageLoader
                     .execute(
                         ImageRequest
-                            .Builder(context)
+                            .Builder(context.platformContext)
                             .data(primaryThumbnailUrl)
                             .size(PlayerColorExtractor.Config.IMAGE_SIZE, PlayerColorExtractor.Config.IMAGE_SIZE)
                             .allowHardware(false)
@@ -1121,10 +1123,10 @@ fun LibraryAlbumSpotlightCard(
         val url = album.album.thumbnailUrl ?: return@LaunchedEffect
         val bitmap =
             runCatching {
-                context.imageLoader
+                context.platformContext.imageLoader
                     .execute(
                         ImageRequest
-                            .Builder(context)
+                            .Builder(context.platformContext)
                             .data(url)
                             .size(PlayerColorExtractor.Config.IMAGE_SIZE, PlayerColorExtractor.Config.IMAGE_SIZE)
                             .allowHardware(false)
@@ -1235,10 +1237,10 @@ fun LibraryArtistSpotlightCard(
         val url = artist.artist.thumbnailUrl ?: return@LaunchedEffect
         val bitmap =
             runCatching {
-                context.imageLoader
+                context.platformContext.imageLoader
                     .execute(
                         ImageRequest
-                            .Builder(context)
+                            .Builder(context.platformContext)
                             .data(url)
                             .size(PlayerColorExtractor.Config.IMAGE_SIZE, PlayerColorExtractor.Config.IMAGE_SIZE)
                             .allowHardware(false)
@@ -1739,7 +1741,7 @@ fun ItemThumbnail(
                 val request =
                     remember(currentUrl, guardedWidthPx, guardedHeightPx) {
                         ImageRequest
-                            .Builder(context)
+                            .Builder(context.platformContext)
                             .data(currentUrl)
                             .allowHardware(true)
                             .apply {
@@ -1860,7 +1862,7 @@ fun LocalThumbnail(
         val request =
             remember(thumbnailUrl, widthPx, heightPx) {
                 ImageRequest
-                    .Builder(context)
+                    .Builder(context.platformContext)
                     .data(thumbnailUrl)
                     .allowHardware(true)
                     .apply {
@@ -1988,7 +1990,7 @@ fun PlaylistThumbnail(
             val request =
                 remember(thumbnails, sizePx) {
                     ImageRequest
-                        .Builder(context)
+                        .Builder(context.platformContext)
                         .data(
                             thumbnails[0].resize(
                                 width = (sizePx * 1.5).toInt(),
@@ -2028,7 +2030,7 @@ fun PlaylistThumbnail(
                     val request =
                         remember(url, halfPx) {
                             ImageRequest
-                                .Builder(context)
+                                .Builder(context.platformContext)
                                 .data(
                                     url?.resize(
                                         width = (halfPx * 1.5).toInt(),
