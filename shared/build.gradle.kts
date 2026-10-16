@@ -66,7 +66,6 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.shimmer)
-            implementation(libs.accompanist.lyrics.ui)
             implementation(libs.accompanist.lyrics.core)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
