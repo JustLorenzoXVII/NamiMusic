@@ -57,11 +57,10 @@ jobs:
         continue-on-error: true
         run: |
           KLIB_TOOL=$(ls -d ~/.konan/kotlin-native-prebuilt-*/bin/klib | head -1)
-          for f in $(find ~/.gradle/caches -name "quickjs*iosarm64*.klib" | head -2) $(find ~/.gradle/caches -path "*quickjs-kt-iosarm64*" -name "*.klib" | head -2); do
+          for f in $(find ~/.gradle/caches/modules-2 -path "*quickjs-kt-iosarm64*" -name "*.klib" ! -name "*Cinterop*"); do
             echo "== $f"
-            "$KLIB_TOOL" dump-metadata "$f" 2>/dev/null | grep -nE "fun |class " | grep -iE "evaluate|function|QuickJs" | head -60
+            "$KLIB_TOOL" dump-metadata "$f" 2>&1 | grep -nE "evaluate|fun .*function|asyncFunction|package " | head -80
           done > quickjs-api.log 2>&1 || true
-          find ~/.gradle/caches -iname "*quickjs*" -maxdepth 6 | head -20 >> quickjs-api.log
 
       - name: Salva i log nel branch ci-logs
         if: always()
