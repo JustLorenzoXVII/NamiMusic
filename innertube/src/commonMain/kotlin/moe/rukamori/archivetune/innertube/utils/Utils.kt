@@ -13,6 +13,7 @@ import moe.rukamori.archivetune.innertube.models.distinctByPlaylistEntry
 import moe.rukamori.archivetune.innertube.pages.LibraryPage
 import moe.rukamori.archivetune.innertube.pages.PlaylistContinuationPage
 import moe.rukamori.archivetune.innertube.pages.PlaylistPage
+import kotlin.jvm.JvmName
 
 private const val LIBRARY_COMPLETION_MAX_REQUESTS = 500
 

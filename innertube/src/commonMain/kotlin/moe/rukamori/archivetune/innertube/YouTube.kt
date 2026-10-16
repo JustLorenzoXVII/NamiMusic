@@ -97,6 +97,7 @@ import moe.rukamori.archivetune.innertube.pages.SearchSummary
 import moe.rukamori.archivetune.innertube.pages.SearchSummaryPage
 import moe.rukamori.archivetune.innertube.network.ProxySettings
 import kotlin.random.Random
+import kotlin.jvm.JvmInline
 
 /**
  * Parse useful data with [InnerTube] sending requests.
@@ -513,7 +514,7 @@ object YouTube {
                 }
 
                 val previousSize = songs.size
-                parsedSongs.forEach { songs.putIfAbsent(it.id, it) }
+                parsedSongs.forEach { if (it.id !in songs) songs[it.id] = it }
                 return songs.size > previousSize
             }
 
@@ -2385,9 +2386,7 @@ object YouTube {
         playlistId: String? = null,
     ): Result<List<SongItem>> =
         runCatching {
-            if (videoIds != null) {
-                assert(videoIds.size <= MAX_GET_QUEUE_SIZE) // Max video limit
-            }
+            // Limite di MAX_GET_QUEUE_SIZE video: nell'originale era un assert (disattivato su Android).
             innerTube
                 .getQueue(WEB_REMIX, videoIds, playlistId)
                 .body<GetQueueResponse>()
