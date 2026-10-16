@@ -7,10 +7,11 @@
 
 package moe.rukamori.archivetune.playback.queues
 
+import kotlinx.coroutines.Dispatchers
+
 import kotlinx.coroutines.IO
 
 import moe.rukamori.archivetune.compat.media3.MediaItem
-import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import moe.rukamori.archivetune.extensions.toMediaItem
 import moe.rukamori.archivetune.innertube.YouTube
@@ -27,7 +28,7 @@ class YouTubeQueue(
 
     override suspend fun getInitialStatus(): Queue.Status {
         val nextResult =
-            withContext(IO) {
+            withContext(Dispatchers.IO) {
                 YouTube
                     .next(
                         endpoint = endpoint,
@@ -50,7 +51,7 @@ class YouTubeQueue(
 
     override suspend fun nextPage(): List<MediaItem> {
         val nextResult =
-            withContext(IO) {
+            withContext(Dispatchers.IO) {
                 YouTube
                     .next(
                         endpoint = endpoint,

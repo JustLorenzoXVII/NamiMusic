@@ -9,7 +9,6 @@ package moe.rukamori.archivetune.utils
 
 import kotlinx.coroutines.IO
 
-import kotlin.concurrent.Volatile
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState

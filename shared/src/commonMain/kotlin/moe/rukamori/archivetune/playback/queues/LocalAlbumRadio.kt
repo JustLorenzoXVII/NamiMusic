@@ -7,10 +7,11 @@
 
 package moe.rukamori.archivetune.playback.queues
 
+import kotlinx.coroutines.Dispatchers
+
 import kotlinx.coroutines.IO
 
 import moe.rukamori.archivetune.compat.media3.MediaItem
-import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import moe.rukamori.archivetune.db.entities.AlbumWithSongs
 import moe.rukamori.archivetune.extensions.toMediaItem
@@ -38,7 +39,7 @@ class LocalAlbumRadio(
     private var firstTimeLoaded: Boolean = false
 
     override suspend fun getInitialStatus(): Queue.Status =
-        withContext(IO) {
+        withContext(Dispatchers.IO) {
             Queue.Status(
                 title = albumWithSongs.album.title,
                 items = albumWithSongs.songs.map { it.toMediaItem() },
@@ -49,7 +50,7 @@ class LocalAlbumRadio(
     override fun hasNextPage(): Boolean = !localOnly && (!firstTimeLoaded || continuation != null)
 
     override suspend fun nextPage(): List<MediaItem> =
-        withContext(IO) {
+        withContext(Dispatchers.IO) {
             if (localOnly) return@withContext emptyList()
             if (!firstTimeLoaded) {
                 playlistId =

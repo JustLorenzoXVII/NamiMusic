@@ -7,10 +7,11 @@
 
 package moe.rukamori.archivetune.playback.queues
 
+import kotlinx.coroutines.Dispatchers
+
 import kotlinx.coroutines.IO
 
 import moe.rukamori.archivetune.compat.media3.MediaItem
-import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import moe.rukamori.archivetune.extensions.toMediaItem
 import moe.rukamori.archivetune.innertube.YouTube
@@ -45,7 +46,7 @@ class YouTubeAlbumRadio(
     }
 
     override suspend fun getInitialStatus(): Queue.Status =
-        withContext(IO) {
+        withContext(Dispatchers.IO) {
             val albumSongs = YouTube.albumSongs(playlistId).getOrThrow()
             albumSongCount = albumSongs.size
             Queue.Status(
@@ -63,7 +64,7 @@ class YouTubeAlbumRadio(
     override fun hasNextPage(): Boolean = !firstTimeLoaded || continuation != null
 
     override suspend fun nextPage(): List<MediaItem> =
-        withContext(IO) {
+        withContext(Dispatchers.IO) {
             val nextResult = YouTube.next(endpoint, continuation).getOrThrow()
             continuation = nextResult.continuation
             if (!firstTimeLoaded) {
