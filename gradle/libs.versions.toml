@@ -18,6 +18,9 @@ okhttp = "5.4.0"
 newpipe-extractor = "0.26.5"
 media3 = "1.10.1"
 quickjs-kt = "1.0.15"
+material-kolor = "5.0.0-alpha07"
+datastore = "1.2.1"
+kotlinx-datetime = "0.7.1"
 kotlinx-serialization = "1.9.0"
 material3 = "1.12.0-alpha03"
 
@@ -52,6 +55,9 @@ media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = 
 media3-session = { module = "androidx.media3:media3-session", version.ref = "media3" }
 quickjs-kt = { module = "io.github.dokar3:quickjs-kt", version.ref = "quickjs-kt" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+material-kolor = { module = "com.materialkolor:material-kolor", version.ref = "material-kolor" }
+datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastore" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
