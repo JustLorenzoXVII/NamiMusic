@@ -8,21 +8,17 @@ class Locale(
     val language: String,
     val country: String = "",
 ) {
-    fun getLanguage(): String = language
 
-    fun getCountry(): String = country
 
     fun toLanguageTag(): String = if (country.isBlank()) language else "$language-$country"
 
     val displayLanguage: String get() = displayLanguageOf(this)
 
-    fun getDisplayLanguage(): String = displayLanguage
 
     fun getDisplayLanguage(inLocale: Locale): String = displayLanguageOf(this, inLocale)
 
     val displayName: String get() = displayNameOf(this)
 
-    fun getDisplayName(): String = displayName
 
     fun getDisplayName(inLocale: Locale): String = displayNameOf(this, inLocale)
 
@@ -90,9 +86,6 @@ class Collator private constructor(
 ) : Comparator<String> {
     var strength: Int = TERTIARY
 
-    fun setStrength(value: Int) {
-        strength = value
-    }
 
     override fun compare(
         a: String,

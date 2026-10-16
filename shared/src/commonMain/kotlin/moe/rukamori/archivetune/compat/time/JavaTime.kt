@@ -56,7 +56,6 @@ class Instant internal constructor(
 
     val epochSecond: Long get() = value.epochSeconds
 
-    fun getEpochSecond(): Long = value.epochSeconds
 
     fun plusMillis(millis: Long): Instant = Instant(KInstant.fromEpochMilliseconds(toEpochMilli() + millis))
 
@@ -126,7 +125,6 @@ enum class DayOfWeek {
 
     val value: Int get() = ordinal + 1
 
-    fun getValue(): Int = value
 }
 
 enum class Month {
@@ -146,7 +144,6 @@ enum class Month {
 
     val value: Int get() = ordinal + 1
 
-    fun getValue(): Int = value
 
     companion object {
         fun of(month: Int): Month = entries[month - 1]
@@ -163,11 +160,8 @@ class LocalDate internal constructor(
     val dayOfYear: Int get() = value.dayOfYear
     val dayOfWeek: DayOfWeek get() = DayOfWeek.entries[value.dayOfWeek.ordinal]
 
-    fun getYear(): Int = year
 
-    fun getMonthValue(): Int = monthValue
 
-    fun getDayOfMonth(): Int = dayOfMonth
 
     fun plusDays(days: Long): LocalDate = LocalDate(value.plus(days, DateTimeUnit.DAY))
 
@@ -250,15 +244,10 @@ class LocalDateTime internal constructor(
     val minute: Int get() = value.minute
     val second: Int get() = value.second
 
-    fun getYear(): Int = year
 
-    fun getMonthValue(): Int = monthValue
 
-    fun getDayOfMonth(): Int = dayOfMonth
 
-    fun getHour(): Int = hour
 
-    fun getMinute(): Int = minute
 
     private fun shiftUtc(millis: Long): LocalDateTime =
         LocalDateTime(
@@ -404,7 +393,6 @@ class Duration private constructor(
 
     fun toSeconds(): Long = millis / 1000
 
-    fun getSeconds(): Long = millis / 1000
 
     val seconds: Long get() = millis / 1000
 
