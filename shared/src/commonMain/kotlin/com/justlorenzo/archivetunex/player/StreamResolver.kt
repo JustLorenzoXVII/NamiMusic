@@ -16,6 +16,10 @@ data class ResolvedStream(
     val clientName: String,
     /** User-Agent del client YouTube che ha dato l'URL: va usato anche per scaricare l'audio. */
     val userAgent: String,
+    /** googlevideo accetta lo stream solo se la richiesta ha l'intestazione Range. */
+    val requiresRangeHeader: Boolean,
+    /** Esito delle prove, per capire i problemi. */
+    val diagnostics: String,
 )
 
 /**
@@ -76,7 +80,9 @@ object StreamResolver {
 
                 for (url in candidates) {
                     val status = StreamProbe.status(url, client.userAgent)
-                    if (status in 200..299) {
+                    val statusNoRange = StreamProbe.statusWithoutRange(url, client.userAgent)
+                    report += "$label: stream HTTP $status (senza Range: $statusNoRange)"
+                    if (status in 200..299 || statusNoRange in 200..299) {
                         return Result.success(
                             ResolvedStream(
                                 url = url,
@@ -86,10 +92,11 @@ object StreamResolver {
                                 durationMs = format.approxDurationMs?.toLongOrNull(),
                                 clientName = client.clientName,
                                 userAgent = client.userAgent,
+                                requiresRangeHeader = statusNoRange !in 200..299,
+                                diagnostics = report.joinToString("\n"),
                             ),
                         )
                     }
-                    report += "$label: stream HTTP $status"
                 }
             } catch (cancellation: CancellationException) {
                 throw cancellation

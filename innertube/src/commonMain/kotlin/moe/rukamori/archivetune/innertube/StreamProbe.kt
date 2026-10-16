@@ -2,6 +2,7 @@ package moe.rukamori.archivetune.innertube
 
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpHeaders
 import kotlinx.coroutines.CancellationException
@@ -19,7 +20,7 @@ object StreamProbe {
         }
     }
 
-    /** Codice HTTP della prova (200/206 = ok), oppure -1 se la richiesta non è partita. */
+    /** Codice HTTP della prova con Range: bytes=0-1 (200/206 = ok), oppure -1 se la richiesta non è partita. */
     suspend fun status(
         url: String,
         userAgent: String,
@@ -31,6 +32,25 @@ object StreamProbe {
                     header(HttpHeaders.Range, "bytes=0-1")
                 }
             response.status.value
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (_: Exception) {
+            -1
+        }
+
+    /**
+     * Come fa il lettore all'inizio del brano: richiesta senza Range.
+     * Legge solo il codice di risposta e chiude subito, senza scaricare l'audio.
+     */
+    suspend fun statusWithoutRange(
+        url: String,
+        userAgent: String,
+    ): Int =
+        try {
+            client
+                .prepareGet(url) {
+                    header(HttpHeaders.UserAgent, userAgent)
+                }.execute { response -> response.status.value }
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (_: Exception) {

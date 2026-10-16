@@ -40,6 +40,9 @@ class PlayerController(
     val state: StateFlow<PlayerState> = _state.asStateFlow()
 
     private var loadJob: Job? = null
+
+    /** Esito delle prove dell'ultimo brano: si aggiunge al messaggio se il lettore fallisce. */
+    private var lastDiagnostics: String? = null
     private var progressJob: Job? = null
 
     init {
@@ -97,10 +100,17 @@ class PlayerController(
                     .resolve(song.id)
                     .onSuccess { stream ->
                         val durationMs = stream.durationMs ?: song.duration?.let { it * 1000L }
+                        lastDiagnostics = stream.diagnostics
                         _state.update { it.copy(durationMs = durationMs ?: 0) }
                         engine.load(
                             url = stream.url,
-                            headers = mapOf("User-Agent" to stream.userAgent),
+                            headers =
+                                buildMap {
+                                    put("User-Agent", stream.userAgent)
+                                    // Il lettore aggiunge da solo il Range quando si sposta nel brano;
+                                    // questo vale per la prima richiesta, da inizio brano.
+                                    if (stream.requiresRangeHeader) put("Range", "bytes=0-")
+                                },
                             info =
                                 NowPlayingInfo(
                                     title = song.title,
@@ -150,7 +160,8 @@ class PlayerController(
     }
 
     override fun onError(message: String) {
-        _state.update { it.copy(isLoading = false, isPlaying = false, error = message) }
+        val details = lastDiagnostics?.let { "\n$it" }.orEmpty()
+        _state.update { it.copy(isLoading = false, isPlaying = false, error = message + details) }
     }
 
     override fun onRemoteNext() = next()
