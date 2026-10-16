@@ -1,0 +1,45 @@
+workflows:
+  ios-testflight:
+    name: iOS → TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: ArchiveTuneX ASC
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.justlorenzo.archivetunex
+      vars:
+        XCODE_PROJECT: "iosApp/iosApp.xcodeproj"
+        XCODE_SCHEME: "iosApp"
+        APP_STORE_APPLE_ID: 0000000000
+      xcode: latest
+      java: 21
+    cache:
+      cache_paths:
+        - $HOME/.gradle/caches
+        - $HOME/.gradle/wrapper
+        - $HOME/.konan
+    scripts:
+      - name: Rendi eseguibile gradlew
+        script: chmod +x gradlew
+      - name: Configura firma
+        script: xcode-project use-profiles
+      - name: Incrementa numero di build
+        script: |
+          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" || echo 0)
+          NEXT=$((LATEST + 1))
+          echo "Numero di build: $NEXT"
+          sed -i '' "s/^CURRENT_PROJECT_VERSION=.*/CURRENT_PROJECT_VERSION=$NEXT/" iosApp/Configuration/Config.xcconfig
+      - name: Compila IPA
+        script: |
+          xcode-project build-ipa \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: false
