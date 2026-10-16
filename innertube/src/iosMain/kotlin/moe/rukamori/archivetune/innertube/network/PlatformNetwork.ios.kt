@@ -14,7 +14,7 @@ import platform.Foundation.preferredLanguages
 /**
  * Su iOS proxy e DNS-over-HTTPS per ora non sono gestiti: si usa la rete di sistema.
  */
-internal actual fun createPlatformHttpClient(
+actual fun createPlatformHttpClient(
     proxy: ProxySettings?,
     dnsOverHttpsUrl: String?,
     configure: HttpClientConfig<*>.() -> Unit,

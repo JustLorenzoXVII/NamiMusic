@@ -21,6 +21,8 @@ actual fun createAudioEngine(): AudioEngine = IosAudioEngine()
 /** AVPlayer legge AAC in contenitore MP4 (m4a), non Opus/WebM. */
 actual fun canPlayMimeType(mimeType: String): Boolean = mimeType.startsWith("audio/mp4")
 
+actual fun preferredAudioItag(): Int? = 140
+
 /**
  * Motore audio iPhone: AVPlayer, con audio in background, schermata di blocco
  * (Now Playing) e comandi da cuffie / Centro di Controllo.
@@ -89,7 +91,7 @@ internal class IosAudioEngine : AudioEngine {
             AVURLAsset(
                 uRL = nsUrl,
                 // Il Range lo gestisce AVPlayer da solo.
-                options = mapOf<Any?, Any?>("AVURLAssetHTTPHeaderFieldsKey" to headers.filterKeys { it != "Range" }),
+                options = mapOf<Any?, Any?>("AVURLAssetHTTPHeaderFieldsKey" to headers.filterKeys { !it.equals("Range", ignoreCase = true) }),
             )
         player.replaceCurrentItemWithPlayerItem(AVPlayerItem(asset = asset))
         if (playWhenReady) player.play()

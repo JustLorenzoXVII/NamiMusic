@@ -64,3 +64,9 @@ expect fun createAudioEngine(): AudioEngine
  * Android legge sia Opus (WebM) sia AAC (MP4); AVPlayer su iPhone solo AAC (MP4).
  */
 expect fun canPlayMimeType(mimeType: String): Boolean
+
+/**
+ * Formato audio da chiedere a youtubei.js (null = il migliore).
+ * Su iPhone 140 = AAC 128 kbps in MP4, perché AVPlayer non legge Opus/WebM.
+ */
+expect fun preferredAudioItag(): Int?

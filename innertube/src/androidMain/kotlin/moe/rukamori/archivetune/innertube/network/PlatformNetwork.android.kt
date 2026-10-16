@@ -13,7 +13,7 @@ import java.net.InetSocketAddress
 import java.net.Proxy
 import java.util.Locale
 
-internal actual fun createPlatformHttpClient(
+actual fun createPlatformHttpClient(
     proxy: ProxySettings?,
     dnsOverHttpsUrl: String?,
     configure: HttpClientConfig<*>.() -> Unit,

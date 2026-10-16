@@ -34,6 +34,8 @@ actual fun createAudioEngine(): AudioEngine = AndroidAudioEngine(AndroidAppConte
 
 actual fun canPlayMimeType(mimeType: String): Boolean = true
 
+actual fun preferredAudioItag(): Int? = null
+
 /**
  * Motore audio Android: ExoPlayer (Media3).
  * La notifica e i controlli di sistema li gestisce [PlaybackService] con una MediaSession.
@@ -158,8 +160,8 @@ internal class AndroidAudioEngine(
                 .setConnectTimeoutMs(15_000)
                 .setReadTimeoutMs(30_000)
                 .apply {
-                    headers["User-Agent"]?.let { setUserAgent(it) }
-                    setDefaultRequestProperties(headers.filterKeys { it != "User-Agent" })
+                    headers.entries.firstOrNull { it.key.equals("User-Agent", ignoreCase = true) }?.let { setUserAgent(it.value) }
+                    setDefaultRequestProperties(headers.filterKeys { !it.equals("User-Agent", ignoreCase = true) })
                 }
         exoPlayer.setMediaSource(ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem))
         exoPlayer.prepare()

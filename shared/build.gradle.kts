@@ -49,6 +49,8 @@ kotlin {
         }
         commonMain.dependencies {
             api(project(":innertube"))
+            implementation(libs.quickjs.kt)
+            implementation(libs.kotlinx.serialization.json)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)

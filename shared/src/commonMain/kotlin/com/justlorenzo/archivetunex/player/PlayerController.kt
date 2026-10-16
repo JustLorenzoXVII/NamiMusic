@@ -99,18 +99,12 @@ class PlayerController(
                 StreamResolver
                     .resolve(song.id)
                     .onSuccess { stream ->
-                        val durationMs = stream.durationMs ?: song.duration?.let { it * 1000L }
-                        lastDiagnostics = stream.diagnostics
+                        val durationMs = (stream.durationSeconds ?: song.duration)?.let { it * 1000L }
+                        lastDiagnostics = "Formato: ${stream.mimeType} itag ${stream.formatId}, ${stream.bitrate / 1000} kbps"
                         _state.update { it.copy(durationMs = durationMs ?: 0) }
                         engine.load(
                             url = stream.url,
-                            headers =
-                                buildMap {
-                                    put("User-Agent", stream.userAgent)
-                                    // Il lettore aggiunge da solo il Range quando si sposta nel brano;
-                                    // questo vale per la prima richiesta, da inizio brano.
-                                    if (stream.requiresRangeHeader) put("Range", "bytes=0-")
-                                },
+                            headers = stream.requestHeaders,
                             info =
                                 NowPlayingInfo(
                                     title = song.title,

@@ -23,7 +23,7 @@ data class ProxySettings(
  * Crea il client HTTP con il motore giusto per la piattaforma:
  * OkHttp su Android, NSURLSession (Darwin) su iOS.
  */
-internal expect fun createPlatformHttpClient(
+expect fun createPlatformHttpClient(
     proxy: ProxySettings?,
     dnsOverHttpsUrl: String?,
     configure: HttpClientConfig<*>.() -> Unit,
