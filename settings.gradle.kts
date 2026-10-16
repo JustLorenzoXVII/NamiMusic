@@ -24,8 +24,21 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+        // NewPipe Extractor (solo Android) si scarica da JitPack
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = "JitPack"
+                    setUrl("https://jitpack.io")
+                }
+            }
+            filter {
+                includeGroup("com.github.TeamNewPipe")
+            }
+        }
     }
 }
 
 include(":androidApp")
 include(":shared")
+include(":innertube")
