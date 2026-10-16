@@ -47,7 +47,7 @@ import kotlin.math.min
 
 val DefaultThemeColor = Color(0xFFED5564)
 val LocalArchiveTuneFontPreference = staticCompositionLocalOf { AppFontPreference.DEFAULT }
-val LocalArchiveTuneFontFamily = staticCompositionLocalOf { FontFamily.Default }
+val LocalArchiveTuneFontFamily = staticCompositionLocalOf<FontFamily> { FontFamily.Default }
 
 @Composable
 fun rememberArchiveTuneLyricsFontFamily(): FontFamily {
