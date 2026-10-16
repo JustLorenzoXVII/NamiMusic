@@ -29,3 +29,17 @@ expect fun currentTimeZoneId(): String
 
 @OptIn(ExperimentalTime::class)
 internal fun currentTimeMillis(): Long = Clock.System.now().toEpochMilliseconds()
+
+/**
+ * quickjs-kt espone evaluate<T>() come estensione su Android e come metodo della classe su iOS:
+ * queste due funzioni nascondono la differenza.
+ */
+internal expect suspend fun com.dokar.quickjs.QuickJs.evaluateString(
+    code: String,
+    filename: String,
+): String
+
+internal expect suspend fun com.dokar.quickjs.QuickJs.evaluateUnit(
+    code: String,
+    filename: String,
+)

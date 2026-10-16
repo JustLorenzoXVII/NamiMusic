@@ -57,3 +57,15 @@ internal actual fun youtubeiCacheDirectory(): String {
 }
 
 actual fun currentTimeZoneId(): String = NSTimeZone.localTimeZone.name
+
+internal actual suspend fun com.dokar.quickjs.QuickJs.evaluateString(
+    code: String,
+    filename: String,
+): String = evaluate<String>(code, filename, false)
+
+internal actual suspend fun com.dokar.quickjs.QuickJs.evaluateUnit(
+    code: String,
+    filename: String,
+) {
+    evaluate<Unit>(code, filename, false)
+}

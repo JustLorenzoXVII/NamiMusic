@@ -12,7 +12,6 @@ import archivetunex.shared.generated.resources.Res
 import com.dokar.quickjs.QuickJs
 import com.dokar.quickjs.binding.asyncFunction
 import com.dokar.quickjs.binding.function
-import com.dokar.quickjs.evaluate
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -124,7 +123,7 @@ internal class YoutubeiQuickJsWorker(
         code: String,
         filename: String,
     ): String {
-        val response = runtime.evaluate<String>(code, filename)
+        val response = runtime.evaluateString(code, filename)
         currentCoroutineContext().ensureActive()
         val error = runCatching { YoutubeiJson.parseToJsonElement(response).jsonObject["error"] as? JsonObject }.getOrNull()
         val message = error?.get("message")?.jsonPrimitive?.contentOrNull?.trim()
@@ -184,7 +183,7 @@ internal class YoutubeiQuickJsWorker(
             }
             evaluateResource(runtime, RUNTIME_POLYFILLS_RESOURCE)
             evaluateResource(runtime, BUNDLE_RESOURCE)
-            val version = runtime.evaluate<String>("globalThis.ArchiveTuneYoutubei.version;")
+            val version = runtime.evaluateString("globalThis.ArchiveTuneYoutubei.version;", "version.js")
             check(version == YOUTUBEI_VERSION) { "Versione youtubei.js inattesa: $version" }
             quickJs = runtime
             initialized = true
@@ -202,7 +201,7 @@ internal class YoutubeiQuickJsWorker(
     ) {
         val source = Res.readBytes(path).decodeToString()
         traceStage("load-${path.substringAfterLast('/')}") {
-            runtime.evaluate<Unit>(source, path.substringAfterLast('/'))
+            runtime.evaluateUnit(source, path.substringAfterLast('/'))
         }
     }
 
