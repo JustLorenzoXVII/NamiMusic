@@ -163,7 +163,7 @@ private fun MiniPlayer(state: PlayerState) {
                 )
             }
             state.error?.let {
-                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error, maxLines = 4)
+                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error, maxLines = 14)
             }
 
             var dragging by remember { mutableStateOf<Float?>(null) }
