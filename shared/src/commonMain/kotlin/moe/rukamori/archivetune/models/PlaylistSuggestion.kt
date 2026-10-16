@@ -7,6 +7,7 @@
 
 package moe.rukamori.archivetune.models
 
+import moe.rukamori.archivetune.compat.System
 import moe.rukamori.archivetune.innertube.models.YTItem
 
 data class PlaylistSuggestion(

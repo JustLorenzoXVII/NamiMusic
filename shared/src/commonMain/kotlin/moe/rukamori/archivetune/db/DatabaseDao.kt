@@ -7,6 +7,7 @@
 
 package moe.rukamori.archivetune.db
 
+import moe.rukamori.archivetune.compat.System
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert

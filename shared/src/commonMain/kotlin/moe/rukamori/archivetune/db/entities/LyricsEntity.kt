@@ -7,6 +7,7 @@
 
 package moe.rukamori.archivetune.db.entities
 
+import moe.rukamori.archivetune.compat.System
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
