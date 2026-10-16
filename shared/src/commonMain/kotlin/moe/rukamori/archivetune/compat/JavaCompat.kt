@@ -37,6 +37,10 @@ object RandomStringUtils {
     fun nextAlphabetic(count: Int): String = randomAlphabetic(count)
 
     fun nextNumeric(count: Int): String = randomNumeric(count)
+
+    fun next(count: Int): String = random(count, letters = true, numbers = true)
+
+    fun next(count: Int, letters: Boolean, numbers: Boolean): String = random(count, letters, numbers)
 }
 
 /** Sostituto minimo di com.google.common.collect.ImmutableList (Guava). */

@@ -1220,7 +1220,7 @@ interface DatabaseDao {
 
             AlbumSortType.NAME -> {
                 albumsByTitle(ids).map { albums ->
-                    val collator = Collator.getInstance(java.util.Locale.getDefault())
+                    val collator = Collator.getInstance(moe.rukamori.archivetune.compat.Locale.getDefault())
                     collator.strength = Collator.PRIMARY
                     albums.sortedWith(compareBy(collator) { it.album.title })
                 }
@@ -1228,7 +1228,7 @@ interface DatabaseDao {
 
             AlbumSortType.ARTIST -> {
                 albumsByRowId(ids).map { albums ->
-                    val collator = Collator.getInstance(java.util.Locale.getDefault())
+                    val collator = Collator.getInstance(moe.rukamori.archivetune.compat.Locale.getDefault())
                     collator.strength = Collator.PRIMARY
                     albums.sortedWith(compareBy(collator) { album -> album.artists.joinToString("") { artist -> artist.name } })
                 }
@@ -1924,7 +1924,7 @@ interface DatabaseDao {
         }
         albumPage.songs
             .map(SongItem::toMediaMetadata)
-            .onEach(::insert)
+            .onEach { insert(it) }
             .onEach {
                 val existingSong = getSongByIdBlocking(it.id)
                 if (existingSong != null) {
@@ -1936,7 +1936,7 @@ interface DatabaseDao {
                     albumId = albumPage.album.browseId,
                     index = index,
                 )
-            }.forEach(::upsert)
+            }.forEach { upsert(it) }
         albumPage.album.artists
             ?.map { artist ->
                 ArtistEntity(
@@ -1945,14 +1945,14 @@ interface DatabaseDao {
                             ?: ArtistEntity.generateArtistId(),
                     name = artist.name,
                 )
-            }?.onEach(::insert)
+            }?.onEach { insert(it) }
             ?.mapIndexed { index, artist ->
                 AlbumArtistMap(
                     albumId = albumPage.album.browseId,
                     artistId = artist.id,
                     order = index,
                 )
-            }?.forEach(::insert)
+            }?.forEach { insert(it) }
         reconcileLocalAlbum(albumPage.album.browseId)
     }
 
@@ -1973,7 +1973,7 @@ interface DatabaseDao {
                 isPodcast = mediaMetadata.isPodcast,
             ),
         )
-        songArtistMap(song.id).forEach(::delete)
+        songArtistMap(song.id).forEach { delete(it) }
         mediaMetadata.artists.forEachIndexed { index, artist ->
             val artistId = artist.id ?: artistByName(artist.name)?.id ?: ArtistEntity.generateArtistId()
 
@@ -2061,7 +2061,7 @@ interface DatabaseDao {
         clearRemoteAlbumSongs(album.id)
         albumPage.songs
             .map(SongItem::toMediaMetadata)
-            .onEach(::insert)
+            .onEach { insert(it) }
             .onEach {
                 val existingSong = getSongByIdBlocking(it.id)
                 if (existingSong != null) {
@@ -2073,11 +2073,11 @@ interface DatabaseDao {
                     albumId = albumPage.album.browseId,
                     index = index,
                 )
-            }.forEach(::upsert)
+            }.forEach { upsert(it) }
 
         albumPage.album.artists?.let { artists ->
             // Recreate album artists
-            albumArtistMaps(album.id).forEach(::delete)
+            albumArtistMaps(album.id).forEach { delete(it) }
             artists
                 .map { artist ->
                     ArtistEntity(
@@ -2086,14 +2086,14 @@ interface DatabaseDao {
                                 ?: ArtistEntity.generateArtistId(),
                         name = artist.name,
                     )
-                }.onEach(::insert)
+                }.onEach { insert(it) }
                 .mapIndexed { index, artist ->
                     AlbumArtistMap(
                         albumId = albumPage.album.browseId,
                         artistId = artist.id,
                         order = index,
                     )
-                }.forEach(::insert)
+                }.forEach { insert(it) }
         }
         reconcileLocalAlbum(albumPage.album.browseId)
     }

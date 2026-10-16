@@ -57,6 +57,7 @@ kotlin {
             implementation(libs.datastore.preferences.core)
             implementation(libs.kotlinx.datetime)
             implementation(libs.room.runtime)
+            implementation(libs.material.icons.extended)
             implementation(libs.sqlite.bundled)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
