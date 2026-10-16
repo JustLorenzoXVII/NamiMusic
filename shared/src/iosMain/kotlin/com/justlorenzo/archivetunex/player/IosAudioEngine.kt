@@ -88,7 +88,8 @@ internal class IosAudioEngine : AudioEngine {
         val asset =
             AVURLAsset(
                 uRL = nsUrl,
-                options = mapOf<Any?, Any?>("AVURLAssetHTTPHeaderFieldsKey" to headers),
+                // Il Range lo gestisce AVPlayer da solo.
+                options = mapOf<Any?, Any?>("AVURLAssetHTTPHeaderFieldsKey" to headers.filterKeys { it != "Range" }),
             )
         player.replaceCurrentItemWithPlayerItem(AVPlayerItem(asset = asset))
         if (playWhenReady) player.play()
