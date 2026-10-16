@@ -1,0 +1,61 @@
+package com.justlorenzo.archivetunex.player
+
+/** Dati del brano mostrati nella schermata di blocco / notifica. */
+data class NowPlayingInfo(
+    val title: String,
+    val artist: String,
+    val artworkUrl: String?,
+    val durationMs: Long?,
+)
+
+/**
+ * Il "motore" audio della piattaforma: ExoPlayer (Media3) su Android, AVPlayer su iPhone.
+ * Riproduce un solo brano alla volta; la coda la gestisce [PlayerController] nel codice comune.
+ */
+interface AudioEngine {
+    interface Listener {
+        fun onIsPlayingChanged(isPlaying: Boolean)
+
+        fun onBufferingChanged(isBuffering: Boolean)
+
+        fun onEnded()
+
+        fun onError(message: String)
+
+        /** Comandi dalla notifica, dalla schermata di blocco o dalle cuffie. */
+        fun onRemoteNext()
+
+        fun onRemotePrevious()
+    }
+
+    var listener: Listener?
+
+    /** Posizione corrente in millisecondi. */
+    val positionMs: Long
+
+    /** Durata del brano in millisecondi, se nota. */
+    val durationMs: Long?
+
+    fun load(
+        url: String,
+        info: NowPlayingInfo,
+        playWhenReady: Boolean,
+    )
+
+    fun play()
+
+    fun pause()
+
+    fun seekTo(positionMs: Long)
+
+    fun stop()
+}
+
+/** Crea il motore audio della piattaforma. */
+expect fun createAudioEngine(): AudioEngine
+
+/**
+ * Formati audio che la piattaforma sa riprodurre.
+ * Android legge sia Opus (WebM) sia AAC (MP4); AVPlayer su iPhone solo AAC (MP4).
+ */
+expect fun canPlayMimeType(mimeType: String): Boolean

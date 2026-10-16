@@ -41,6 +41,9 @@ kotlin {
     
     sourceSets {
         androidMain.dependencies {
+            implementation(libs.media3.exoplayer)
+            implementation(libs.media3.session)
+            implementation(libs.androidx.core.ktx)
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
         }
