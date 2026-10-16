@@ -7,6 +7,7 @@
 
 package moe.rukamori.archivetune.db.entities
 
+import kotlinx.coroutines.IO
 import androidx.compose.runtime.Immutable
 import androidx.room.ColumnInfo
 import androidx.room.Entity

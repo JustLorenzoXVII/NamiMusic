@@ -100,6 +100,22 @@ internal class AndroidAudioEngine(
             override fun seekToPreviousMediaItem() {
                 listener?.onRemotePrevious()
             }
+
+            override fun play() {
+                listener?.onRemotePlay() ?: super.play()
+            }
+
+            override fun pause() {
+                listener?.onRemotePause() ?: super.pause()
+            }
+
+            override fun setPlayWhenReady(playWhenReady: Boolean) {
+                if (playWhenReady) play() else pause()
+            }
+
+            override fun seekTo(positionMs: Long) {
+                listener?.onRemoteSeek(positionMs) ?: super.seekTo(positionMs)
+            }
         }
 
     private var controllerFuture: ListenableFuture<MediaController>? = null
@@ -168,6 +184,21 @@ internal class AndroidAudioEngine(
         exoPlayer.playWhenReady = playWhenReady
         connectToService()
     }
+
+    override val bufferedPositionMs: Long
+        get() = exoPlayer.bufferedPosition
+
+    override var volume: Float
+        get() = exoPlayer.volume
+        set(value) {
+            exoPlayer.volume = value
+        }
+
+    override var speed: Float
+        get() = exoPlayer.playbackParameters.speed
+        set(value) {
+            exoPlayer.setPlaybackSpeed(value)
+        }
 
     override fun play() {
         if (exoPlayer.playbackState == Player.STATE_ENDED) exoPlayer.seekTo(0)

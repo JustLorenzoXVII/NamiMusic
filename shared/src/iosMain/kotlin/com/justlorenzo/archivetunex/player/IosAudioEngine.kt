@@ -1,6 +1,8 @@
 package com.justlorenzo.archivetunex.player
 
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.readValue
+import kotlinx.cinterop.useContents
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -100,8 +102,34 @@ internal class IosAudioEngine : AudioEngine {
         loadArtwork(info.artworkUrl)
     }
 
+    override val bufferedPositionMs: Long
+        get() {
+            val item = player.currentItem ?: return 0
+            var end = 0.0
+            item.loadedTimeRanges.forEach { value ->
+                val range = (value as NSValue).CMTimeRangeValue
+                range.useContents {
+                    val rangeEnd = CMTimeGetSeconds(start.readValue()) + CMTimeGetSeconds(duration.readValue())
+                    if (!rangeEnd.isNaN() && rangeEnd > end) end = rangeEnd
+                }
+            }
+            return (end * 1000).toLong()
+        }
+
+    override var volume: Float
+        get() = player.volume
+        set(value) {
+            player.volume = value
+        }
+
+    override var speed: Float = 1f
+        set(value) {
+            field = value
+            if (player.rate > 0f) player.rate = value
+        }
+
     override fun play() {
-        player.play()
+        player.playImmediatelyAtRate(speed)
         updateNowPlaying()
     }
 
@@ -185,15 +213,19 @@ internal class IosAudioEngine : AudioEngine {
     private fun setUpRemoteCommands() {
         val center = MPRemoteCommandCenter.sharedCommandCenter()
         center.playCommand.addTargetWithHandler { _ ->
-            play()
+            listener?.onRemotePlay() ?: play()
             MPRemoteCommandHandlerStatusSuccess
         }
         center.pauseCommand.addTargetWithHandler { _ ->
-            pause()
+            listener?.onRemotePause() ?: pause()
             MPRemoteCommandHandlerStatusSuccess
         }
         center.togglePlayPauseCommand.addTargetWithHandler { _ ->
-            if (player.rate > 0f) pause() else play()
+            if (player.rate > 0f) {
+                listener?.onRemotePause() ?: pause()
+            } else {
+                listener?.onRemotePlay() ?: play()
+            }
             MPRemoteCommandHandlerStatusSuccess
         }
         center.nextTrackCommand.addTargetWithHandler { _ ->
@@ -209,7 +241,8 @@ internal class IosAudioEngine : AudioEngine {
             if (positionEvent == null) {
                 MPRemoteCommandHandlerStatusCommandFailed
             } else {
-                seekTo((positionEvent.positionTime * 1000).toLong())
+                val target = (positionEvent.positionTime * 1000).toLong()
+                listener?.onRemoteSeek(target) ?: seekTo(target)
                 MPRemoteCommandHandlerStatusSuccess
             }
         }

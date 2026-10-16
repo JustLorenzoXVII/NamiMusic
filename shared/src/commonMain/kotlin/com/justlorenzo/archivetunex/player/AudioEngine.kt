@@ -26,6 +26,13 @@ interface AudioEngine {
         fun onRemoteNext()
 
         fun onRemotePrevious()
+
+        /** Play/pausa/posizione dalla schermata di blocco, dalla notifica o dalle cuffie. */
+        fun onRemotePlay() {}
+
+        fun onRemotePause() {}
+
+        fun onRemoteSeek(positionMs: Long) {}
     }
 
     var listener: Listener?
@@ -46,6 +53,15 @@ interface AudioEngine {
         info: NowPlayingInfo,
         playWhenReady: Boolean,
     )
+
+    /** Fin dove è già stato scaricato il brano, in millisecondi. */
+    val bufferedPositionMs: Long
+
+    /** Volume 0..1. */
+    var volume: Float
+
+    /** Velocità di riproduzione (1 = normale). */
+    var speed: Float
 
     fun play()
 

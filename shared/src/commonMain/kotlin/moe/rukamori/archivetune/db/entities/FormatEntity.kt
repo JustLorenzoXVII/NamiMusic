@@ -7,6 +7,7 @@
 
 package moe.rukamori.archivetune.db.entities
 
+import moe.rukamori.archivetune.compat.format
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlin.math.roundToInt
@@ -77,7 +78,7 @@ fun FormatEntity.formattedFileSize(): String =
         if (rounded == rounded.toLong().toDouble()) {
             "${rounded.toLong()} ${units[unitIndex]}"
         } else {
-            String.format(java.util.Locale.US, "%.1f %s", rounded, units[unitIndex])
+            String.format(moe.rukamori.archivetune.compat.Locale.US, "%.1f %s", rounded, units[unitIndex])
         }
     } ?: ""
 

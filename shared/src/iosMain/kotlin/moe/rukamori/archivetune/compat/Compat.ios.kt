@@ -1,6 +1,6 @@
 package moe.rukamori.archivetune.compat
 
-import platform.Foundation.NSLog
+import platform.Foundation.*
 
 actual interface Serializable
 
