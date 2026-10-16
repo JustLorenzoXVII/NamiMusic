@@ -100,6 +100,7 @@ class PlayerController(
                         _state.update { it.copy(durationMs = durationMs ?: 0) }
                         engine.load(
                             url = stream.url,
+                            headers = mapOf("User-Agent" to stream.userAgent),
                             info =
                                 NowPlayingInfo(
                                     title = song.title,

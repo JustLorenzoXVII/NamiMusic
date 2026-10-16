@@ -13,6 +13,8 @@ data class ResolvedStream(
     val bitrate: Int,
     val durationMs: Long?,
     val clientName: String,
+    /** User-Agent del client YouTube che ha dato l'URL: va usato anche per scaricare l'audio. */
+    val userAgent: String,
 )
 
 /**
@@ -64,6 +66,7 @@ object StreamResolver {
                         bitrate = format.bitrate,
                         durationMs = format.approxDurationMs?.toLongOrNull(),
                         clientName = client.clientName,
+                        userAgent = client.userAgent,
                     ),
                 )
             } catch (cancellation: CancellationException) {

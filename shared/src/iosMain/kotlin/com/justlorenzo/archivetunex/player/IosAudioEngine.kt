@@ -72,6 +72,7 @@ internal class IosAudioEngine : AudioEngine {
 
     override fun load(
         url: String,
+        headers: Map<String, String>,
         info: NowPlayingInfo,
         playWhenReady: Boolean,
     ) {
@@ -83,7 +84,13 @@ internal class IosAudioEngine : AudioEngine {
         this.info = info
         artwork = null
         errorReported = false
-        player.replaceCurrentItemWithPlayerItem(AVPlayerItem(uRL = nsUrl))
+        // "AVURLAssetHTTPHeaderFieldsKey": chiave non documentata ma usata da tutti per gli header HTTP
+        val asset =
+            AVURLAsset(
+                uRL = nsUrl,
+                options = mapOf<Any?, Any?>("AVURLAssetHTTPHeaderFieldsKey" to headers),
+            )
+        player.replaceCurrentItemWithPlayerItem(AVPlayerItem(asset = asset))
         if (playWhenReady) player.play()
         startStateUpdates()
         updateNowPlaying()

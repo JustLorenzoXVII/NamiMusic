@@ -36,8 +36,13 @@ interface AudioEngine {
     /** Durata del brano in millisecondi, se nota. */
     val durationMs: Long?
 
+    /**
+     * @param headers intestazioni HTTP per lo stream: YouTube rifiuta (403) le richieste
+     * se lo User-Agent non corrisponde al client che ha chiesto l'URL.
+     */
     fun load(
         url: String,
+        headers: Map<String, String>,
         info: NowPlayingInfo,
         playWhenReady: Boolean,
     )

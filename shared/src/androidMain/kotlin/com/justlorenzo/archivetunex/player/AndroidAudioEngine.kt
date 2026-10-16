@@ -11,6 +11,9 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.HttpDataSource
+import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -117,7 +120,7 @@ internal class AndroidAudioEngine(
                 }
 
                 override fun onPlayerError(error: PlaybackException) {
-                    listener?.onError(error.message ?: error.errorCodeName)
+                    listener?.onError(error.describe())
                 }
             },
         )
@@ -131,6 +134,7 @@ internal class AndroidAudioEngine(
 
     override fun load(
         url: String,
+        headers: Map<String, String>,
         info: NowPlayingInfo,
         playWhenReady: Boolean,
     ) {
@@ -141,13 +145,23 @@ internal class AndroidAudioEngine(
                 .setArtist(info.artist)
                 .apply { info.artworkUrl?.let { setArtworkUri(it.toUri()) } }
                 .build()
-        exoPlayer.setMediaItem(
+        val mediaItem =
             MediaItem
                 .Builder()
                 .setUri(url)
                 .setMediaMetadata(metadata)
-                .build(),
-        )
+                .build()
+        val dataSourceFactory =
+            DefaultHttpDataSource
+                .Factory()
+                .setAllowCrossProtocolRedirects(true)
+                .setConnectTimeoutMs(15_000)
+                .setReadTimeoutMs(30_000)
+                .apply {
+                    headers["User-Agent"]?.let { setUserAgent(it) }
+                    setDefaultRequestProperties(headers.filterKeys { it != "User-Agent" })
+                }
+        exoPlayer.setMediaSource(ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem))
         exoPlayer.prepare()
         exoPlayer.playWhenReady = playWhenReady
         connectToService()
@@ -170,4 +184,16 @@ internal class AndroidAudioEngine(
         val token = SessionToken(context, ComponentName(context, PlaybackService::class.java))
         controllerFuture = MediaController.Builder(context, token).buildAsync()
     }
+}
+
+/** Messaggio leggibile, con il codice HTTP se YouTube ha rifiutato lo stream (es. 403). */
+private fun PlaybackException.describe(): String {
+    var cause: Throwable? = this
+    while (cause != null) {
+        if (cause is HttpDataSource.InvalidResponseCodeException) {
+            return "Errore stream: HTTP ${cause.responseCode} ${cause.responseMessage.orEmpty()}".trim()
+        }
+        cause = cause.cause
+    }
+    return listOfNotNull(errorCodeName, cause?.message ?: this.cause?.message).joinToString(": ")
 }
