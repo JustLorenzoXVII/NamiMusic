@@ -1,0 +1,82 @@
+# Compila il progetto su GitHub a ogni push, così gli errori si vedono subito
+# senza dover compilare a mano. Il log finisce nel branch "ci-logs".
+name: Controllo compilazione
+
+on:
+  push:
+    branches: [master]
+    paths-ignore:
+      - "**.md"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-check
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Prepara Gradle
+        run: |
+          chmod +x gradlew
+          rm -f gradle/gradle-daemon-jvm.properties
+          mkdir -p ~/.gradle
+          echo "org.gradle.jvmargs=-Xmx6g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8" > ~/.gradle/gradle.properties
+          echo "kotlin.native.enableKlibsCrossCompilation=true" >> ~/.gradle/gradle.properties
+
+      - name: Compila Android
+        id: android
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          ./gradlew :androidApp:assembleDebug --console=plain --continue 2>&1 | tee android.log
+
+      - name: Compila Kotlin per iOS (solo codice, senza Xcode)
+        id: ios
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          ./gradlew :shared:compileKotlinIosArm64 --console=plain --continue 2>&1 | tee ios.log
+
+      - name: Salva i log nel branch ci-logs
+        if: always()
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          mkdir -p /tmp/logs
+          cp android.log ios.log /tmp/logs/ 2>/dev/null || true
+          {
+            echo "commit: $SHA"
+            echo "android: ${{ steps.android.outcome }}"
+            echo "ios: ${{ steps.ios.outcome }}"
+          } > /tmp/logs/summary.txt
+          git config user.name "build-check"
+          git config user.email "build-check@users.noreply.github.com"
+          git fetch origin ci-logs || true
+          if git show-ref --verify --quiet refs/remotes/origin/ci-logs; then
+            git checkout -B ci-logs origin/ci-logs
+          else
+            git checkout --orphan ci-logs
+            git rm -rf . > /dev/null
+          fi
+          rm -rf ./*
+          cp /tmp/logs/* .
+          git add -A
+          git commit -m "Log compilazione $SHA" || true
+          git push origin ci-logs
+      - name: Esito
+        if: steps.android.outcome != 'success' || steps.ios.outcome != 'success'
+        run: exit 1
