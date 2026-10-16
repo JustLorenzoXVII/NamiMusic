@@ -77,6 +77,7 @@ import moe.rukamori.archivetune.utils.reportException
  */
 class MusicService(
     val database: MusicDatabase,
+    val downloadUtil: DownloadUtil,
 ) : Player.Listener {
     private val dataStore = AppContext.dataStore
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
@@ -120,7 +121,15 @@ class MusicService(
 
     private suspend fun resolveMedia(item: MediaItem): ResolvedMedia {
         val mediaId = item.mediaId
+        // Brano scaricato: si riproduce il file, senza rete.
+        downloadUtil.fileFor(mediaId)?.let { file ->
+            return ResolvedMedia(
+                url = "file://" + file.absolutePath,
+                durationMs = item.metadata?.duration?.takeIf { it > 0 }?.let { it * 1000L },
+            )
+        }
         val stream = withContext(Dispatchers.Default) { StreamResolver.resolve(mediaId) }.getOrThrow()
+        ioScope.launch { persistPlaybackMetadata(database, mediaId, stream) }
         return ResolvedMedia(
             url = stream.url,
             headers = stream.requestHeaders,

@@ -11,6 +11,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
@@ -179,7 +180,8 @@ internal class AndroidAudioEngine(
                     headers.entries.firstOrNull { it.key.equals("User-Agent", ignoreCase = true) }?.let { setUserAgent(it.value) }
                     setDefaultRequestProperties(headers.filterKeys { !it.equals("User-Agent", ignoreCase = true) })
                 }
-        exoPlayer.setMediaSource(ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem))
+        // DefaultDataSource legge sia http(s) sia i file scaricati (file://).
+        exoPlayer.setMediaSource(ProgressiveMediaSource.Factory(DefaultDataSource.Factory(context, dataSourceFactory)).createMediaSource(mediaItem))
         exoPlayer.prepare()
         exoPlayer.playWhenReady = playWhenReady
         connectToService()
