@@ -65,11 +65,13 @@ abstract class Context {
 
     companion object {
         const val PACKAGE_NAME = "com.justlorenzo.archivetunex"
+        const val CLIPBOARD_SERVICE = "clipboard"
+        const val MODE_PRIVATE = 0
     }
 }
 
 /** L'unico contesto dell'app. */
-object AppContext : Context() {
+object AppContext : Activity() {
     override val applicationContext: Context
         get() = this
 }

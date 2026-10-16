@@ -44,6 +44,7 @@ kotlin {
     
     sourceSets {
         androidMain.dependencies {
+            implementation(libs.accompanist.lyrics.ui)
             implementation(libs.media3.exoplayer)
             implementation(libs.media3.session)
             implementation(libs.androidx.core.ktx)
@@ -67,6 +68,7 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.shimmer)
+            implementation(libs.window.core)
             implementation(libs.accompanist.lyrics.core)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)

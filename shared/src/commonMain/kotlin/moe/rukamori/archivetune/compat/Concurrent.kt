@@ -9,7 +9,6 @@ import kotlin.concurrent.atomics.AtomicReference as KAtomicReference
 import kotlin.concurrent.atomics.fetchAndIncrement
 import kotlin.concurrent.atomics.incrementAndFetch
 import kotlin.concurrent.atomics.decrementAndFetch
-import kotlin.concurrent.atomics.addAndFetch
 
 /** java.util.concurrent.atomic.AtomicLong sui tipi atomici di Kotlin. */
 class AtomicLong(initialValue: Long = 0L) {

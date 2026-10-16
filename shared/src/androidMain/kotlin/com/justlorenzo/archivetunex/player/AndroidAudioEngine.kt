@@ -24,11 +24,15 @@ import com.google.common.util.concurrent.ListenableFuture
 @SuppressLint("StaticFieldLeak")
 internal object AndroidAppContext {
     lateinit var context: Context
+
+    /** L'Activity visibile, per vibrazione, schermo acceso e selettori di file. */
+    var activity: java.lang.ref.WeakReference<android.app.Activity>? = null
 }
 
 /** Da chiamare in MainActivity prima di mostrare l'interfaccia. */
 fun initArchiveTuneX(context: Context) {
     AndroidAppContext.context = context.applicationContext
+    if (context is android.app.Activity) AndroidAppContext.activity = java.lang.ref.WeakReference(context)
 }
 
 actual fun createAudioEngine(): AudioEngine = AndroidAudioEngine(AndroidAppContext.context)
