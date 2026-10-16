@@ -7,7 +7,6 @@
  * ArchiveTuneX: versione Kotlin Multiplatform (Android + iOS) del modulo morideobfuscator.
  */
 package moe.rukamori.archivetune.morideobfuscator.youtubei
-package moe.rukamori.archivetune.morideobfuscator.youtubei
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO

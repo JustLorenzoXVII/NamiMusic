@@ -7,7 +7,6 @@
  * ArchiveTuneX: versione Kotlin Multiplatform (Android + iOS) del modulo morideobfuscator.
  */
 package moe.rukamori.archivetune.morideobfuscator.youtubei
-package moe.rukamori.archivetune.morideobfuscator.youtubei
 
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.HttpTimeout
