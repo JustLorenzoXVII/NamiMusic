@@ -52,12 +52,23 @@ jobs:
           set -o pipefail
           ./gradlew :shared:compileKotlinIosArm64 --console=plain --continue 2>&1 | tee ios.log
 
+      - name: Firme delle API di quickjs-kt (diagnostica)
+        if: always()
+        continue-on-error: true
+        run: |
+          KLIB_TOOL=$(ls -d ~/.konan/kotlin-native-prebuilt-*/bin/klib | head -1)
+          for f in $(find ~/.gradle/caches -name "quickjs*iosarm64*.klib" | head -2) $(find ~/.gradle/caches -path "*quickjs-kt-iosarm64*" -name "*.klib" | head -2); do
+            echo "== $f"
+            "$KLIB_TOOL" dump-metadata "$f" 2>/dev/null | grep -nE "fun |class " | grep -iE "evaluate|function|QuickJs" | head -60
+          done > quickjs-api.log 2>&1 || true
+          find ~/.gradle/caches -iname "*quickjs*" -maxdepth 6 | head -20 >> quickjs-api.log
+
       - name: Salva i log nel branch ci-logs
         if: always()
         run: |
           SHA=$(git rev-parse --short HEAD)
           mkdir -p /tmp/logs
-          cp android.log ios.log /tmp/logs/ 2>/dev/null || true
+          cp android.log ios.log quickjs-api.log /tmp/logs/ 2>/dev/null || true
           {
             echo "commit: $SHA"
             echo "android: ${{ steps.android.outcome }}"
