@@ -7,6 +7,7 @@
 
 package moe.rukamori.archivetune.db.entities
 
+import kotlin.jvm.JvmOverloads
 import androidx.compose.runtime.Immutable
 import androidx.room.Embedded
 import androidx.room.Junction
