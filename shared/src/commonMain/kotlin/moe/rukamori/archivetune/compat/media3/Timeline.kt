@@ -51,6 +51,8 @@ abstract class Timeline {
         var defaultPositionMs: Long = 0
         var isSeekable: Boolean = true
         var isPlaceholder: Boolean = false
+        var isLive: Boolean = false
+        var isDynamic: Boolean = false
 
         companion object {
             val SINGLE_WINDOW_UID = Any()
