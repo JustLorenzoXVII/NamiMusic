@@ -197,7 +197,7 @@ fun SelectionSongMenu(
                     },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.cancel))
+                    Text(text = stringResource(Res.string.system_cancel))
                 }
 
                 TextButton(
@@ -214,7 +214,7 @@ fun SelectionSongMenu(
                     },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.ok))
+                    Text(text = stringResource(Res.string.system_ok))
                 }
             },
         )
@@ -745,7 +745,7 @@ fun SelectionMediaMetadataMenu(
                     },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.cancel))
+                    Text(text = stringResource(Res.string.system_cancel))
                 }
 
                 TextButton(
@@ -762,7 +762,7 @@ fun SelectionMediaMetadataMenu(
                     },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.ok))
+                    Text(text = stringResource(Res.string.system_ok))
                 }
             },
         )

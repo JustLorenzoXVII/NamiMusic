@@ -349,7 +349,7 @@ public fun PlaylistMenu(
                     },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.cancel))
+                    Text(text = stringResource(Res.string.system_cancel))
                 }
 
                 TextButton(
@@ -366,7 +366,7 @@ public fun PlaylistMenu(
                     },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.ok))
+                    Text(text = stringResource(Res.string.system_ok))
                 }
             },
         )
@@ -409,7 +409,7 @@ public fun PlaylistMenu(
                     onClick = { showHidePlaylistDialog = false },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.cancel))
+                    Text(text = stringResource(Res.string.system_cancel))
                 }
 
                 TextButton(
@@ -422,7 +422,7 @@ public fun PlaylistMenu(
                     },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.ok))
+                    Text(text = stringResource(Res.string.system_ok))
                 }
             },
         )
@@ -445,7 +445,7 @@ public fun PlaylistMenu(
                     },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.cancel))
+                    Text(text = stringResource(Res.string.system_cancel))
                 }
 
                 TextButton(
@@ -465,7 +465,7 @@ public fun PlaylistMenu(
                     },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.ok))
+                    Text(text = stringResource(Res.string.system_ok))
                 }
             },
         )

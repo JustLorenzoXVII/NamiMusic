@@ -78,3 +78,32 @@ actual fun openSystemEqualizerPanel(audioSessionId: Int) {
         runCatching { activity.startActivityForResult(intent, 0) }
     }
 }
+
+actual object DeviceVolume {
+    private val audioManager: android.media.AudioManager
+        get() = AndroidAppContext.context.getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
+
+    private fun minVolume(): Int =
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) audioManager.getStreamMinVolume(android.media.AudioManager.STREAM_MUSIC) else 0
+
+    actual fun fraction(): Float {
+        val min = minVolume()
+        val max = audioManager.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC).coerceAtLeast(min + 1)
+        val volume = audioManager.getStreamVolume(android.media.AudioManager.STREAM_MUSIC)
+        return ((volume - min).toFloat() / (max - min).toFloat()).coerceIn(0f, 1f)
+    }
+
+    actual fun setFraction(fraction: Float) {
+        val min = minVolume()
+        val max = audioManager.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC).coerceAtLeast(min + 1)
+        val safe = fraction.takeIf(Float::isFinite)?.coerceIn(0f, 1f) ?: return
+        val volume = (min + ((max - min) * safe).toInt()).coerceIn(min, max)
+        audioManager.setStreamVolume(android.media.AudioManager.STREAM_MUSIC, volume, 0)
+    }
+
+    actual fun isMuted(): Boolean = audioManager.getStreamVolume(android.media.AudioManager.STREAM_MUSIC) <= minVolume()
+}
+
+internal actual fun platformHasPermission(permission: String): Boolean =
+    androidx.core.content.ContextCompat.checkSelfPermission(AndroidAppContext.context, permission) ==
+        android.content.pm.PackageManager.PERMISSION_GRANTED

@@ -1168,7 +1168,7 @@ fun TempoPitchDialog(onDismiss: () -> Unit) {
                 onClick = onDismiss,
                 shapes = ButtonDefaults.shapes(),
             ) {
-                Text(stringResource(android.Res.string.ok))
+                Text(stringResource(Res.string.system_ok))
             }
         },
         text = {

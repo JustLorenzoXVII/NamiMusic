@@ -1058,4 +1058,6 @@
     <string name="scheduled_backup_load_failed">スケジュールされたバックアップ設定をロードできませんでした</string>
     <string name="scheduled_backup_update_failed">スケジュールされたバックアップ設定を保存できませんでした</string>
     <string name="gatekeeper_connection_blocked">ArchiveTune Remote によって接続がブロックされました。このアプリは正式な ArchiveTune ビルドとして検証できませんでした。 https://github.com/rukamori/ArchiveTune または https://t.me/ArchiveTuneGC から公式ビルドをインストールします。</string>
+    <string name="system_cancel">キャンセル</string>
+    <string name="system_ok">OK</string>
 </resources>

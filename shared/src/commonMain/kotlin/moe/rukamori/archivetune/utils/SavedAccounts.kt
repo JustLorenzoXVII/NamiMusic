@@ -7,6 +7,8 @@
 
 package moe.rukamori.archivetune.utils
 
+import moe.rukamori.archivetune.compat.getOrDefault
+
 import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString

@@ -200,7 +200,7 @@ fun ImportPlaylistDialog(
                         onDismiss()
                     },
                     shapes = ButtonDefaults.shapes(),
-                ) { Text(text = stringResource(android.Res.string.cancel)) }
+                ) { Text(text = stringResource(Res.string.system_cancel)) }
 
                 TextButton(
                     enabled = !isProcessingDuplicate,

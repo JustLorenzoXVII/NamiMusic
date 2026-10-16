@@ -106,7 +106,7 @@ fun ArtistSeparatorsDialog(
                     newSymbolInput = ""
                     showAddSymbolDialog = false
                 }, shapes = ButtonDefaults.shapes()) {
-                    Text(stringResource(android.Res.string.cancel))
+                    Text(stringResource(Res.string.system_cancel))
                 }
             },
         )
@@ -180,7 +180,7 @@ fun ArtistSeparatorsDialog(
                     horizontalArrangement = Arrangement.End,
                 ) {
                     TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) {
-                        Text(stringResource(android.Res.string.cancel))
+                        Text(stringResource(Res.string.system_cancel))
                     }
 
                     Spacer(modifier = Modifier.width(8.dp))

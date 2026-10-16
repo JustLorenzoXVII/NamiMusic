@@ -364,7 +364,7 @@ fun LyricsMenu(
                     },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(stringResource(android.Res.string.cancel))
+                    Text(stringResource(Res.string.system_cancel))
                 }
                 TextButton(
                     onClick = {
@@ -374,7 +374,7 @@ fun LyricsMenu(
                     },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(stringResource(android.Res.string.ok))
+                    Text(stringResource(Res.string.system_ok))
                 }
             },
         ) {
@@ -625,7 +625,7 @@ fun LyricsMenu(
                             },
                             shapes = ButtonDefaults.shapes(),
                         ) {
-                            Text(stringResource(android.Res.string.cancel))
+                            Text(stringResource(Res.string.system_cancel))
                         }
                         Spacer(Modifier.width(8.dp))
                         FilledTonalButton(

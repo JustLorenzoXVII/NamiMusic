@@ -350,3 +350,29 @@ class UUID private constructor(
         }
     }
 }
+
+/** HMAC-SHA1 (javax.crypto.Mac "HmacSHA1"). */
+fun hmacSha1(
+    key: ByteArray,
+    message: ByteArray,
+): ByteArray {
+    val blockSize = 64
+    var k = if (key.size > blockSize) Hashes.sha1(key) else key
+    if (k.size < blockSize) k = k.copyOf(blockSize)
+    val oKeyPad = ByteArray(blockSize) { (k[it].toInt() xor 0x5c).toByte() }
+    val iKeyPad = ByteArray(blockSize) { (k[it].toInt() xor 0x36).toByte() }
+    return Hashes.sha1(oKeyPad + Hashes.sha1(iKeyPad + message))
+}
+
+/** HMAC-SHA256 (javax.crypto.Mac "HmacSHA256"). */
+fun hmacSha256(
+    key: ByteArray,
+    message: ByteArray,
+): ByteArray {
+    val blockSize = 64
+    var k = if (key.size > blockSize) Hashes.sha256(key) else key
+    if (k.size < blockSize) k = k.copyOf(blockSize)
+    val oKeyPad = ByteArray(blockSize) { (k[it].toInt() xor 0x5c).toByte() }
+    val iKeyPad = ByteArray(blockSize) { (k[it].toInt() xor 0x36).toByte() }
+    return Hashes.sha256(oKeyPad + Hashes.sha256(iKeyPad + message))
+}

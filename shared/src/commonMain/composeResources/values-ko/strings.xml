@@ -910,4 +910,6 @@
     <string name="unhide">숨기기 해제</string>
     <string name="source">소스</string>
     <string name="enable_youlyplus_lyrics">YouLyPlus 자막 활성화</string>
+    <string name="system_cancel">취소</string>
+    <string name="system_ok">확인</string>
 </resources>

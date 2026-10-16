@@ -8,7 +8,7 @@
 package moe.rukamori.archivetune.utils
 
 import moe.rukamori.archivetune.compat.Context
-import org.json.JSONArray
+import moe.rukamori.archivetune.compat.JSONArray
 
 data class TranslatorLang(
     val name: String,

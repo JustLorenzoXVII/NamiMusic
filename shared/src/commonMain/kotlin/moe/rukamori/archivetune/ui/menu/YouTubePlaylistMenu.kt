@@ -360,7 +360,7 @@ fun YouTubePlaylistMenu(
                     onClick = { showRemoveDownloadDialog = false },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.cancel))
+                    Text(text = stringResource(Res.string.system_cancel))
                 }
                 TextButton(
                     onClick = {
@@ -376,7 +376,7 @@ fun YouTubePlaylistMenu(
                     },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.ok))
+                    Text(text = stringResource(Res.string.system_ok))
                 }
             },
         )

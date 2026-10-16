@@ -242,7 +242,7 @@ fun ActionPromptDialog(
                                 onClick = { onCancel() },
                                 shapes = ButtonDefaults.shapes(),
                             ) {
-                                Text(stringResource(android.Res.string.cancel))
+                                Text(stringResource(Res.string.system_cancel))
                             }
                         }
 
@@ -250,7 +250,7 @@ fun ActionPromptDialog(
                             onClick = { onConfirm() },
                             shapes = ButtonDefaults.shapes(),
                         ) {
-                            Text(stringResource(android.Res.string.ok))
+                            Text(stringResource(Res.string.system_ok))
                         }
                     }
                 }
@@ -359,7 +359,7 @@ fun TextFieldDialog(
         contentScrollable = true,
         buttons = {
             TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) {
-                Text(text = stringResource(android.Res.string.cancel))
+                Text(text = stringResource(Res.string.system_cancel))
             }
 
             val isValid =
@@ -380,7 +380,7 @@ fun TextFieldDialog(
                 },
                 shapes = ButtonDefaults.shapes(),
             ) {
-                Text(text = stringResource(android.Res.string.ok))
+                Text(text = stringResource(Res.string.system_ok))
             }
         },
     ) {
@@ -479,7 +479,7 @@ fun EditPlaylistDialog(
         contentScrollable = true,
         buttons = {
             TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) {
-                Text(text = stringResource(android.Res.string.cancel))
+                Text(text = stringResource(Res.string.system_cancel))
             }
             TextButton(
                 enabled = canSave,

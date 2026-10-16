@@ -70,3 +70,13 @@ internal actual fun platformSetKeepScreenOn(keepOn: Boolean) {
 }
 
 actual fun openSystemEqualizerPanel(audioSessionId: Int) = Unit
+
+actual object DeviceVolume {
+    actual fun fraction(): Float = platform.AVFAudio.AVAudioSession.sharedInstance().outputVolume
+
+    actual fun setFraction(fraction: Float) = Unit
+
+    actual fun isMuted(): Boolean = fraction() <= 0f
+}
+
+internal actual fun platformHasPermission(permission: String): Boolean = true

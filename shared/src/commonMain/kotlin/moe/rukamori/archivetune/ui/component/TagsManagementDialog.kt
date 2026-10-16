@@ -9,6 +9,8 @@
 
 package moe.rukamori.archivetune.ui.component
 
+import moe.rukamori.archivetune.compat.getOrDefault
+
 import archivetunex.shared.generated.resources.*
 
 import androidx.compose.animation.animateColorAsState
@@ -411,7 +413,7 @@ private fun AddEditTagDialog(
                     onClick = onDismiss,
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.cancel))
+                    Text(text = stringResource(Res.string.system_cancel))
                 }
 
                 Button(
@@ -465,7 +467,7 @@ private fun PlaylistTagColorPickerDialog(
                     onClick = onDismiss,
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(text = stringResource(android.Res.string.cancel))
+                    Text(text = stringResource(Res.string.system_cancel))
                 }
             },
         )

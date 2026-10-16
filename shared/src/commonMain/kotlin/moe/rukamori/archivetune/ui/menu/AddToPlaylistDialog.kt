@@ -601,7 +601,7 @@ fun AddToPlaylistDialog(
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) {
-                                Text(stringResource(android.Res.string.cancel))
+                                Text(stringResource(Res.string.system_cancel))
                             }
 
                             Button(
@@ -778,7 +778,7 @@ fun AddToPlaylistDialog(
                 }
 
                 TextButton(onClick = { showDuplicateDialog = false }, shapes = ButtonDefaults.shapes()) {
-                    Text(stringResource(android.Res.string.cancel))
+                    Text(stringResource(Res.string.system_cancel))
                 }
             },
             onDismiss = { showDuplicateDialog = false },

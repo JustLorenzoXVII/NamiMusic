@@ -143,7 +143,7 @@ fun SongSourceReplacementDialog(
                             ) {
                                 Icon(
                                     painter = painterResource(Res.drawable.close),
-                                    contentDescription = stringResource(android.Res.string.cancel),
+                                    contentDescription = stringResource(Res.string.system_cancel),
                                 )
                             }
                         },
@@ -164,7 +164,7 @@ fun SongSourceReplacementDialog(
                                 onClick = onDismiss,
                                 enabled = !isSaving,
                             ) {
-                                Text(stringResource(android.Res.string.cancel))
+                                Text(stringResource(Res.string.system_cancel))
                             }
                             Button(
                                 onClick = { selectedSong?.let(onConfirm) },

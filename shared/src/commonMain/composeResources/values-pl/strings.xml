@@ -106,4 +106,6 @@
     <string name="shortest_duration">Najkrótszy czas trwania</string>
     <string name="year_sort">Rok</string>
     <string name="duration_sort">Czas trwania</string>
+    <string name="system_cancel">Anuluj</string>
+    <string name="system_ok">OK</string>
 </resources>

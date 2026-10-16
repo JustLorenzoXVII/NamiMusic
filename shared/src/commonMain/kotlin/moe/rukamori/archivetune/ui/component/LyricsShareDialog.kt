@@ -87,7 +87,7 @@ import androidx.window.core.layout.WindowSizeClass
 import coil3.ImageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
-import coil3.toBitmap
+import moe.rukamori.archivetune.compat.toBitmap
 import moe.rukamori.archivetune.compat.ImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

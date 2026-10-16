@@ -28,7 +28,12 @@ internal actual fun platformStartActivity(intent: Intent) {
             openUrl("https://www.google.com/search?q=" + Uri.encode(query))
         }
 
-        else -> target.data?.let { openUrl(it.toString()) }
+        else ->
+            if (target.action?.startsWith("android.settings.") == true) {
+                openUrl(platform.UIKit.UIApplicationOpenSettingsURLString)
+            } else {
+                target.data?.let { openUrl(it.toString()) }
+            }
     }
 }
 

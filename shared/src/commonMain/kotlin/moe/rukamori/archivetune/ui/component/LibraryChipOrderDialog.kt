@@ -66,14 +66,14 @@ fun LibraryChipOrderDialog(
                 onClick = onDismiss,
                 shapes = ButtonDefaults.shapes(),
             ) {
-                Text(stringResource(android.Res.string.cancel))
+                Text(stringResource(Res.string.system_cancel))
             }
             Spacer(Modifier.weight(1f))
             TextButton(
                 onClick = { onConfirm(filters.toList()) },
                 shapes = ButtonDefaults.shapes(),
             ) {
-                Text(stringResource(android.Res.string.ok))
+                Text(stringResource(Res.string.system_ok))
             }
         },
     ) {

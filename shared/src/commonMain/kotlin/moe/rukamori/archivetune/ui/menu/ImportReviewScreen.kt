@@ -180,7 +180,7 @@ fun ImportReviewScreen(
                             IconButton(onClick = onCancel) {
                                 Icon(
                                     painter = painterResource(Res.drawable.close),
-                                    contentDescription = stringResource(android.Res.string.cancel),
+                                    contentDescription = stringResource(Res.string.system_cancel),
                                 )
                             }
                         },
@@ -198,7 +198,7 @@ fun ImportReviewScreen(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             TextButton(onClick = onCancel) {
-                                Text(stringResource(android.Res.string.cancel))
+                                Text(stringResource(Res.string.system_cancel))
                             }
                             Button(
                                 onClick = {

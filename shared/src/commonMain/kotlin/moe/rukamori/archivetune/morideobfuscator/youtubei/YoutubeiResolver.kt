@@ -8,6 +8,8 @@
  */
 package moe.rukamori.archivetune.morideobfuscator.youtubei
 
+import moe.rukamori.archivetune.compat.getOrDefault
+
 import io.ktor.http.Url
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope

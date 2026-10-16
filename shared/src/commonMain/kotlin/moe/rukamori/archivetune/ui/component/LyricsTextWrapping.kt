@@ -7,6 +7,8 @@
 
 package moe.rukamori.archivetune.ui.component
 
+import moe.rukamori.archivetune.compat.UnicodeScript
+
 import moe.rukamori.archivetune.compat.BreakIterator
 import moe.rukamori.archivetune.compat.Locale
 import moe.rukamori.archivetune.compat.uppercase
@@ -56,11 +58,11 @@ internal fun String.toLyricsWrappingUnits(): List<String> {
 }
 
 private fun Int.isCjkCodePoint(): Boolean =
-    when (Character.UnicodeScript.of(this)) {
-        Character.UnicodeScript.HAN,
-        Character.UnicodeScript.HANGUL,
-        Character.UnicodeScript.HIRAGANA,
-        Character.UnicodeScript.KATAKANA,
+    when (UnicodeScript.of(this)) {
+        UnicodeScript.HAN,
+        UnicodeScript.HANGUL,
+        UnicodeScript.HIRAGANA,
+        UnicodeScript.KATAKANA,
         -> true
 
         else -> false

@@ -7,6 +7,8 @@
 
 package moe.rukamori.archivetune.playback
 
+import moe.rukamori.archivetune.compat.getOrDefault
+
 import com.justlorenzo.archivetunex.player.StreamResolver
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
@@ -341,4 +343,21 @@ suspend fun persistPlaybackMetadata(
     } catch (failure: Exception) {
         Timber.w(failure, "Failed to persist playback metadata")
     }
+}
+
+/** I download visti come la cache Media3 dell'originale (@DownloadCache). */
+class DownloadsCache(
+    private val downloadUtil: DownloadUtil,
+) : moe.rukamori.archivetune.compat.media3.Cache {
+    override val keys: Set<String>
+        get() = downloadUtil.downloads.value.filterValues { it.state == Download.STATE_COMPLETED }.keys
+
+    override val cacheSpace: Long
+        get() = keys.sumOf { downloadUtil.fileFor(it)?.length() ?: 0L }
+
+    override fun isCached(key: String, position: Long, length: Long): Boolean = downloadUtil.isDownloaded(key)
+
+    override fun getCachedBytes(key: String, position: Long, length: Long): Long = downloadUtil.fileFor(key)?.length() ?: 0L
+
+    override fun removeResource(key: String) = downloadUtil.removeDownload(key)
 }

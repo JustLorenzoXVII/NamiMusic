@@ -234,3 +234,83 @@ internal expect fun platformSetKeepScreenOn(keepOn: Boolean)
 
 /** Apre il pannello dell'equalizzatore di sistema (solo Android). */
 expect fun openSystemEqualizerPanel(audioSessionId: Int)
+
+/** Volume musica del dispositivo (AudioManager.STREAM_MUSIC su Android, volume di sistema su iPhone). */
+expect object DeviceVolume {
+    /** Volume corrente 0..1. */
+    fun fraction(): Float
+
+    /** Imposta il volume 0..1 (su iPhone non è permesso alle app: non fa nulla). */
+    fun setFraction(fraction: Float)
+
+    fun isMuted(): Boolean
+}
+
+/** androidx.media3.ui.AspectRatioFrameLayout (solo le costanti di ridimensionamento). */
+object AspectRatioFrameLayout {
+    const val RESIZE_MODE_FIT = 0
+    const val RESIZE_MODE_FIXED_WIDTH = 1
+    const val RESIZE_MODE_FIXED_HEIGHT = 2
+    const val RESIZE_MODE_FILL = 3
+    const val RESIZE_MODE_ZOOM = 4
+}
+
+/** android.os.Looper: distingue solo il thread principale. */
+class Looper private constructor(
+    val isMain: Boolean,
+) {
+    companion object {
+        private val main = Looper(true)
+        private val background = Looper(false)
+
+        fun getMainLooper(): Looper = main
+
+        fun myLooper(): Looper? = if (isMainThread()) main else background
+    }
+}
+
+/** android.os.Handler: esegue sul thread principale. */
+class Handler(
+    @Suppress("UNUSED_PARAMETER") looper: Looper = Looper.getMainLooper(),
+) {
+    private val cancelled = mutableSetOf<() -> Unit>()
+
+    fun post(action: () -> Unit): Boolean {
+        platformRunOnMain(action)
+        return true
+    }
+
+    fun postDelayed(action: () -> Unit, delayMillis: Long): Boolean {
+        cancelled.remove(action)
+        platformRunOnMainDelayed({ if (action !in cancelled) action() }, delayMillis)
+        return true
+    }
+
+    fun removeCallbacks(action: () -> Unit) {
+        cancelled += action
+    }
+
+    fun removeCallbacksAndMessages(@Suppress("UNUSED_PARAMETER") token: Any?) = Unit
+}
+
+/** java.text.NumberFormat (numeri interi con separatore delle migliaia). */
+class NumberFormat private constructor(
+    private val decimals: Int,
+) {
+    fun format(value: Number): String {
+        val pattern = if (decimals > 0) "#,##0." + "#".repeat(decimals) else "#,###"
+        return DecimalFormat(pattern).format(value.toDouble()).ifEmpty { "0" }
+    }
+
+    fun format(value: Long): String = format(value as Number)
+
+    fun format(value: Int): String = format(value as Number)
+
+    companion object {
+        fun getIntegerInstance(@Suppress("UNUSED_PARAMETER") locale: Locale? = null): NumberFormat = NumberFormat(0)
+
+        fun getInstance(@Suppress("UNUSED_PARAMETER") locale: Locale? = null): NumberFormat = NumberFormat(3)
+
+        fun getNumberInstance(@Suppress("UNUSED_PARAMETER") locale: Locale? = null): NumberFormat = NumberFormat(3)
+    }
+}

@@ -562,10 +562,10 @@ private fun <T : Any> MultiSelectPreferenceBottomSheet(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 TextButton(onClick = onCancel) {
-                    Text(stringResource(android.Res.string.cancel))
+                    Text(stringResource(Res.string.system_cancel))
                 }
                 TextButton(onClick = onConfirm) {
-                    Text(stringResource(android.Res.string.ok))
+                    Text(stringResource(Res.string.system_ok))
                 }
             }
         }

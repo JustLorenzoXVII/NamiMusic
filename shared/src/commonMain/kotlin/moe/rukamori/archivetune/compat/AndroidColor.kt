@@ -111,3 +111,28 @@ object AndroidColor {
 
 /** Equivalente di androidx.core.graphics.toColorInt. */
 fun String.toColorInt(): Int = AndroidColor.parseColor(this)
+
+/** androidx.core.graphics.ColorUtils (luminanza e miscela di colori ARGB). */
+object ColorUtils {
+    fun calculateLuminance(color: Int): Double {
+        fun channel(c: Int): Double {
+            val v = c / 255.0
+            return if (v < 0.03928) v / 12.92 else ((v + 0.055) / 1.055).let { kotlin.math.exp(2.4 * kotlin.math.ln(it)) }
+        }
+        val r = channel((color shr 16) and 0xFF)
+        val g = channel((color shr 8) and 0xFF)
+        val b = channel(color and 0xFF)
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
+    }
+
+    fun blendARGB(color1: Int, color2: Int, ratio: Float): Int {
+        val inverse = 1f - ratio
+        val a = ((color1 ushr 24) and 0xFF) * inverse + ((color2 ushr 24) and 0xFF) * ratio
+        val r = ((color1 shr 16) and 0xFF) * inverse + ((color2 shr 16) and 0xFF) * ratio
+        val g = ((color1 shr 8) and 0xFF) * inverse + ((color2 shr 8) and 0xFF) * ratio
+        val b = (color1 and 0xFF) * inverse + (color2 and 0xFF) * ratio
+        return (a.toInt() shl 24) or (r.toInt() shl 16) or (g.toInt() shl 8) or b.toInt()
+    }
+
+    fun setAlphaComponent(color: Int, alpha: Int): Int = (color and 0x00FFFFFF) or (alpha shl 24)
+}

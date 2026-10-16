@@ -55,3 +55,11 @@ open class PlaybackException(
             }
     }
 }
+
+/** androidx.media3.datasource.HttpDataSource (solo l'eccezione per i codici HTTP). */
+object HttpDataSource {
+    class InvalidResponseCodeException(
+        val responseCode: Int,
+        val responseMessage: String? = null,
+    ) : kotlinx.io.IOException("Response code: $responseCode")
+}

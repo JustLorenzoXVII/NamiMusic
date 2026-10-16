@@ -169,3 +169,9 @@ internal expect fun showPlatformToast(
     text: String,
     long: Boolean,
 ): Boolean
+
+/** Context.getDatabasePath: il file del database dell'app. */
+fun Context.getDatabasePath(name: String): File = File(moe.rukamori.archivetune.db.platformDatabasePath(name))
+
+/** File.resolveSibling di Kotlin/JVM. */
+fun File.resolveSibling(name: String): File = File(parentFile, name)
