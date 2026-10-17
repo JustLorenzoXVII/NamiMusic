@@ -77,8 +77,9 @@ workflows:
           echo "Numero di build: $NEXT"
           echo "APP_BUILD_NUMBER=$NEXT" >> $CM_ENV
 
-      # KOTLIN_FRAMEWORK_BUILD_TYPE=debug: la parte Kotlin viene collegata in modalità debug anche
-      # nell'archivio. In release l'ottimizzazione dell'intero programma (LTO) finisce la memoria
+      # KOTLIN_FRAMEWORK_BUILD_TYPE=Debug: lo script "Compile Kotlin Framework" del progetto Xcode
+      # passa a Gradle CONFIGURATION=Debug, così la parte Kotlin viene collegata in modalità debug
+      # anche nell'archivio (Swift e firma restano in Release). In release l'ottimizzazione dell'intero programma (LTO) finisce la memoria
       # del Mac mini M2 (8 GB) su un'app di queste dimensioni; la versione debug funziona su iPhone
       # e su TestFlight, solo un po' meno ottimizzata.
       - name: Compila e archivia l'app iPhone
@@ -92,7 +93,7 @@ workflows:
             -archivePath build/ArchiveTuneX.xcarchive \
             CURRENT_PROJECT_VERSION="$APP_BUILD_NUMBER" \
             ARCHIVETUNEX_APP_PROFILE="$APP_PROFILE" \
-            KOTLIN_FRAMEWORK_BUILD_TYPE=debug \
+            KOTLIN_FRAMEWORK_BUILD_TYPE=Debug \
             | tee /tmp/xcodebuild_archive.log | xcpretty
 
       - name: Crea il file .ipa
