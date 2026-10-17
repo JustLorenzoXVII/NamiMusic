@@ -79,7 +79,9 @@ class DownloadedArtworkRepository constructor(
 
         fun coilMapper(): Mapper<String, Any> =
             Mapper { data, _ ->
-                resolveLocalFile(data)
+                // Percorso assoluto come stringa: Coil lo apre su Android e su iPhone
+                // (il File del livello compat non è un tipo che Coil conosce).
+                resolveLocalFile(data)?.absolutePath
             }
 
         suspend fun cache(

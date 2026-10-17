@@ -10,7 +10,7 @@ import moe.rukamori.archivetune.compat.getOrDefault
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.cio.CIO
+import moe.rukamori.archivetune.innertube.network.createPlatformHttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
@@ -28,7 +28,7 @@ object SimpMusicLyrics {
     private const val BASE_URL = "https://api-lyrics.simpmusic.org/v1/"
 
     private val client by lazy {
-        HttpClient(CIO) {
+        createPlatformHttpClient(proxy = null, dnsOverHttpsUrl = null) {
             install(ContentNegotiation) {
                 json(
                     Json {

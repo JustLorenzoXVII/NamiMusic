@@ -10,7 +10,7 @@ import kotlin.jvm.JvmInline
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.cio.CIO
+import moe.rukamori.archivetune.innertube.network.createPlatformHttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
@@ -29,7 +29,7 @@ object LrcLib {
     private const val MAX_DURATION_DELTA_SECONDS = 2
 
     private val client by lazy {
-        HttpClient(CIO) {
+        createPlatformHttpClient(proxy = null, dnsOverHttpsUrl = null) {
             install(ContentNegotiation) {
                 json(
                     Json {

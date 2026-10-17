@@ -7,6 +7,7 @@
 
 package moe.rukamori.archivetune.utils
 
+import moe.rukamori.archivetune.innertube.network.createPlatformHttpClient
 import moe.rukamori.archivetune.compat.System
 
 import androidx.datastore.preferences.core.edit
@@ -55,7 +56,7 @@ private data class ReleasesNetworkResult(
 )
 
 object Updater {
-    private val client = HttpClient()
+    private val client = createPlatformHttpClient(proxy = null, dnsOverHttpsUrl = null) {}
     private const val ReleaseCacheCheckIntervalMs: Long = 6 * 60 * 60 * 1000L
 
     private val githubOwner: String

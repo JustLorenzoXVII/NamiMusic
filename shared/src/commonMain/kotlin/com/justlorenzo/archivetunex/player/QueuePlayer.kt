@@ -181,8 +181,13 @@ class QueuePlayer(
                 else -> engine.positionMs
             }
 
+    // La durata di YouTube (dai metadati del brano) è esatta; quella stimata da AVPlayer sugli
+    // stream audio di YouTube può essere sbagliata, quindi si usa solo se la prima manca.
     override val duration: Long
-        get() = engine.durationMs?.takeIf { loadJob?.isActive != true && it > 0 } ?: knownDurationMs
+        get() =
+            knownDurationMs.takeIf { it > 0 }
+                ?: engine.durationMs?.takeIf { loadJob?.isActive != true && it > 0 }
+                ?: C.TIME_UNSET
 
     override val bufferedPosition: Long
         get() = if (loadJob?.isActive == true) 0 else maxOf(engine.bufferedPositionMs, currentPosition)
