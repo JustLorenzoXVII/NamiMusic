@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
@@ -48,6 +49,8 @@ import com.justlorenzo.archivetunex.ui.screens.HomeScreen
 import com.justlorenzo.archivetunex.ui.screens.LibraryScreen
 import com.justlorenzo.archivetunex.ui.screens.LocalPlaylistScreen
 import com.justlorenzo.archivetunex.ui.screens.LoginOverlay
+import com.justlorenzo.archivetunex.ui.screens.LyricsOverlay
+import com.justlorenzo.archivetunex.ui.screens.SettingsOverlay
 import com.justlorenzo.archivetunex.ui.screens.LogsOverlay
 import com.justlorenzo.archivetunex.ui.screens.MiniPlayer
 import com.justlorenzo.archivetunex.ui.screens.PlayerScreen
@@ -58,6 +61,9 @@ import com.justlorenzo.archivetunex.ui.theme.ArchiveTuneXTheme
 import moe.rukamori.archivetune.compat.BackHandler
 import moe.rukamori.archivetune.compat.SystemBars
 import moe.rukamori.archivetune.compat.Timber
+import moe.rukamori.archivetune.constants.DarkModeKey
+import moe.rukamori.archivetune.ui.screens.settings.DarkMode
+import moe.rukamori.archivetune.utils.rememberEnumPreference
 import moe.rukamori.archivetune.downloads.DownloadedArtworkRepository
 import moe.rukamori.archivetune.innertube.network.createPlatformHttpClient
 import org.jetbrains.compose.resources.DrawableResource
@@ -94,7 +100,14 @@ fun App() {
                 downloads = ArchiveTuneXRuntime.downloadUtil,
             )
         }
-    val dark = isSystemInDarkTheme()
+    val darkMode by rememberEnumPreference(DarkModeKey, DarkMode.AUTO)
+    val systemDark = isSystemInDarkTheme()
+    val dark =
+        when (darkMode) {
+            DarkMode.ON -> true
+            DarkMode.OFF -> false
+            DarkMode.AUTO -> systemDark
+        }
     LaunchedEffect(dark) { SystemBars.setDarkContent(!dark) }
 
     ArchiveTuneXTheme(darkTheme = dark) {
@@ -146,6 +159,16 @@ private fun AppContent(navigator: AtxNavigator) {
             exit = slideOutVertically { it },
         ) {
             PlayerScreen()
+        }
+        AnimatedVisibility(
+            visible = navigator.lyricsVisible,
+            enter = slideInVertically { it },
+            exit = slideOutVertically { it },
+        ) {
+            LyricsOverlay()
+        }
+        AnimatedVisibility(visible = navigator.settingsVisible, enter = fadeIn(), exit = fadeOut()) {
+            SettingsOverlay()
         }
         AnimatedVisibility(visible = navigator.loginVisible, enter = fadeIn(), exit = fadeOut()) {
             LoginOverlay()

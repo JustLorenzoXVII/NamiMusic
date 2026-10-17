@@ -53,6 +53,7 @@ import archivetunex.shared.generated.resources.download
 import archivetunex.shared.generated.resources.expand_more
 import archivetunex.shared.generated.resources.favorite
 import archivetunex.shared.generated.resources.favorite_border
+import archivetunex.shared.generated.resources.lyrics
 import archivetunex.shared.generated.resources.more_vert
 import archivetunex.shared.generated.resources.pause
 import archivetunex.shared.generated.resources.play
@@ -317,6 +318,9 @@ fun PlayerScreen() {
                         IconButton(onClick = { actions.download(song) }) {
                             AtxIcon(Res.drawable.download, "Scarica")
                         }
+                }
+                IconButton(onClick = { navigator.lyricsVisible = true }) {
+                    AtxIcon(Res.drawable.lyrics, "Testo")
                 }
                 IconButton(onClick = { navigator.queueVisible = true }) {
                     AtxIcon(Res.drawable.queue_music, "Coda")

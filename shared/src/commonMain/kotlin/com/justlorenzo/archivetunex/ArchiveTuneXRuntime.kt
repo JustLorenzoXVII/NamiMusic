@@ -11,7 +11,16 @@ import kotlinx.coroutines.launch
 import moe.rukamori.archivetune.compat.AppContext
 import moe.rukamori.archivetune.compat.Timber
 import moe.rukamori.archivetune.compat.plantArchiveTuneLogTrees
+import moe.rukamori.archivetune.constants.AudioQuality
+import moe.rukamori.archivetune.constants.AudioQualityKey
+import moe.rukamori.archivetune.constants.ContentCountryKey
+import moe.rukamori.archivetune.constants.ContentLanguageKey
+import moe.rukamori.archivetune.constants.SYSTEM_DEFAULT
 import moe.rukamori.archivetune.constants.VisitorDataKey
+import moe.rukamori.archivetune.extensions.toEnum
+import moe.rukamori.archivetune.innertube.models.YouTubeLocale
+import moe.rukamori.archivetune.morideobfuscator.youtubei.YoutubeiAudioQuality
+import com.justlorenzo.archivetunex.player.StreamResolver
 import moe.rukamori.archivetune.db.MusicDatabase
 import moe.rukamori.archivetune.di.archiveTuneCoreModule
 import moe.rukamori.archivetune.di.archiveTuneInjectedModule
@@ -58,6 +67,39 @@ object ArchiveTuneXRuntime {
         musicService = koin.get()
         playerConnection = PlayerConnection(musicService, database, scope)
         restoreYouTubeAccount()
+        applyContentSettings()
+    }
+
+    /** Lingua/paese dei contenuti e qualità audio scelti nelle Impostazioni. */
+    private fun applyContentSettings() {
+        val dataStore = AppContext.dataStore
+        val systemLocale = YouTube.locale
+        scope.launch(Dispatchers.IO) {
+            dataStore.data
+                .map { prefs -> prefs[ContentLanguageKey] to prefs[ContentCountryKey] }
+                .distinctUntilChanged()
+                .collect { (language, country) ->
+                    YouTube.locale =
+                        YouTubeLocale(
+                            gl = country?.takeIf { it != SYSTEM_DEFAULT } ?: systemLocale.gl,
+                            hl = language?.takeIf { it != SYSTEM_DEFAULT } ?: systemLocale.hl,
+                        )
+                }
+        }
+        scope.launch(Dispatchers.IO) {
+            dataStore.data
+                .map { it[AudioQualityKey].toEnum(AudioQuality.HIGHEST) }
+                .distinctUntilChanged()
+                .collect { quality ->
+                    StreamResolver.audioQuality =
+                        when (quality) {
+                            AudioQuality.AUTO -> YoutubeiAudioQuality.AUTO
+                            AudioQuality.HIGH -> YoutubeiAudioQuality.HIGH
+                            AudioQuality.HIGHEST -> YoutubeiAudioQuality.HIGHEST
+                            AudioQuality.LOW -> YoutubeiAudioQuality.LOW
+                        }
+                }
+        }
     }
 
     /**

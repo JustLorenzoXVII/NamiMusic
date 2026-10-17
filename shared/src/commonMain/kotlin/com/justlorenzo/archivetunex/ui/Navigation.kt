@@ -35,6 +35,8 @@ class AtxNavigator {
     var loginVisible by mutableStateOf(false)
     var accountVisible by mutableStateOf(false)
     var logsVisible by mutableStateOf(false)
+    var lyricsVisible by mutableStateOf(false)
+    var settingsVisible by mutableStateOf(false)
 
     private val stacks: Map<Tab, MutableList<Route>> =
         Tab.entries.associateWith { mutableStateListOf<Route>() }
@@ -54,6 +56,8 @@ class AtxNavigator {
     fun open(route: Route) {
         playerExpanded = false
         queueVisible = false
+        lyricsVisible = false
+        settingsVisible = false
         stacks.getValue(tab).add(route)
     }
 
@@ -61,6 +65,8 @@ class AtxNavigator {
     fun back(): Boolean {
         when {
             logsVisible -> logsVisible = false
+            settingsVisible -> settingsVisible = false
+            lyricsVisible -> lyricsVisible = false
             loginVisible -> loginVisible = false
             queueVisible -> queueVisible = false
             playerExpanded -> playerExpanded = false
@@ -72,7 +78,7 @@ class AtxNavigator {
     }
 
     val canGoBack: Boolean
-        get() = logsVisible || loginVisible || queueVisible || playerExpanded || currentStack.isNotEmpty() || tab != Tab.Home
+        get() = logsVisible || settingsVisible || lyricsVisible || loginVisible || queueVisible || playerExpanded || currentStack.isNotEmpty() || tab != Tab.Home
 }
 
 val LocalNavigator = staticCompositionLocalOf<AtxNavigator> { error("AtxNavigator non disponibile") }

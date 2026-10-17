@@ -1,6 +1,19 @@
 package com.justlorenzo.archivetunex.ui
 
 import androidx.compose.runtime.staticCompositionLocalOf
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import moe.rukamori.archivetune.compat.Timber
+import moe.rukamori.archivetune.compat.time.LocalDateTime
+import moe.rukamori.archivetune.db.entities.PlaylistEntity
+import moe.rukamori.archivetune.db.entities.PlaylistSongMap
+import moe.rukamori.archivetune.innertube.YouTube
+import moe.rukamori.archivetune.innertube.models.PlaylistItem
 import moe.rukamori.archivetune.compat.media3.DownloadRequest
 import moe.rukamori.archivetune.compat.toUri
 import moe.rukamori.archivetune.db.MusicDatabase
@@ -83,6 +96,110 @@ class AtxActions(
     fun downloadAll(songs: List<MediaMetadata>) = songs.forEach(::download)
 
     fun removeDownload(songId: String) = downloads.removeDownload(songId)
+
+    // region Playlist
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    private fun launchSafely(
+        what: String,
+        block: suspend () -> Unit,
+    ) {
+        scope.launch {
+            try {
+                block()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.tag("Playlist").e(e, what)
+            }
+        }
+    }
+
+    /**
+     * Nuova playlist. Con [onYouTube] (account collegato) viene creata anche su YouTube Music,
+     * così compare anche nelle altre app; altrimenti resta solo sul telefono.
+     */
+    fun createPlaylist(
+        name: String,
+        onYouTube: Boolean,
+        firstSong: MediaMetadata? = null,
+    ) = launchSafely("Creazione playlist non riuscita") {
+        val browseId = if (onYouTube) YouTube.createPlaylist(name).getOrNull() else null
+        val entity = PlaylistEntity(name = name, browseId = browseId, isEditable = true)
+        database.insert(entity)
+        if (firstSong != null) addToPlaylistNow(entity.id, firstSong)
+    }
+
+    fun addToPlaylist(
+        playlistId: String,
+        song: MediaMetadata,
+    ) = launchSafely("Aggiunta alla playlist non riuscita") { addToPlaylistNow(playlistId, song) }
+
+    private suspend fun addToPlaylistNow(
+        playlistId: String,
+        song: MediaMetadata,
+    ) {
+        database.insert(song)
+        val playlist = database.playlist(playlistId).first() ?: return
+        database.addSongToPlaylist(playlist, listOf(song.id))
+        val browseId = playlist.playlist.browseId
+        if (browseId != null && playlist.playlist.isEditable) {
+            YouTube.addToPlaylist(browseId, song.id)
+        }
+    }
+
+    fun removeFromPlaylist(
+        playlist: PlaylistEntity,
+        map: PlaylistSongMap,
+    ) = launchSafely("Rimozione dalla playlist non riuscita") {
+        database.delete(map)
+        val browseId = playlist.browseId
+        val setVideoId = map.setVideoId
+        if (browseId != null && playlist.isEditable && setVideoId != null) {
+            YouTube.removeFromPlaylist(browseId, map.songId, setVideoId)
+        }
+    }
+
+    fun renamePlaylist(
+        playlist: PlaylistEntity,
+        name: String,
+    ) = launchSafely("Rinomina playlist non riuscita") {
+        database.update(playlist.copy(name = name))
+        val browseId = playlist.browseId
+        if (browseId != null && playlist.isEditable) YouTube.renamePlaylist(browseId, name)
+    }
+
+    /** Toglie la playlist dalla libreria del telefono (su YouTube Music resta). */
+    fun deletePlaylist(playlist: PlaylistEntity) = launchSafely("Eliminazione playlist non riuscita") { database.delete(playlist) }
+
+    /** Salva in libreria una playlist di YouTube Music, con i suoi brani. */
+    fun saveYouTubePlaylist(
+        item: PlaylistItem,
+        songs: List<MediaMetadata>,
+    ) = launchSafely("Salvataggio playlist non riuscito") {
+        if (database.playlistByBrowseId(item.id).first() != null) return@launchSafely
+        val entity =
+            PlaylistEntity(
+                name = item.title,
+                browseId = item.id,
+                isEditable = item.isEditable,
+                thumbnailUrl = item.thumbnail,
+                remoteSongCount = songs.size,
+                bookmarkedAt = LocalDateTime.now(),
+            )
+        database.insert(entity)
+        songs.forEach { database.insert(it) }
+        val playlist = database.playlist(entity.id).first() ?: return@launchSafely
+        database.addSongToPlaylist(playlist, songs.map { it.id })
+    }
+
+    fun unsaveYouTubePlaylist(browseId: String) =
+        launchSafely("Rimozione playlist non riuscita") {
+            database.playlistByBrowseId(browseId).first()?.let { database.delete(it.playlist) }
+        }
+
+    // endregion
 }
 
 val LocalActions = staticCompositionLocalOf<AtxActions> { error("AtxActions non disponibile") }

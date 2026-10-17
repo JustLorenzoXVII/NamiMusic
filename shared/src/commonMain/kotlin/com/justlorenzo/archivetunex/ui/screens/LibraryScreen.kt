@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import archivetunex.shared.generated.resources.Res
+import archivetunex.shared.generated.resources.add
 import archivetunex.shared.generated.resources.album
 import archivetunex.shared.generated.resources.artist
 import archivetunex.shared.generated.resources.download
@@ -199,7 +200,16 @@ private fun LazyListScope.playlistsSection(accountName: String?) {
         val remote = rememberLoadable(accountName) {
             if (accountName == null) Result.success(emptyList()) else YouTube.library("FEmusic_liked_playlists").map { it.items }
         }
+        var creating by remember { mutableStateOf(false) }
         Column {
+            androidx.compose.material3.FilledTonalButton(
+                onClick = { creating = true },
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+            ) {
+                com.justlorenzo.archivetunex.ui.components.AtxIcon(Res.drawable.add, null, size = 20.dp)
+                Text("Nuova playlist", modifier = Modifier.padding(start = 8.dp))
+            }
+            if (creating) com.justlorenzo.archivetunex.ui.components.CreatePlaylistDialog(onDismiss = { creating = false })
             local.forEach { playlist ->
                 LibraryRow(
                     title = playlist.playlist.name,
@@ -207,7 +217,9 @@ private fun LazyListScope.playlistsSection(accountName: String?) {
                     artworkUrl = playlist.thumbnails.firstOrNull() ?: playlist.playlist.thumbnailUrl,
                     onClick = {
                         val browseId = playlist.playlist.browseId
-                        if (browseId != null) {
+                        // Le playlist tue (create qui o salvate dal tuo account) si aprono dal
+                        // telefono, dove si possono modificare; le altre da YouTube Music.
+                        if (browseId != null && !playlist.playlist.isEditable) {
                             navigator.open(Route.Playlist(browseId))
                         } else {
                             navigator.open(Route.LocalPlaylist(playlist.playlist.id, playlist.playlist.name))

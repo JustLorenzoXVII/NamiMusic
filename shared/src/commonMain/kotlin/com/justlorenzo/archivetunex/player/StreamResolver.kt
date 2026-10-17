@@ -22,6 +22,9 @@ import moe.rukamori.archivetune.morideobfuscator.youtubei.currentTimeZoneId
  *   ricrea la sessione di youtubei.js e riprova una volta.
  */
 object StreamResolver {
+    /** Qualità audio scelta nelle Impostazioni (la imposta ArchiveTuneXRuntime). */
+    var audioQuality: YoutubeiAudioQuality = YoutubeiAudioQuality.HIGHEST
+
     private val resolver = YoutubeiResolver(diagnostics = { message -> println("Youtubei: $message") })
 
     suspend fun resolve(videoId: String): Result<YoutubeiResolvedStream> =
@@ -60,7 +63,7 @@ object StreamResolver {
             request =
                 YoutubeiStreamRequest(
                     mediaId = videoId,
-                    quality = YoutubeiAudioQuality.HIGHEST,
+                    quality = audioQuality,
                     networkMetered = false,
                     authFingerprint = authState.streamCacheFingerprint,
                     pinnedItag = preferredAudioItag(),

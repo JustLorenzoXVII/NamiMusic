@@ -47,6 +47,7 @@ import archivetunex.shared.generated.resources.close
 import archivetunex.shared.generated.resources.login
 import archivetunex.shared.generated.resources.logout
 import archivetunex.shared.generated.resources.manage_search
+import archivetunex.shared.generated.resources.settings
 import com.justlorenzo.archivetunex.ui.LocalNavigator
 import com.justlorenzo.archivetunex.ui.components.AtxIcon
 import com.justlorenzo.archivetunex.ui.components.rememberAccount
@@ -104,6 +105,17 @@ fun AccountSheet() {
             }
         }
         HorizontalDivider(Modifier.padding(vertical = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+        ListItem(
+            headlineContent = { Text("Impostazioni") },
+            supportingContent = { Text("Tema, qualità audio, contenuti, download") },
+            leadingContent = { AtxIcon(Res.drawable.settings, null) },
+            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+            modifier =
+                Modifier.clickable {
+                    navigator.accountVisible = false
+                    navigator.settingsVisible = true
+                },
+        )
         ListItem(
             headlineContent = { Text("Registro errori") },
             supportingContent = { Text("Per capire cosa non funziona") },

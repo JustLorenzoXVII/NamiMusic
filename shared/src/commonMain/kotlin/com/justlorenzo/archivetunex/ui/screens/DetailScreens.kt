@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import com.justlorenzo.archivetunex.ui.LocalActions
 import com.justlorenzo.archivetunex.ui.LocalNavigator
 import com.justlorenzo.archivetunex.ui.components.BackButton
+import com.justlorenzo.archivetunex.ui.components.ConfirmDialog
+import com.justlorenzo.archivetunex.ui.components.RenamePlaylistDialog
 import com.justlorenzo.archivetunex.ui.components.BottomContentPadding
 import com.justlorenzo.archivetunex.ui.components.DetailHeader
 import com.justlorenzo.archivetunex.ui.components.EmptyState
@@ -147,6 +149,7 @@ fun AlbumScreen(browseId: String) {
 @Composable
 fun PlaylistScreen(playlistId: String) {
     val actions = LocalActions.current
+    val savedPlaylist by remember(playlistId) { actions.database.playlistByBrowseId(playlistId) }.collectAsState(null)
     val (menuSong, setMenuSong) = rememberSongMenu()
     val page =
         rememberLoadable(playlistId) {
@@ -181,11 +184,20 @@ fun PlaylistScreen(playlistId: String) {
                             subtitle = playlist.author?.name,
                             detail = playlist.songCountText ?: "${songs.size} brani",
                         ) {
-                            PlayShuffleButtons(
-                                onPlay = { actions.playList(songs, title = playlist.title) },
-                                onShuffle = { actions.playList(songs, title = playlist.title, shuffle = true) },
-                                onDownload = { actions.downloadAll(songs) },
-                            )
+                            androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                PlayShuffleButtons(
+                                    onPlay = { actions.playList(songs, title = playlist.title) },
+                                    onShuffle = { actions.playList(songs, title = playlist.title, shuffle = true) },
+                                    onDownload = { actions.downloadAll(songs) },
+                                )
+                                OutlinedButton(onClick = {
+                                    if (savedPlaylist != null) {
+                                        actions.unsaveYouTubePlaylist(playlistId)
+                                    } else {
+                                        actions.saveYouTubePlaylist(playlist, songs)
+                                    }
+                                }) { Text(if (savedPlaylist != null) "Salvata in libreria" else "Salva in libreria") }
+                            }
                         }
                     }
                     if (songs.isEmpty()) item(key = "empty") { EmptyState("Questa playlist è vuota.") }
@@ -214,27 +226,38 @@ fun LocalPlaylistScreen(
     title: String,
 ) {
     val actions = LocalActions.current
-    val (menuSong, setMenuSong) = rememberSongMenu()
+    val navigator = LocalNavigator.current
+    var menuEntryIndex by remember { mutableStateOf<Int?>(null) }
+    var renaming by remember { mutableStateOf(false) }
+    var deleting by remember { mutableStateOf(false) }
+    val playlist by remember(playlistId) { actions.database.playlist(playlistId) }.collectAsState(null)
     val entries by remember(playlistId) { actions.database.playlistSongs(playlistId) }.collectAsState(emptyList())
     val songs = remember(entries) { entries.map { it.song.toMediaMetadata() } }
+    val name = playlist?.playlist?.name ?: title
 
     DetailScaffold {
         LazyColumn(Modifier.fillMaxSize(), contentPadding = detailPadding()) {
             item(key = "header") {
                 DetailHeader(
                     artworkUrl = songs.firstOrNull()?.thumbnailUrl,
-                    title = title,
+                    title = name,
                     subtitle = null,
                     detail = "${songs.size} brani",
                 ) {
-                    PlayShuffleButtons(
-                        onPlay = { actions.playList(songs, title = title) },
-                        onShuffle = { actions.playList(songs, title = title, shuffle = true) },
-                        onDownload = { actions.downloadAll(songs) },
-                    )
+                    androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        PlayShuffleButtons(
+                            onPlay = { actions.playList(songs, title = name) },
+                            onShuffle = { actions.playList(songs, title = name, shuffle = true) },
+                            onDownload = { actions.downloadAll(songs) },
+                        )
+                        androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(onClick = { renaming = true }) { Text("Rinomina") }
+                            OutlinedButton(onClick = { deleting = true }) { Text("Elimina") }
+                        }
+                    }
                 }
             }
-            if (songs.isEmpty()) item(key = "empty") { EmptyState("Questa playlist è vuota.") }
+            if (songs.isEmpty()) item(key = "empty") { EmptyState("Questa playlist è vuota. Aggiungi brani dal menu ⋮ di un brano.") }
             itemsIndexed(songs) { index, song ->
                 SongRow(
                     songId = song.id,
@@ -242,13 +265,42 @@ fun LocalPlaylistScreen(
                     subtitle = song.artists.joinToString { it.name },
                     artworkUrl = song.thumbnailUrl,
                     explicit = song.explicit,
-                    onClick = { actions.playList(songs, startIndex = index, title = title) },
-                    onMore = { setMenuSong(song) },
+                    onClick = { actions.playList(songs, startIndex = index, title = name) },
+                    onMore = { menuEntryIndex = index },
                 )
             }
         }
     }
-    menuSong?.let { SongMenuSheet(it, onDismiss = { setMenuSong(null) }) }
+    menuEntryIndex?.let { index ->
+        val entry = entries.getOrNull(index)
+        val song = songs.getOrNull(index)
+        if (entry != null && song != null) {
+            SongMenuSheet(
+                song,
+                onDismiss = { menuEntryIndex = null },
+                onRemoveFromPlaylist = { playlist?.playlist?.let { actions.removeFromPlaylist(it, entry.map) } },
+            )
+        }
+    }
+    if (renaming) {
+        RenamePlaylistDialog(
+            currentName = name,
+            onDismiss = { renaming = false },
+            onRename = { newName -> playlist?.playlist?.let { actions.renamePlaylist(it, newName) } },
+        )
+    }
+    if (deleting) {
+        ConfirmDialog(
+            title = "Eliminare \u201c$name\u201d?",
+            text = "La playlist viene tolta dalla libreria del telefono. I brani scaricati restano.",
+            confirmLabel = "Elimina",
+            onDismiss = { deleting = false },
+            onConfirm = {
+                playlist?.playlist?.let(actions::deletePlaylist)
+                navigator.back()
+            },
+        )
+    }
 }
 
 @Composable

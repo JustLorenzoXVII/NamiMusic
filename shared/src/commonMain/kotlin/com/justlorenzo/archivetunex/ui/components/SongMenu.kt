@@ -19,7 +19,9 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,7 +33,9 @@ import archivetunex.shared.generated.resources.album
 import archivetunex.shared.generated.resources.artist
 import archivetunex.shared.generated.resources.delete
 import archivetunex.shared.generated.resources.download
+import archivetunex.shared.generated.resources.playlist_add
 import archivetunex.shared.generated.resources.playlist_play
+import archivetunex.shared.generated.resources.remove
 import archivetunex.shared.generated.resources.queue_music
 import archivetunex.shared.generated.resources.radio
 import com.justlorenzo.archivetunex.ui.LocalActions
@@ -46,13 +50,15 @@ import org.jetbrains.compose.resources.DrawableResource
 fun SongMenuSheet(
     song: MediaMetadata,
     onDismiss: () -> Unit,
+    onRemoveFromPlaylist: (() -> Unit)? = null,
 ) {
     val actions = LocalActions.current
     val navigator = LocalNavigator.current
+    var addingToPlaylist by remember { mutableStateOf(false) }
     val download by remember(song.id) { actions.downloads.getDownload(song.id) }.collectAsState(null)
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+    if (!addingToPlaylist) ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -85,6 +91,13 @@ fun SongMenuSheet(
         MenuEntry(Res.drawable.queue_music, "Aggiungi in coda") {
             actions.addToQueue(song)
             onDismiss()
+        }
+        MenuEntry(Res.drawable.playlist_add, "Aggiungi a playlist") { addingToPlaylist = true }
+        if (onRemoveFromPlaylist != null) {
+            MenuEntry(Res.drawable.remove, "Rimuovi dalla playlist") {
+                onRemoveFromPlaylist()
+                onDismiss()
+            }
         }
         MenuEntry(Res.drawable.radio, "Avvia radio") {
             actions.playSong(song)
@@ -121,6 +134,8 @@ fun SongMenuSheet(
         }
         Spacer(Modifier.height(24.dp))
     }
+
+    if (addingToPlaylist) AddToPlaylistSheet(song, onDismiss = onDismiss)
 }
 
 @Composable
