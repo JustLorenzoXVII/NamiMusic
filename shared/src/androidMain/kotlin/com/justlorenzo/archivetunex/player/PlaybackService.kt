@@ -17,7 +17,7 @@ class PlaybackService : MediaSessionService() {
         // Il servizio può partire anche prima dell'app (es. ripresa dalla notifica):
         // in quel caso prepara il contesto e crea il lettore.
         initArchiveTuneX(this)
-        com.justlorenzo.archivetunex.player.Player.controller
+        com.justlorenzo.archivetunex.ArchiveTuneXRuntime.start()
         val player = sessionPlayer ?: return
         mediaSession = MediaSession.Builder(this, player).build()
     }
