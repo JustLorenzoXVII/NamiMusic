@@ -19,6 +19,14 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.map
+import moe.rukamori.archivetune.constants.ShowLyricsKey
+import moe.rukamori.archivetune.lyrics.LyricsHelper
+import org.koin.mp.KoinPlatform
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -114,6 +122,34 @@ class MusicService(
         }
         ioScope.launch {
             dataStore.data.collect { prefs -> hideMusicVideos = prefs[HideVideoKey] ?: false }
+        }
+        // Come l'originale: con "Mostra testi" attivo, il testo del brano si scarica appena cambia
+        // il brano e si salva nel database, così la schermata dei testi lo trova già pronto.
+        ioScope.launch {
+            combine(
+                currentMediaMetadata.distinctUntilChangedBy { it?.id },
+                dataStore.data.map { it[ShowLyricsKey] ?: false }.distinctUntilChanged(),
+            ) { mediaMetadata, showLyrics ->
+                mediaMetadata to showLyrics
+            }.collectLatest { (mediaMetadata, showLyrics) ->
+                if (showLyrics && mediaMetadata != null && !mediaMetadata.isPodcast &&
+                    database.lyrics(mediaMetadata.id).first() == null
+                ) {
+                    try {
+                        val lyrics = KoinPlatform.getKoin().get<LyricsHelper>().getLyrics(mediaMetadata)
+                        database.query {
+                            insertLyricsIfAbsent(
+                                id = mediaMetadata.id,
+                                lyrics = lyrics,
+                            )
+                        }
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        Timber.tag("MusicService").w(e, "Download dei testi non riuscito")
+                    }
+                }
+            }
         }
     }
 
