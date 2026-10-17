@@ -880,8 +880,9 @@ fun PlayerScreen() {
                             .graphicsLayer { alpha = styleVisible }
                             .background(
                                 Brush.verticalGradient(
-                                    0f to pc.background.copy(alpha = 0.55f),
-                                    0.16f to Color.Transparent,
+                                    0f to pc.background.copy(alpha = 0.9f),
+                                    0.1f to pc.background.copy(alpha = 0.55f),
+                                    0.24f to Color.Transparent,
                                     0.5f to Color.Transparent,
                                     1f to pc.background.copy(alpha = 0.6f),
                                 ),
@@ -919,26 +920,34 @@ fun PlayerScreen() {
                     Modifier.fillMaxWidth().padding(top = 8.dp).height(48.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    IconButton(onClick = ::close) {
-                        AtxIcon(Res.drawable.expand_more, "Chiudi player", size = 32.dp, tint = pc.text)
+                    // Nel Poster la barra sta sopra la copertina: icone e titolo su "bolle" leggibili
+                    val chip = if (poster && !showLyrics) pc.background.copy(alpha = 0.55f) else Color.Transparent
+                    TopBarButton(chip, ::close) {
+                        AtxIcon(Res.drawable.expand_more, "Chiudi player", size = 30.dp, tint = pc.text)
                     }
-                    Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(Modifier.width(36.dp).height(4.dp).clip(CircleShape).background(pc.text.copy(alpha = 0.5f)))
-                        Spacer(Modifier.height(6.dp))
+                    Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                         Text(
                             queueTitle?.uppercase() ?: "IN RIPRODUZIONE",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
-                            color = pc.text.copy(alpha = 0.8f),
+                            letterSpacing = 1.sp,
+                            color = pc.text.copy(alpha = 0.9f),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
+                            modifier =
+                                Modifier
+                                    .padding(horizontal = 8.dp)
+                                    .clip(CircleShape)
+                                    .background(chip)
+                                    .padding(horizontal = 12.dp, vertical = 6.dp),
                         )
                     }
-                    IconButton(onClick = { navigator.lyricsVisible = !showLyrics }) {
-                        AtxIcon(Res.drawable.lyrics, "Testo", tint = if (showLyrics) pc.accent else pc.text)
+                    TopBarButton(chip, { navigator.lyricsVisible = !showLyrics }) {
+                        AtxIcon(Res.drawable.lyrics, "Testo", size = 22.dp, tint = if (showLyrics) pc.accent else pc.text)
                     }
-                    IconButton(onClick = { showMenu = true }) {
-                        AtxIcon(Res.drawable.more_vert, "Altre opzioni", tint = pc.text)
+                    Spacer(Modifier.width(6.dp))
+                    TopBarButton(chip, { showMenu = true }) {
+                        AtxIcon(Res.drawable.more_vert, "Altre opzioni", size = 22.dp, tint = pc.text)
                     }
                 }
 
@@ -1096,6 +1105,19 @@ fun PlayerScreen() {
     }
 
     if (showMenu) SongMenuSheet(song, onDismiss = { showMenu = false })
+}
+
+/** Pulsante tondo della barra in alto, con uno sfondo semitrasparente quando serve. */
+@Composable
+private fun TopBarButton(
+    background: Color,
+    onClick: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    Box(
+        Modifier.size(42.dp).clip(CircleShape).background(background).clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) { content() }
 }
 
 @Composable
