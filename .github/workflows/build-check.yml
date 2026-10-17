@@ -5,7 +5,7 @@ name: Controllo compilazione
 
 on:
   push:
-    branches: [master, interfaccia]
+    branches: [master, interfaccia, nuova-ui]
     paths-ignore:
       - "**.md"
   workflow_dispatch:
