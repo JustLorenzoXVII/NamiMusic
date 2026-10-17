@@ -747,7 +747,7 @@ private fun PlayerPage() {
             SwitchRow("Comandi colorati", "Pulsanti e barra prendono il colore della copertina", style.coloredPlayerControls) {
                 save(ColoredPlayerControlsKey, it)
             }
-            SwitchRow("Copertina che si rimpicciolisce", "In pausa la copertina si fa più piccola", style.shrinkArtworkOnPause) {
+            SwitchRow("Copertina che si rimpicciolisce", "In pausa la copertina si fa più piccola (stili Copertina e Pila)", style.shrinkArtworkOnPause) {
                 save(ShrinkArtworkOnPauseKey, it)
             }
             SwitchRow("Tempo rimanente", "A destra il tempo che manca invece della durata", style.showRemainingTime) {

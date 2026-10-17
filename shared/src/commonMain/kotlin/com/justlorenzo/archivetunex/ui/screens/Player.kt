@@ -816,7 +816,7 @@ fun PlayerScreen() {
                         // Segue il dito e si inclina un po' durante lo swipe
                         translationX = swipeX
                         rotationZ = swipeX * tilt
-                        val s = if (poster || layout == PlayerLayout.Cassette) 1f else (artScale + (1f - artScale) * tLyrics)
+                        val s = if (poster || layout == PlayerLayout.Cassette || layout == PlayerLayout.Vinyl) 1f else (artScale + (1f - artScale) * tLyrics)
                         scaleX = s
                         scaleY = s
                     }.size(art.width, art.height)
