@@ -138,7 +138,6 @@ enum class MiniLayout(
 ) {
     Floating("Fluttuante"),
     Pill("Pillola"),
-    Docked("Agganciato"),
     Large("Grande"),
 }
 

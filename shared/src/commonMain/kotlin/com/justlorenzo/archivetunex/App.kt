@@ -5,6 +5,10 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.spring
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
@@ -206,8 +210,24 @@ private fun AppContent(navigator: AtxNavigator) {
                 Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding().padding(bottom = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                MiniPlayer()
-                FloatingTabs(navigator, Modifier.align(Alignment.CenterHorizontally))
+                // Il mini player è largo quanto la barra delle schede (un po' di più per Fluttuante e Grande)
+                val density = androidx.compose.ui.platform.LocalDensity.current
+                var tabsWidth by remember { mutableStateOf(0.dp) }
+                androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxWidth()) {
+                    val extra =
+                        when (LocalAtxStyle.current.miniLayout) {
+                            com.justlorenzo.archivetunex.ui.MiniLayout.Pill -> 0.dp
+                            com.justlorenzo.archivetunex.ui.MiniLayout.Floating -> 48.dp
+                            com.justlorenzo.archivetunex.ui.MiniLayout.Large -> 96.dp
+                        }
+                    val target = if (tabsWidth > 0.dp) (tabsWidth + extra).coerceIn(280.dp, maxWidth - 24.dp) else maxWidth - 24.dp
+                    val miniWidth by androidx.compose.animation.core.animateDpAsState(target, spring(dampingRatio = 0.8f, stiffness = 400f), label = "miniWidth")
+                    MiniPlayer(Modifier.align(Alignment.Center).width(miniWidth))
+                }
+                FloatingTabs(
+                    navigator,
+                    Modifier.align(Alignment.CenterHorizontally).onSizeChanged { tabsWidth = with(density) { it.width.toDp() } },
+                )
             }
 
             AnimatedVisibility(

@@ -1,6 +1,21 @@
 package com.justlorenzo.archivetunex.ui.screens
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.text.style.TextOverflow
+import archivetunex.shared.generated.resources.download
+import archivetunex.shared.generated.resources.favorite
+import archivetunex.shared.generated.resources.navigate_next
+import archivetunex.shared.generated.resources.playlist_play
+import com.justlorenzo.archivetunex.ui.LocalActions
+import com.justlorenzo.archivetunex.ui.Route
+import com.justlorenzo.archivetunex.ui.Tab
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import moe.rukamori.archivetune.compat.media3.Download
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -8,10 +23,7 @@ import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.toShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import archivetunex.shared.generated.resources.palette
 import archivetunex.shared.generated.resources.person
-import archivetunex.shared.generated.resources.play
-import com.justlorenzo.archivetunex.ui.SettingsPage
 import com.justlorenzo.archivetunex.ui.components.ConfirmDialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -72,13 +84,31 @@ import moe.rukamori.archivetune.viewmodels.LoginScreenState
 import moe.rukamori.archivetune.viewmodels.LoginViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
-/** Foglio dell'account: profilo in grande e scorciatoie a riquadri. */
+/**
+ * Foglio dell'account: il profilo in una card colorata, i propri numeri (preferiti, playlist,
+ * scaricati) e poche voci in lista. Le opzioni di personalizzazione stanno nelle Impostazioni.
+ */
 @Composable
 fun AccountSheet() {
     val navigator = LocalNavigator.current
+    val actions = LocalActions.current
     val account = rememberAccount()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var confirmLogout by remember { mutableStateOf(false) }
+    val likedCount by remember { actions.database.likedSongsCount() }.collectAsState(0)
+    val playlistCount by remember { actions.database.playlistsByCreateDateAsc().map { it.size } }.collectAsState(0)
+    val downloadedCount by remember {
+        actions.downloads.downloads.map { map -> map.count { it.value.state == Download.STATE_COMPLETED } }.distinctUntilChanged()
+    }.collectAsState(0)
+
+    fun openLibrary(route: Route?) {
+        navigator.accountVisible = false
+        navigator.selectTab(Tab.Library)
+        route?.let(navigator::open)
+    }
+
+    val primary = MaterialTheme.colorScheme.primary
+    val onPrimary = MaterialTheme.colorScheme.onPrimary
 
     ModalBottomSheet(
         onDismissRequest = { navigator.accountVisible = false },
@@ -86,110 +116,113 @@ fun AccountSheet() {
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Column(
-            Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 28.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            // Profilo: avatar a "biscotto" con l'iniziale e il nome in grande
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            // ---------- Profilo ----------
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(32.dp))
+                    .background(
+                        Brush.linearGradient(
+                            listOf(primary, primary.copy(alpha = 0.55f).compositeOver(MaterialTheme.colorScheme.tertiary)),
+                        ),
+                    ),
+            ) {
+                // Forme decorative sullo sfondo della card
                 Box(
                     Modifier
-                        .size(72.dp)
-                        .clip(MaterialShapes.Cookie9Sided.toShape())
-                        .background(
-                            if (account != null) {
-                                Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)))
-                            } else {
-                                Brush.linearGradient(listOf(MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.colorScheme.surfaceContainerHigh))
-                            },
-                        ),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    if (account != null) {
-                        Text(
-                            account.name.first().uppercase(),
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.onPrimary,
-                        )
-                    } else {
-                        AtxIcon(Res.drawable.person, null, size = 34.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        account?.name ?: "Ospite",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Black,
-                        maxLines = 1,
-                    )
-                    Text(
-                        account?.email ?: "Non collegato a YouTube Music",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                    )
-                }
-            }
-
-            if (account == null) {
-                // Invito al login: una card colorata invece di un semplice pulsante
-                Column(
+                        .align(Alignment.TopEnd)
+                        .offset(x = 40.dp, y = (-30).dp)
+                        .size(150.dp)
+                        .rotate(18f)
+                        .clip(MaterialShapes.Cookie12Sided.toShape())
+                        .background(onPrimary.copy(alpha = 0.10f)),
+                )
+                Box(
                     Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(28.dp))
-                        .background(MaterialTheme.colorScheme.primaryContainer)
-                        .clickable {
-                            navigator.accountVisible = false
-                            navigator.loginVisible = true
-                        }.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Text(
-                        "Collega YouTube Music",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                    Text(
-                        "La tua Home, le tue playlist e i \"Mi piace\" sincronizzati.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
-                    )
-                    Row(
-                        Modifier
-                            .padding(top = 8.dp)
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(MaterialTheme.colorScheme.primary)
-                            .padding(horizontal = 16.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        .align(Alignment.BottomEnd)
+                        .offset(x = (-70).dp, y = 36.dp)
+                        .size(80.dp)
+                        .clip(MaterialShapes.Pill.toShape())
+                        .background(onPrimary.copy(alpha = 0.08f)),
+                )
+                Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Box(
+                        Modifier.size(68.dp).clip(MaterialShapes.Cookie9Sided.toShape()).background(onPrimary.copy(alpha = 0.92f)),
+                        contentAlignment = Alignment.Center,
                     ) {
-                        AtxIcon(Res.drawable.login, null, size = 18.dp, tint = MaterialTheme.colorScheme.onPrimary)
-                        Text("Accedi con Google", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
+                        if (account != null) {
+                            Text(
+                                account.name.first().uppercase(),
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Black,
+                                color = primary,
+                            )
+                        } else {
+                            AtxIcon(Res.drawable.person, null, size = 34.dp, tint = primary)
+                        }
+                    }
+                    Column {
+                        Text(
+                            account?.name ?: "Ospite",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Black,
+                            color = onPrimary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            account?.email ?: "Non collegato a YouTube Music",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = onPrimary.copy(alpha = 0.8f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    if (account == null) {
+                        Row(
+                            Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(onPrimary)
+                                .clickable {
+                                    navigator.accountVisible = false
+                                    navigator.loginVisible = true
+                                }.padding(horizontal = 16.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            AtxIcon(Res.drawable.login, null, size = 18.dp, tint = primary)
+                            Text("Accedi con Google", color = primary, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }
 
-            // Scorciatoie a riquadri
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                ShortcutTile(Res.drawable.palette, "Personalizza", Color(0xFFFA4058), Modifier.weight(1f)) {
-                    navigator.openSettings(SettingsPage.Appearance)
-                }
-                ShortcutTile(Res.drawable.play, "Player", Color(0xFF8B5CF6), Modifier.weight(1f)) {
-                    navigator.openSettings(SettingsPage.Player)
-                }
+            // ---------- I tuoi numeri ----------
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                StatTile(likedCount, "Preferiti", Res.drawable.favorite, Modifier.weight(1f)) { openLibrary(Route.Liked) }
+                StatTile(playlistCount, "Playlist", Res.drawable.playlist_play, Modifier.weight(1f)) { openLibrary(null) }
+                StatTile(downloadedCount, "Scaricati", Res.drawable.download, Modifier.weight(1f)) { openLibrary(Route.Downloads) }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                ShortcutTile(Res.drawable.settings, "Impostazioni", Color(0xFF3D7BFF), Modifier.weight(1f)) {
+
+            // ---------- Voci ----------
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                SheetRow(Res.drawable.settings, "Impostazioni", "Aspetto, player, riproduzione e altro", RowPosition.First) {
                     navigator.openSettings()
                 }
+                SheetRow(
+                    Res.drawable.manage_search,
+                    "Registro errori",
+                    "Per capire cosa non va",
+                    if (account != null) RowPosition.Middle else RowPosition.Last,
+                ) {
+                    navigator.accountVisible = false
+                    navigator.logsVisible = true
+                }
                 if (account != null) {
-                    ShortcutTile(Res.drawable.logout, "Esci", Color(0xFF6B7280), Modifier.weight(1f)) { confirmLogout = true }
-                } else {
-                    ShortcutTile(Res.drawable.manage_search, "Registro errori", Color(0xFF6B7280), Modifier.weight(1f)) {
-                        navigator.accountVisible = false
-                        navigator.logsVisible = true
-                    }
+                    SheetRow(Res.drawable.logout, "Esci dall'account", null, RowPosition.Last, danger = true) { confirmLogout = true }
                 }
             }
         }
@@ -209,29 +242,81 @@ fun AccountSheet() {
     }
 }
 
-/** Riquadro tonale con icona a "biscotto" colorato. */
+/** Numero grande con icona: tocca per aprire la sezione della libreria. */
 @Composable
-private fun ShortcutTile(
-    icon: org.jetbrains.compose.resources.DrawableResource,
+private fun StatTile(
+    count: Int,
     label: String,
-    color: Color,
+    icon: org.jetbrains.compose.resources.DrawableResource,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
     Column(
         modifier
-            .height(112.dp)
-            .clip(RoundedCornerShape(28.dp))
+            .clip(RoundedCornerShape(24.dp))
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .clickable(onClick = onClick)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.SpaceBetween,
+            .padding(horizontal = 14.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        AtxIcon(icon, null, size = 20.dp, tint = MaterialTheme.colorScheme.primary)
+        Text(count.toString(), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black)
+        Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+    }
+}
+
+private enum class RowPosition { First, Middle, Last }
+
+/** Voce del foglio: angoli grandi solo all'inizio e alla fine del gruppo (stile Expressive). */
+@Composable
+private fun SheetRow(
+    icon: org.jetbrains.compose.resources.DrawableResource,
+    title: String,
+    subtitle: String?,
+    position: RowPosition,
+    danger: Boolean = false,
+    onClick: () -> Unit,
+) {
+    val big = 24.dp
+    val small = 6.dp
+    val shape =
+        when (position) {
+            RowPosition.First -> RoundedCornerShape(topStart = big, topEnd = big, bottomStart = small, bottomEnd = small)
+            RowPosition.Middle -> RoundedCornerShape(small)
+            RowPosition.Last -> RoundedCornerShape(topStart = small, topEnd = small, bottomStart = big, bottomEnd = big)
+        }
+    val color = if (danger) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Box(
-            Modifier.size(40.dp).clip(MaterialShapes.Cookie9Sided.toShape()).background(color),
+            Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(if (danger) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center,
-        ) { AtxIcon(icon, null, size = 20.dp, tint = Color.White) }
-        Text(label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        ) {
+            AtxIcon(
+                icon,
+                null,
+                size = 20.dp,
+                tint = if (danger) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+        }
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = color)
+            if (subtitle != null) {
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        if (!danger) AtxIcon(Res.drawable.navigate_next, null, size = 22.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

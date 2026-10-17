@@ -340,10 +340,9 @@ fun MiniPlayer(modifier: Modifier = Modifier) {
 
     val geometry =
         when (style.miniLayout) {
-            MiniLayout.Floating -> MiniGeometry(RoundedCornerShape(26.dp), 12.dp, 68.dp, 48.dp)
-            MiniLayout.Pill -> MiniGeometry(RoundedCornerShape(50), 28.dp, 58.dp, 42.dp)
-            MiniLayout.Docked -> MiniGeometry(RoundedCornerShape(14.dp), 0.dp, 64.dp, 46.dp)
-            MiniLayout.Large -> MiniGeometry(RoundedCornerShape(30.dp), 12.dp, 92.dp, 72.dp)
+            MiniLayout.Floating -> MiniGeometry(RoundedCornerShape(26.dp), 0.dp, 68.dp, 48.dp)
+            MiniLayout.Pill -> MiniGeometry(RoundedCornerShape(50), 0.dp, 58.dp, 42.dp)
+            MiniLayout.Large -> MiniGeometry(RoundedCornerShape(30.dp), 0.dp, 92.dp, 72.dp)
         }
     val wave = style.miniProgress == MiniProgress.Wave
     val spin = rememberSpin(8000)
@@ -352,7 +351,7 @@ fun MiniPlayer(modifier: Modifier = Modifier) {
         modifier
             .fillMaxWidth()
             .padding(horizontal = geometry.outerPadding)
-            .then(if (style.miniLayout == MiniLayout.Docked) Modifier else Modifier.shadow(14.dp, geometry.shape))
+            .shadow(14.dp, geometry.shape)
             .clip(geometry.shape)
             .background(background)
             .then(swipe.modifier)
@@ -532,6 +531,8 @@ fun PlayerScreen() {
     val song = metadata ?: return
     val style = LocalAtxStyle.current
     val layout = style.playerLayout
+    // Il Poster ha il suo sfondo fisso (colore della copertina con il bagliore)
+    val playerBackground = if (layout == PlayerLayout.Poster) PlayerBackground.Glow else style.playerBackground
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
     val haptics = LocalHapticFeedback.current
@@ -562,7 +563,7 @@ fun PlayerScreen() {
     val seed = if (style.coloredPlayerControls) artworkAccent else MaterialTheme.colorScheme.primary
     val baseColors = remember(seed, dark, layout) { playerColors(seed, dark, poster = layout == PlayerLayout.Poster) }
     val pc =
-        if (style.playerBackground == PlayerBackground.Plain) {
+        if (playerBackground == PlayerBackground.Plain) {
             baseColors.copy(background = themeBackground, text = MaterialTheme.colorScheme.onBackground)
         } else {
             baseColors
@@ -678,7 +679,7 @@ fun PlayerScreen() {
             val width = maxWidth
 
             // ================= Sfondi =================
-            when (style.playerBackground) {
+            when (playerBackground) {
                 PlayerBackground.Glow ->
                     Box(
                         Modifier.fillMaxSize().drawBehind {

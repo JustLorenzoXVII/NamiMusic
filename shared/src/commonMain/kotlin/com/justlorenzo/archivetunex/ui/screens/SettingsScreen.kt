@@ -363,28 +363,40 @@ private fun <T> PreviewChoices(
     ) {
         options.forEach { option ->
             val isSelected = option == selected
-            Column(
-                Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(22.dp))
-                    .background(if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh)
-                    .border(
-                        width = if (isSelected) 2.dp else 0.dp,
-                        color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                        shape = RoundedCornerShape(22.dp),
-                    ).clickable { onSelect(option) }
-                    .padding(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Box(Modifier.fillMaxWidth().height(84.dp), contentAlignment = Alignment.Center) { preview(option) }
-                Text(
-                    label(option),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+            val primary = MaterialTheme.colorScheme.primary
+            Box(Modifier.weight(1f)) {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(22.dp))
+                        .background(
+                            if (isSelected) primary.copy(alpha = 0.14f).compositeOver(MaterialTheme.colorScheme.surfaceContainerHigh) else MaterialTheme.colorScheme.surfaceContainerHigh,
+                        ).border(
+                            width = 2.dp,
+                            color = if (isSelected) primary else Color.Transparent,
+                            shape = RoundedCornerShape(22.dp),
+                        ).clickable { onSelect(option) }
+                        .padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Box(Modifier.fillMaxWidth().height(84.dp), contentAlignment = Alignment.Center) { preview(option) }
+                    Text(
+                        label(option),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.Medium,
+                        color = if (isSelected) primary else MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                // Spunta sulla scelta attiva
+                if (isSelected) {
+                    Box(
+                        Modifier.align(Alignment.TopEnd).padding(8.dp).size(24.dp).clip(CircleShape).background(primary),
+                        contentAlignment = Alignment.Center,
+                    ) { AtxIcon(Res.drawable.check, null, size = 16.dp, tint = MaterialTheme.colorScheme.onPrimary) }
+                }
             }
         }
     }
@@ -688,13 +700,16 @@ private fun PlayerPage() {
                 onSelect = { saveEnum(PlayerLayoutKey, it) },
             ) { layout -> PlayerLayoutPreview(layout) }
         }
-        SettingsGroup("Sfondo") {
-            PreviewChoices(
-                options = PlayerBackground.entries,
-                selected = style.playerBackground,
-                label = { it.label },
-                onSelect = { saveEnum(PlayerBackgroundKey, it) },
-            ) { background -> PlayerBackgroundPreview(background) }
+        // Il Poster ha già il suo sfondo (il colore della copertina): lì la scelta non serve
+        if (style.playerLayout != PlayerLayout.Poster) {
+            SettingsGroup("Sfondo · ${style.playerLayout.label}") {
+                PreviewChoices(
+                    options = PlayerBackground.entries,
+                    selected = style.playerBackground,
+                    label = { it.label },
+                    onSelect = { saveEnum(PlayerBackgroundKey, it) },
+                ) { background -> PlayerBackgroundPreview(background, style.playerLayout) }
+            }
         }
         SettingsGroup("Barra di avanzamento") {
             PreviewChoices(
@@ -744,13 +759,20 @@ private fun PlayerPage() {
 
 /** Disegno in miniatura di ogni disposizione del player. */
 @Composable
-private fun PlayerLayoutPreview(layout: PlayerLayout) {
+private fun PlayerLayoutPreview(
+    layout: PlayerLayout,
+    framed: Boolean = true,
+) {
     val primary = MaterialTheme.colorScheme.primary
     val muted = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
     val art = Brush.linearGradient(listOf(Color(0xFFFF7A59), Color(0xFFC2185B)))
     Column(
-        Modifier.width(52.dp).height(84.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.background)
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp)),
+        if (framed) {
+            Modifier.width(52.dp).height(84.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.background)
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
+        } else {
+            Modifier.width(52.dp).height(84.dp)
+        },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         when (layout) {
@@ -815,7 +837,10 @@ private fun playShapeOf(shape: PlayButtonShape): Shape =
     }
 
 @Composable
-private fun PlayerBackgroundPreview(background: PlayerBackground) {
+private fun PlayerBackgroundPreview(
+    background: PlayerBackground,
+    layout: PlayerLayout,
+) {
     val accent = MaterialTheme.colorScheme.primary
     val base = MaterialTheme.colorScheme.background
     Box(
@@ -837,9 +862,10 @@ private fun PlayerBackgroundPreview(background: PlayerBackground) {
                     PlayerBackground.Plain -> Brush.verticalGradient(listOf(base, base))
                 },
             ).border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp)),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.TopCenter,
     ) {
-        Box(Modifier.size(34.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)))
+        // Lo stile scelto disegnato sopra lo sfondo
+        PlayerLayoutPreview(layout, framed = false)
     }
 }
 
@@ -946,12 +972,20 @@ private fun MiniShapePreview(layout: MiniLayout) {
         when (layout) {
             MiniLayout.Floating -> RoundedCornerShape(12.dp)
             MiniLayout.Pill -> RoundedCornerShape(50)
-            MiniLayout.Docked -> RoundedCornerShape(4.dp)
             MiniLayout.Large -> RoundedCornerShape(14.dp)
         }
-    val width = if (layout == MiniLayout.Pill) 0.8f else if (layout == MiniLayout.Docked) 1f else 0.92f
-    val height = if (layout == MiniLayout.Large) 46.dp else 30.dp
-    Box(Modifier.fillMaxWidth(width).height(height).clip(shape).background(MaterialTheme.colorScheme.primaryContainer))
+    // Sotto: la barra delle schede, per far vedere quanto si allarga il mini player
+    val width =
+        when (layout) {
+            MiniLayout.Pill -> 0.62f
+            MiniLayout.Floating -> 0.8f
+            MiniLayout.Large -> 0.98f
+        }
+    val height = if (layout == MiniLayout.Large) 36.dp else 24.dp
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        Box(Modifier.fillMaxWidth(width).height(height).clip(shape).background(MaterialTheme.colorScheme.primary))
+        Box(Modifier.fillMaxWidth(0.62f).height(16.dp).clip(RoundedCornerShape(50)).background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)))
+    }
 }
 
 @Composable
@@ -1017,7 +1051,6 @@ private fun MiniPlayerPreview(style: com.justlorenzo.archivetunex.ui.AtxStyle) {
         when (style.miniLayout) {
             MiniLayout.Floating -> PreviewGeometry(RoundedCornerShape(26.dp), 16.dp, 68.dp, 48.dp)
             MiniLayout.Pill -> PreviewGeometry(RoundedCornerShape(50), 32.dp, 58.dp, 42.dp)
-            MiniLayout.Docked -> PreviewGeometry(RoundedCornerShape(14.dp), 0.dp, 64.dp, 46.dp)
             MiniLayout.Large -> PreviewGeometry(RoundedCornerShape(30.dp), 16.dp, 92.dp, 72.dp)
         }
     Box(Modifier.padding(horizontal = padding).fillMaxWidth().clip(shape).background(miniBrush(style.miniPlayer))) {
