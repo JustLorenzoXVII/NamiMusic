@@ -10,8 +10,8 @@ struct ComposeView: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIViewController, context: Self.Context) {}
 }
 
-struct ContentView: View {
-    var body: some View {
+struct ContentView: SwiftUI.View {
+    var body: some SwiftUI.View {
         ComposeView()
             .ignoresSafeArea()
     }
