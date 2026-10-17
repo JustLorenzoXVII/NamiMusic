@@ -21,6 +21,46 @@ object System {
     }
 
     fun lineSeparator(): String = "\n"
+
+    fun arraycopy(
+        src: IntArray,
+        srcPos: Int,
+        dest: IntArray,
+        destPos: Int,
+        length: Int,
+    ) {
+        src.copyInto(dest, destPos, srcPos, srcPos + length)
+    }
+
+    fun arraycopy(
+        src: ByteArray,
+        srcPos: Int,
+        dest: ByteArray,
+        destPos: Int,
+        length: Int,
+    ) {
+        src.copyInto(dest, destPos, srcPos, srcPos + length)
+    }
+
+    fun arraycopy(
+        src: FloatArray,
+        srcPos: Int,
+        dest: FloatArray,
+        destPos: Int,
+        length: Int,
+    ) {
+        src.copyInto(dest, destPos, srcPos, srcPos + length)
+    }
+
+    fun arraycopy(
+        src: DoubleArray,
+        srcPos: Int,
+        dest: DoubleArray,
+        destPos: Int,
+        length: Int,
+    ) {
+        src.copyInto(dest, destPos, srcPos, srcPos + length)
+    }
 }
 
 /** Ferma la riproduzione prima di un ripristino del backup (nell'originale: stopService(MusicService)). */

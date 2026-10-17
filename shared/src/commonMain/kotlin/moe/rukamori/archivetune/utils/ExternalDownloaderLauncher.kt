@@ -17,6 +17,7 @@ import moe.rukamori.archivetune.compat.Uri
 import moe.rukamori.archivetune.compat.Locale
 import moe.rukamori.archivetune.compat.uppercase
 import moe.rukamori.archivetune.compat.lowercase
+import moe.rukamori.archivetune.compat.SecurityException
 
 enum class ExternalDownloaderLaunchResult {
     STARTED,

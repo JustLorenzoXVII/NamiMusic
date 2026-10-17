@@ -25,6 +25,7 @@ import moe.rukamori.archivetune.localmedia.LocalSongScanConfig
 import moe.rukamori.archivetune.localmedia.LocalSongScanSummary
 import moe.rukamori.archivetune.localmedia.ScanLocalMusicUseCase
 import moe.rukamori.archivetune.utils.reportException
+import moe.rukamori.archivetune.compat.SecurityException
 
 class LocalSongsViewModel constructor(
     database: MusicDatabase,

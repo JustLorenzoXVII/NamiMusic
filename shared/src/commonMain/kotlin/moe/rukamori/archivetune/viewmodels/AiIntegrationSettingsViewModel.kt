@@ -42,6 +42,7 @@ import moe.rukamori.archivetune.constants.AiApiValidationStatus
 import moe.rukamori.archivetune.constants.AiProvider
 import moe.rukamori.archivetune.compat.Timber
 import moe.rukamori.archivetune.compat.AtomicInteger
+import moe.rukamori.archivetune.compat.localizedMessage
 
 sealed interface AiIntegrationSettingsScreenState {
     data object Loading : AiIntegrationSettingsScreenState

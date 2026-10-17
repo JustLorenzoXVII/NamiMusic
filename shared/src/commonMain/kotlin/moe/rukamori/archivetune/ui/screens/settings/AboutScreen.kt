@@ -332,7 +332,6 @@ private fun AboutFullScreenDialog(
         properties =
             DialogProperties(
                 usePlatformDefaultWidth = false,
-                decorFitsSystemWindows = false,
             ),
     ) {
         Scaffold(

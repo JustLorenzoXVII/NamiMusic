@@ -4924,7 +4924,7 @@ private fun EditorialDieCutArt(
         if (maxWidth < 50.dp || maxHeight < 50.dp) return@BoxWithConstraints
         val artSize = minOf(maxWidth, maxHeight) * 0.95f
 
-        val view = androidx.compose.ui.platform.LocalView.current
+        val view = moe.rukamori.archivetune.compat.LocalView.current
         val (enableHapticFeedback) = rememberPreference(moe.rukamori.archivetune.constants.EnableHapticFeedbackKey, true)
         val coroutineScope = rememberCoroutineScope()
 

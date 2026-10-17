@@ -69,6 +69,7 @@ kotlin {
 
     sourceSets {
         androidMain.dependencies {
+            implementation(libs.androidx.activity.compose)
             implementation(libs.accompanist.lyrics.ui)
             implementation(libs.kuromoji.ipadic)
             implementation(libs.media3.exoplayer)

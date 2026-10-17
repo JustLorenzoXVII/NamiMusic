@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flowOn
 import moe.rukamori.archivetune.repository.PlaylistExportRepository
 import kotlinx.io.IOException
+import moe.rukamori.archivetune.compat.codePointCount
+import moe.rukamori.archivetune.compat.offsetByCodePoints
 
 @Immutable
 data class ExportablePlaylist(

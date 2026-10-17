@@ -521,7 +521,7 @@ fun NavGraphBuilder.navigationBuilder(
     ) { backStackEntry ->
         LoginScreen(
             navController,
-            startUrl = backStackEntry.arguments?.getString(LOGIN_URL_ARGUMENT)?.let(Uri::decode),
+            startUrl = backStackEntry.arguments?.read { getStringOrNull(LOGIN_URL_ARGUMENT) }?.let { Uri.decode(it) },
         )
     }
 }

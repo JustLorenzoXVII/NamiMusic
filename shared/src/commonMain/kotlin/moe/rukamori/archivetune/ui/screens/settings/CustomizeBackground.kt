@@ -90,6 +90,7 @@ import moe.rukamori.archivetune.constants.PlayerCustomImageUriKey
 import moe.rukamori.archivetune.utils.rememberPreference
 import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.DrawableResource
+import moe.rukamori.archivetune.compat.SecurityException
 
 private const val DEFAULT_BLUR = 0f
 private const val DEFAULT_CONTRAST = 1f

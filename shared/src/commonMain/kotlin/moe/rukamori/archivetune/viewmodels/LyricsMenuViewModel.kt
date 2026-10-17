@@ -57,6 +57,7 @@ import moe.rukamori.archivetune.models.MediaMetadata
 import moe.rukamori.archivetune.utils.NetworkConnectivityObserver
 import moe.rukamori.archivetune.utils.dataStore
 import moe.rukamori.archivetune.compat.AtomicLong
+import moe.rukamori.archivetune.compat.localizedMessage
 
 sealed interface LyricsSearchScreenState {
     data object Loading : LyricsSearchScreenState

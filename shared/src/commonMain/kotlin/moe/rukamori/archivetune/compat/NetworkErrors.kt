@@ -28,11 +28,12 @@ fun Throwable.isSslHandshakeError(): Boolean =
     typeName() == "SSLHandshakeException" ||
         messageContains("SSL error", "secure connection", "NSURLErrorDomain Code=-1200")
 
-/** java.lang.SecurityException. */
-open class SecurityException(
-    message: String? = null,
-    cause: Throwable? = null,
-) : RuntimeException(message, cause)
+/** java.lang.SecurityException (su Android è proprio quella di Java). */
+expect open class SecurityException : RuntimeException {
+    constructor()
+
+    constructor(message: String?)
+}
 
 /** Throwable.localizedMessage di Java. */
 val Throwable.localizedMessage: String?

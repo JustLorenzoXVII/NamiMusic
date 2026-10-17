@@ -12,7 +12,7 @@ import moe.rukamori.archivetune.db.entities.Song
 import moe.rukamori.archivetune.innertube.YouTube
 import moe.rukamori.archivetune.ui.utils.getMusicVideoYTThumbnail
 import moe.rukamori.archivetune.compat.Timber
-import kotlin.jvm.Synchronized
+import moe.rukamori.archivetune.compat.Synchronized
 
 data class ResolvedDiscordImages(
     val thumbnailOriginalUrl: String?,

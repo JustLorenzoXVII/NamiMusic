@@ -106,6 +106,7 @@ import moe.rukamori.archivetune.compat.Locale
 import moe.rukamori.archivetune.compat.uppercase
 import moe.rukamori.archivetune.compat.lowercase
 import kotlin.coroutines.cancellation.CancellationException
+import moe.rukamori.archivetune.compat.localizedMessage
 
 private const val MOST_PLAYED_ALBUM_WINDOW_MILLIS = 14L * 24L * 60L * 60L * 1000L
 

@@ -13,6 +13,7 @@ import moe.rukamori.archivetune.compat.BreakIterator
 import moe.rukamori.archivetune.compat.Locale
 import moe.rukamori.archivetune.compat.uppercase
 import moe.rukamori.archivetune.compat.lowercase
+import moe.rukamori.archivetune.compat.codePointAt
 
 internal fun String.toLyricsWrappingUnits(): List<String> {
     if (isEmpty()) return emptyList()

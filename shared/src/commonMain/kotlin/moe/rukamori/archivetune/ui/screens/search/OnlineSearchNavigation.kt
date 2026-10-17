@@ -10,6 +10,7 @@ package moe.rukamori.archivetune.ui.screens.search
 import moe.rukamori.archivetune.compat.toByteArray
 
 import moe.rukamori.archivetune.compat.Charsets
+import moe.rukamori.archivetune.compat.String
 
 import moe.rukamori.archivetune.compat.AndroidBase64 as Base64
 

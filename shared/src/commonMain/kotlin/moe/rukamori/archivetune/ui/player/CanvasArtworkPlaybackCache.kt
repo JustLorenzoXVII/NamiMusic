@@ -55,7 +55,7 @@ import moe.rukamori.archivetune.compat.uppercase
 import moe.rukamori.archivetune.compat.lowercase
 import moe.rukamori.archivetune.compat.TimeUnit
 import moe.rukamori.archivetune.compat.synchronized
-import kotlin.jvm.Synchronized
+import moe.rukamori.archivetune.compat.Synchronized
 
 object CanvasArtworkPlaybackCache {
     private const val DEFAULT_MAX_SIZE_MEGABYTES = 256

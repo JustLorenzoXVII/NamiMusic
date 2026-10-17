@@ -16,7 +16,7 @@ import moe.rukamori.archivetune.compat.okhttp3.Interceptor
 import moe.rukamori.archivetune.compat.okhttp3.Response
 import kotlinx.io.IOException
 import moe.rukamori.archivetune.compat.synchronized
-import kotlin.jvm.Synchronized
+import moe.rukamori.archivetune.compat.Synchronized
 
 object CanvasNetworkAccess {
     private val mutablePolicy = MutableStateFlow(CanvasPolicy())

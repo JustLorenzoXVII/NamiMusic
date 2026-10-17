@@ -406,7 +406,6 @@ private fun ViewNewsFullImageDialog(
                 usePlatformDefaultWidth = false,
                 dismissOnBackPress = true,
                 dismissOnClickOutside = true,
-                decorFitsSystemWindows = false,
             ),
     ) {
         val context = LocalContext.current

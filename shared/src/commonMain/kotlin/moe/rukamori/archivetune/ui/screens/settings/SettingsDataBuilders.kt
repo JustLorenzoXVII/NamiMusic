@@ -22,6 +22,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import androidx.navigation.NavController
 import moe.rukamori.archivetune.BuildConfig
+import moe.rukamori.archivetune.compat.SecurityException
 
 @Composable
 fun buildSettingsGroups(
