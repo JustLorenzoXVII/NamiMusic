@@ -146,8 +146,8 @@ class AiIntegrationSettingsViewModel constructor(
         private val testAiIntegration: TestAiIntegrationUseCase,
     ) : ViewModel() {
         private val transientState = MutableStateFlow(AiIntegrationTransientState())
-        private val _events = MutableSharedFlow<Int>()
-        val events: SharedFlow<Int> = _events.asSharedFlow()
+        private val _events = MutableSharedFlow<StringResource>()
+        val events: SharedFlow<StringResource> = _events.asSharedFlow()
         private var fetchModelsJob: Job? = null
         private var testApiJob: Job? = null
         private val fetchModelsRequestId = AtomicInteger()

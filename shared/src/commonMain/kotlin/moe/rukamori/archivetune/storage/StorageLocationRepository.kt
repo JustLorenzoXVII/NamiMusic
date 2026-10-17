@@ -408,7 +408,7 @@ class StorageLocationRepository constructor(
 
         private suspend fun clearDownloads(onProgress: suspend (StorageCacheClearProgress) -> Unit): Boolean =
             runCatching {
-                downloadUtil.downloadManager.removeAllDownloads()
+                downloadUtil.removeAllDownloads()
             }.isSuccess && clearMediaCache(downloadCache, StorageCacheKind.DOWNLOADS, onProgress)
 
         private suspend fun clearCanvasCache(onProgress: suspend (StorageCacheClearProgress) -> Unit): Boolean {
@@ -669,10 +669,7 @@ private fun Context.defaultCacheDirectory(kind: StorageFolderKind): File =
 private fun Context.defaultStorageRootDirectory(): File = filesDir
 
 private fun Context.restartApp() {
-    packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
-        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-        startActivity(launchIntent)
-    }
+    moe.rukamori.archivetune.compat.restartAppAfterRestore()
     kotlin.system.exitProcess(0)
 }
 

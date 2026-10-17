@@ -15,5 +15,17 @@ import androidx.compose.ui.text.font.FontFamily
  * iPhone: non ancora supportato, si usa il font predefinito.
  */
 expect object CustomFontLoader {
+    val supportedMimeTypes: Array<String>
+
+    fun displayName(
+        context: moe.rukamori.archivetune.compat.Context,
+        uri: moe.rukamori.archivetune.compat.Uri,
+    ): String
+
+    fun isSupportedTtf(
+        context: moe.rukamori.archivetune.compat.Context,
+        uri: moe.rukamori.archivetune.compat.Uri,
+    ): Boolean
+
     suspend fun loadFontFamily(uriString: String): FontFamily?
 }

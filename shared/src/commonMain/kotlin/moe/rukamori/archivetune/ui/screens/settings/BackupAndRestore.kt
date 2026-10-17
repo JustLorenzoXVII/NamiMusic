@@ -107,6 +107,7 @@ import moe.rukamori.archivetune.compat.time.LocalDate
 import moe.rukamori.archivetune.compat.time.LocalDateTime
 import moe.rukamori.archivetune.compat.time.ZoneOffset
 import moe.rukamori.archivetune.compat.time.DateTimeFormatter
+import org.jetbrains.compose.resources.StringResource
 
 private val CSV_MIME_TYPES =
     arrayOf(
@@ -760,7 +761,7 @@ private fun ScheduledBackupDatePickerDialog(
     }
 }
 
-private val ScheduledBackupFrequency.labelRes: Int
+private val ScheduledBackupFrequency.labelRes: StringResource
     get() =
         when (this) {
             ScheduledBackupFrequency.DAILY -> Res.string.scheduled_backup_daily

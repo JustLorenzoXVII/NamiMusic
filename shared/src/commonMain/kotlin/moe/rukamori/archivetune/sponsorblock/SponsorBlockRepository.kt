@@ -39,6 +39,7 @@ import moe.rukamori.archivetune.constants.SponsorBlockEnabledKey
 import moe.rukamori.archivetune.utils.dataStore
 import moe.rukamori.archivetune.compat.MessageDigest
 import kotlin.jvm.Synchronized
+import moe.rukamori.archivetune.compat.toByteArray
 
 internal class SponsorBlockApiException(
     val statusCode: Int,

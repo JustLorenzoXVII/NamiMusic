@@ -7,6 +7,7 @@
 
 package moe.rukamori.archivetune.ui.component
 
+import org.jetbrains.compose.resources.DrawableResource
 import archivetunex.shared.generated.resources.*
 
 import androidx.compose.animation.AnimatedContent
@@ -60,7 +61,7 @@ fun <E> ChipsRow(
     onValueUpdate: (E) -> Unit,
     modifier: Modifier = Modifier,
     containerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
-    icons: Map<E, Int> = emptyMap(),
+    icons: Map<E, DrawableResource> = emptyMap(),
 ) {
     Row(
         modifier =

@@ -69,7 +69,6 @@ class DownloadedArtworkRepository constructor(
         private val httpClient: OkHttpClient by lazy {
             OkHttpClient
                 .Builder()
-                .proxy(YouTube.streamOkHttpProxy)
                 .followRedirects(true)
                 .followSslRedirects(true)
                 .connectTimeout(NETWORK_TIMEOUT_SECONDS, TimeUnit.SECONDS)

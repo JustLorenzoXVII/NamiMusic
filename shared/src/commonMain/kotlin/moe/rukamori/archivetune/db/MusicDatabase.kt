@@ -81,7 +81,7 @@ class MusicDatabase(
     fun close() = delegate.close()
 
     /** Scrive il WAL nel file principale (per il backup), come "PRAGMA wal_checkpoint(FULL)". */
-    suspend fun checkpoint() {
+    override suspend fun checkpoint() {
         delegate.useWriterConnection { transactor ->
             transactor.usePrepared("PRAGMA wal_checkpoint(FULL)") { statement -> statement.step() }
         }

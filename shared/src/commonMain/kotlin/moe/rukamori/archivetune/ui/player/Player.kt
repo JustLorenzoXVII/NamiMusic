@@ -141,7 +141,6 @@ import moe.rukamori.archivetune.compat.media3.Player.Companion.STATE_READY
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
 import moe.rukamori.archivetune.compat.Palette
 import coil3.compose.AsyncImage
 import moe.rukamori.archivetune.compat.imageLoader

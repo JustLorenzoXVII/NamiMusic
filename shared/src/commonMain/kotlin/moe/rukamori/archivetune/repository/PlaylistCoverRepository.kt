@@ -10,7 +10,6 @@ package moe.rukamori.archivetune.repository
 import moe.rukamori.archivetune.compat.ImageTools
 import moe.rukamori.archivetune.compat.contentResolver
 
-import moe.rukamori.archivetune.compat.contentResolver
 
 import moe.rukamori.archivetune.compat.getOrDefault
 

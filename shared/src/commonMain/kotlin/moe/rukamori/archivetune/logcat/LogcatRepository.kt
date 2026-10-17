@@ -37,6 +37,7 @@ import moe.rukamori.archivetune.compat.Locale
 import moe.rukamori.archivetune.compat.uppercase
 import moe.rukamori.archivetune.compat.lowercase
 import kotlin.math.abs
+import moe.rukamori.archivetune.compat.bufferedWriter
 
 private const val LOGCAT_POLL_INTERVAL_MILLIS = 2_000L
 private const val LOGCAT_ENTRY_LIMIT = 1_000

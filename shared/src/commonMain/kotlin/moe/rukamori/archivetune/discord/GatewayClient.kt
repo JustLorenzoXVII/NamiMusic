@@ -23,6 +23,7 @@ import moe.rukamori.archivetune.compat.JSONObject
 import moe.rukamori.archivetune.compat.Timber
 import moe.rukamori.archivetune.compat.AtomicLong
 import kotlin.random.Random
+import moe.rukamori.archivetune.compat.okhttp3.dispatcher
 
 private sealed class GatewayFrame {
     data class Text(

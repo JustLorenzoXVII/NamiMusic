@@ -30,6 +30,9 @@ class Intent() {
     var chooserTitle: CharSequence? = null
         internal set
 
+    /** Allegato da condividere (file o testo), come Intent.clipData. */
+    var clipData: ClipData? = null
+
     constructor(action: String?) : this() {
         this.action = action
     }

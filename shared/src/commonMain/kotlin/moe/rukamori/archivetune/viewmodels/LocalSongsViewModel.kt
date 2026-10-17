@@ -72,5 +72,5 @@ sealed interface LocalSongsScanState {
 
     val isScanning: Boolean get() = this is Loading
     val lastSummary: LocalSongScanSummary? get() = (this as? Success)?.summary
-    val errorMessageRes: Int? get() = (this as? Error)?.messageRes
+    val errorMessageRes: StringResource? get() = (this as? Error)?.messageRes
 }

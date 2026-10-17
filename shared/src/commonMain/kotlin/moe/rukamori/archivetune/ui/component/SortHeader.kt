@@ -7,6 +7,7 @@
 
 package moe.rukamori.archivetune.ui.component
 
+import org.jetbrains.compose.resources.StringResource
 import archivetunex.shared.generated.resources.*
 
 import androidx.compose.animation.core.animateFloatAsState
@@ -45,7 +46,7 @@ internal inline fun <reified T : Enum<T>> SortHeader(
     sortDescending: Boolean,
     crossinline onSortTypeChange: (T) -> Unit,
     noinline onSortDescendingChange: (Boolean) -> Unit,
-    crossinline sortTypeText: (T) -> Int,
+    crossinline sortTypeText: (T) -> StringResource,
     modifier: Modifier = Modifier,
     showDescending: Boolean? = true,
 ) {

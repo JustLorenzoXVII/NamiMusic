@@ -162,7 +162,7 @@ fun YouTubePlaylistMenu(
                         it.toMediaMetadata()
                     }
             database.withTransaction {
-                allSongs.forEach(::insert)
+                allSongs.forEach { insert(it) }
             }
             allSongs.map { it.id }
         },
@@ -272,7 +272,7 @@ fun YouTubePlaylistMenu(
                                                         position = index,
                                                         setVideoId = song.setVideoId,
                                                     )
-                                                }.forEach(::insert)
+                                                }.forEach { insert(it) }
                                         }
                                     }
                                 }
@@ -398,7 +398,7 @@ fun YouTubePlaylistMenu(
                         it.toMediaMetadata()
                     }
             database.withTransaction {
-                allSongs.forEach(::insert)
+                allSongs.forEach { insert(it) }
             }
             allSongs.map { it.id }
         },
@@ -820,7 +820,7 @@ fun YouTubePlaylistMenu(
                                                                 position = index,
                                                                 setVideoId = song.setVideoId,
                                                             )
-                                                        }.forEach(::insert)
+                                                        }.forEach { insert(it) }
                                                 }
 
                                                 if (newValue) {

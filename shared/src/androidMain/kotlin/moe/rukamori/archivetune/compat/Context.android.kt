@@ -149,3 +149,10 @@ internal actual fun platformRestartApp() {
         context.startActivity(launchIntent)
     }
 }
+
+actual fun platformMaxRefreshRate(): Float? {
+    val context = com.justlorenzo.archivetunex.player.AndroidAppContext.context
+    val displayManager = context.getSystemService(android.content.Context.DISPLAY_SERVICE) as? android.hardware.display.DisplayManager
+    val display = displayManager?.getDisplay(android.view.Display.DEFAULT_DISPLAY) ?: return null
+    return display.supportedModes.maxOfOrNull { it.refreshRate } ?: display.refreshRate
+}

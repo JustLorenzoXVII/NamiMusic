@@ -239,6 +239,10 @@ class ContentResolver internal constructor() {
     fun releasePersistableUriPermission(uri: Uri, modeFlags: Int) = platformTakePersistablePermission(uri, modeFlags, take = false)
 
     fun getType(uri: Uri): String? = platformGetType(uri)
+
+    /** Permessi persistenti sugli URI scelti dall'utente (su iPhone non esistono: lista vuota). */
+    val persistedUriPermissions: List<UriPermission>
+        get() = platformPersistedUriPermissions()
 }
 
 private val sharedContentResolver = ContentResolver()
@@ -251,6 +255,15 @@ internal expect fun platformOpenInputStream(uri: Uri): InputStream?
 internal expect fun platformOpenOutputStream(uri: Uri, mode: String): OutputStream?
 
 internal expect fun platformTakePersistablePermission(uri: Uri, modeFlags: Int, take: Boolean)
+
+internal expect fun platformPersistedUriPermissions(): List<UriPermission>
+
+/** android.content.UriPermission. */
+class UriPermission(
+    val uri: Uri,
+    val isReadPermission: Boolean,
+    val isWritePermission: Boolean,
+)
 
 internal expect fun platformGetType(uri: Uri): String?
 
@@ -424,3 +437,7 @@ class ByteBuffer private constructor(
 fun File.inputStream(): InputStream = FileInputStream(this)
 
 fun File.outputStream(): OutputStream = FileOutputStream(this)
+
+fun File.bufferedWriter(charset: Charset = Charset.UTF_8): Writer = FileOutputStream(this).bufferedWriter(charset)
+
+fun File.bufferedReader(charset: Charset = Charset.UTF_8): BufferedReader = BufferedReader(charset.decode(readBytes()))

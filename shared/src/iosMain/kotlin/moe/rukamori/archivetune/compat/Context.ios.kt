@@ -136,3 +136,6 @@ internal actual fun platformIs24HourFormat(): Boolean {
 
 /** Su iPhone un'app non può riavviarsi da sola: dopo il ripristino si chiude e va riaperta. */
 internal actual fun platformRestartApp() = Unit
+
+actual fun platformMaxRefreshRate(): Float? =
+    platform.UIKit.UIScreen.mainScreen.maximumFramesPerSecond.toFloat()

@@ -1,5 +1,8 @@
 package moe.rukamori.archivetune.compat.okhttp3
 
+import io.ktor.websocket.CloseReason
+import io.ktor.websocket.close
+import io.ktor.client.plugins.websocket.webSocketSession
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.header
@@ -113,6 +116,26 @@ class HttpUrl internal constructor(
     fun queryParameter(name: String): String? = uri.getQueryParameter(name)
 
     override fun toString(): String = value
+
+    fun newBuilder(): Builder = Builder(value)
+
+    /** HttpUrl.Builder: solo togliere query e frammento, l'unico uso in ArchiveTune. */
+    class Builder internal constructor(
+        private var value: String,
+    ) {
+        fun query(query: String?) =
+            apply {
+                val withoutFragment = value.substringBefore('#')
+                val fragment = value.substringAfter('#', "").takeIf { '#' in value }
+                val base = withoutFragment.substringBefore('?')
+                value = base + (query?.let { "?$it" } ?: "") + (fragment?.let { "#$it" } ?: "")
+            }
+
+        fun fragment(fragment: String?) =
+            apply { value = value.substringBefore('#') + (fragment?.let { "#$it" } ?: "") }
+
+        fun build(): HttpUrl = HttpUrl(value)
+    }
 
     companion object {
         fun String.toHttpUrlOrNull(): HttpUrl? = if (startsWith("http://") || startsWith("https://")) HttpUrl(this) else null
@@ -257,8 +280,11 @@ class Response internal constructor(
     val code: Int,
     val message: String,
     private val headerMap: Map<String, List<String>>,
-    val body: ResponseBody?,
+    /** Come in OkHttp 5 il corpo non è mai null (vuoto se la risposta non ne ha). */
+    body: ResponseBody?,
 ) : AutoCloseable {
+    val body: ResponseBody = body ?: ResponseBody(ByteArray(0), null)
+
     val isSuccessful: Boolean
         get() = code in 200..299
 
@@ -466,7 +492,7 @@ private class KtorWebSocket(
 
     override fun close(code: Int, reason: String?): Boolean {
         val ws = session ?: return false
-        scope.launch { runCatching { ws.close(io.ktor.websocket.CloseReason(code.toShort(), reason.orEmpty())) } }
+        scope.launch { runCatching { ws.close(CloseReason(code.toShort(), reason.orEmpty())) } }
         return true
     }
 
@@ -479,7 +505,7 @@ private class KtorWebSocket(
 }
 
 private suspend fun HttpClient.webSocketSessionFor(request: Request): io.ktor.websocket.DefaultWebSocketSession =
-    io.ktor.client.plugins.websocket.webSocketSession(request.url.toString().replaceFirst("https://", "wss://").replaceFirst("http://", "ws://")) {
+    webSocketSession(request.url.toString().replaceFirst("https://", "wss://").replaceFirst("http://", "ws://")) {
         request.headers.forEach { (k, v) -> header(k, v) }
     }
 
@@ -497,3 +523,15 @@ object Credentials {
         password: String,
     ): String = "Basic " + kotlin.io.encoding.Base64.Default.encode("$username:$password".encodeToByteArray())
 }
+
+/** OkHttpClient.dispatcher.executorService.shutdown(): il client comune non ha thread propri. */
+class OkHttpDispatcher internal constructor() {
+    val executorService: ExecutorServiceStub = ExecutorServiceStub()
+
+    class ExecutorServiceStub internal constructor() {
+        fun shutdown() = Unit
+    }
+}
+
+val OkHttpClient.dispatcher: OkHttpDispatcher
+    get() = OkHttpDispatcher()

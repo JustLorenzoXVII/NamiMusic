@@ -379,6 +379,28 @@ class URI(
 
     override fun toString(): String = uri.toString()
 
+    override fun equals(other: Any?): Boolean = other is URI && other.toString() == toString()
+
+    override fun hashCode(): Int = toString().hashCode()
+
+    /** Risolve un indirizzo relativo rispetto a questo (come java.net.URI.resolve). */
+    fun resolve(reference: String): URI {
+        if (reference.contains("://")) return URI(reference)
+        val origin = "${scheme.orEmpty()}://${authority.orEmpty()}"
+        if (reference.startsWith("//")) return URI("${scheme.orEmpty()}:$reference")
+        if (reference.startsWith("/")) return URI(origin + reference)
+        val basePath = path.orEmpty().substringBeforeLast('/', "")
+        val segments = ArrayDeque<String>()
+        (basePath + "/" + reference).split('/').forEach { segment ->
+            when (segment) {
+                "", "." -> Unit
+                ".." -> segments.removeLastOrNull()
+                else -> segments.addLast(segment)
+            }
+        }
+        return URI(origin + "/" + segments.joinToString("/"))
+    }
+
     companion object {
         fun create(str: String): URI = URI(str)
     }
@@ -569,6 +591,11 @@ class DateFormat private constructor(
         const val MEDIUM = 2
         const val SHORT = 3
         const val DEFAULT = MEDIUM
+
+        /** android.text.format.DateFormat.is24HourFormat. */
+        fun is24HourFormat(
+            @Suppress("UNUSED_PARAMETER") context: Context,
+        ): Boolean = platformIs24HourFormat()
 
         fun getTimeInstance(style: Int = DEFAULT, @Suppress("UNUSED_PARAMETER") locale: Locale? = null): DateFormat = DateFormat(if (style == SHORT) "HH:mm" else "HH:mm:ss")
 

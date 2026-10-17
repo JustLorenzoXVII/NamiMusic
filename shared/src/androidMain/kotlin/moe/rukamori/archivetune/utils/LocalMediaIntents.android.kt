@@ -6,11 +6,13 @@ import android.content.Intent
 import androidx.core.net.toUri
 import java.util.Locale
 
-fun shareLocalAudio(
-    context: Context,
+actual fun shareLocalAudio(
+    context: moe.rukamori.archivetune.compat.Context,
     mediaId: String,
-    mimeType: String? = null,
+    mimeType: String?,
 ): Boolean {
+    @Suppress("NAME_SHADOWING")
+    val context: Context = com.justlorenzo.archivetunex.player.AndroidAppContext.context
     val uri = mediaId.toUri()
     val scheme = uri.scheme?.lowercase(Locale.US)
     if (scheme != "content" && scheme != "android.resource") return false

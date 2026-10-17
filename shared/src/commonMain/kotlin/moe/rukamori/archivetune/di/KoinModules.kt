@@ -358,7 +358,7 @@ val archiveTuneInjectedModule: Module =
         singleOf(::StandardLyricsTranslationRepository)
         singleOf(::TranslatedLyricsRepository)
         singleOf(::NetworkMonitor)
-        single { DownloadUtil(get(), get(), get(), get(named("download")), get(named("player")), get(), get()) }
+        single { DownloadUtil(get()) }
         singleOf(::PodcastRepository)
         singleOf(::NewsRepository)
         singleOf(::PlaylistCoverRepository)

@@ -54,3 +54,5 @@ internal actual fun platformInflateRaw(data: ByteArray, expectedSize: Int): Byte
         capacity *= 2
     }
 }
+
+internal actual fun platformPersistedUriPermissions(): List<UriPermission> = emptyList()

@@ -26,6 +26,7 @@ import kotlinx.serialization.json.longOrNull
 import kotlinx.io.IOException
 import moe.rukamori.archivetune.compat.URI
 import moe.rukamori.archivetune.compat.Base64
+import moe.rukamori.archivetune.compat.String
 
 internal class AppleMusicWebToken(private val client: HttpClient) {
     private data class Token(val value: String, val expiresAtSeconds: Long)
@@ -47,7 +48,7 @@ internal class AppleMusicWebToken(private val client: HttpClient) {
         }
         val scriptUrls = scriptPattern.findAll(page)
             .map { pageUrl.resolve(it.groupValues[1]) }
-            .filter { it.scheme == "https" && it.host == "music.apple.com" && it.path.startsWith("/assets/index") }
+            .filter { it.scheme == "https" && it.host == "music.apple.com" && it.path.orEmpty().startsWith("/assets/index") }
             .distinct()
             .take(3)
         for (url in scriptUrls) {

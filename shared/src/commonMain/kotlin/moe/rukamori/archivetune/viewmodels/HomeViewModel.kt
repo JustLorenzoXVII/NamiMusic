@@ -85,6 +85,7 @@ import moe.rukamori.archivetune.utils.reportException
 import moe.rukamori.archivetune.utils.toPlaybackAuthState
 import moe.rukamori.archivetune.compat.Timber
 import moe.rukamori.archivetune.compat.AtomicLong
+import org.jetbrains.compose.resources.StringResource
 
 sealed interface AccountChannelsState {
     data object Loading : AccountChannelsState
@@ -155,7 +156,7 @@ private data class HomeStateInputs(
     val preferences: HomePresentationPreferences,
     val isLoading: Boolean,
     val isInitialLoadComplete: Boolean,
-    val loadError: Int?,
+    val loadError: StringResource?,
 ) {
     fun toScreenState(
         isRefreshing: Boolean,
@@ -216,7 +217,7 @@ class HomeViewModel constructor(
         private val isRefreshing = MutableStateFlow(false)
         private val isLoading = MutableStateFlow(false)
         private val isInitialLoadComplete = MutableStateFlow(false)
-        private val loadError = MutableStateFlow<Int?>(null)
+        private val loadError = MutableStateFlow<StringResource?>(null)
         private val isLoadingMore = MutableStateFlow(false)
         private val homeLoadMutex = Mutex()
 

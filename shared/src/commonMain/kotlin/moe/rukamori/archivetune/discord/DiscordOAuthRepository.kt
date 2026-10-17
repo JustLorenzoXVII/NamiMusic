@@ -40,6 +40,7 @@ import moe.rukamori.archivetune.compat.URLEncoder
 import moe.rukamori.archivetune.compat.MessageDigest
 import moe.rukamori.archivetune.compat.SecureRandom
 import moe.rukamori.archivetune.compat.Base64
+import moe.rukamori.archivetune.compat.bufferedReader
 
 data class DiscordAuthorizationSession(
     val state: String,

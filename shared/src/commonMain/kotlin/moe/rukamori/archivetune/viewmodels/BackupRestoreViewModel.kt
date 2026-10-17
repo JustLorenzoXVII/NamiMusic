@@ -53,7 +53,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import moe.rukamori.archivetune.MainActivity
 import moe.rukamori.archivetune.constants.RedownloadOnRestoreKey
 import moe.rukamori.archivetune.backup.BackupArchiveCategory
 import moe.rukamori.archivetune.backup.BackupArchiveRepository
@@ -93,6 +92,7 @@ import moe.rukamori.archivetune.compat.lowercase
 import kotlin.math.roundToInt
 import kotlin.system.exitProcess
 import moe.rukamori.archivetune.compat.outputStream
+import moe.rukamori.archivetune.compat.bufferedReader
 
 data class BackupRestoreProgressUi(
     val title: String,
@@ -278,8 +278,8 @@ class BackupRestoreViewModel constructor(
         private val _scheduledBackupState = MutableStateFlow<ScheduledBackupScreenState>(ScheduledBackupScreenState.Loading)
         val scheduledBackupState: StateFlow<ScheduledBackupScreenState> = _scheduledBackupState.asStateFlow()
 
-        private val _scheduledBackupEvent = MutableSharedFlow<Int>(extraBufferCapacity = 1)
-        val scheduledBackupEvent: SharedFlow<Int> = _scheduledBackupEvent.asSharedFlow()
+        private val _scheduledBackupEvent = MutableSharedFlow<StringResource>(extraBufferCapacity = 1)
+        val scheduledBackupEvent: SharedFlow<StringResource> = _scheduledBackupEvent.asSharedFlow()
 
         private val _exportPlaylistState = MutableStateFlow<ExportPlaylistScreenState>(ExportPlaylistScreenState.Loading)
         val exportPlaylistState: StateFlow<ExportPlaylistScreenState> = _exportPlaylistState.asStateFlow()
@@ -744,7 +744,7 @@ class BackupRestoreViewModel constructor(
 
         private suspend fun restoreSettingsFromXml(
             context: Context,
-            inputStream: java.io.InputStream,
+            inputStream: moe.rukamori.archivetune.compat.InputStream,
             excludedKeyNames: Set<String> = emptySet(),
         ) {
             val content = inputStream.readBytes().toString(Charsets.UTF_8)

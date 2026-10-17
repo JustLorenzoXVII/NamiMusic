@@ -16,7 +16,6 @@ import moe.rukamori.archivetune.compat.Date
 import moe.rukamori.archivetune.compat.Locale
 import moe.rukamori.archivetune.compat.Log
 import moe.rukamori.archivetune.compat.SimpleDateFormat
-import moe.rukamori.archivetune.compat.System
 
 data class LogEntry(
     val time: Long,

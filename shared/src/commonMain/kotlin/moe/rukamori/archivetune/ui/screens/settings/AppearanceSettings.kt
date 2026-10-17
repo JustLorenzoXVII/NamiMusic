@@ -1155,12 +1155,8 @@ private fun rememberSupportedHighestFps(): Float {
     val view = LocalView.current
 
     return remember(view) {
-        val display = view.display
-        display
-            ?.supportedModes
-            ?.maxOfOrNull { mode -> mode.refreshRate }
-            ?: display?.refreshRate
-            ?: DEFAULT_STANDARD_REFRESH_RATE_FPS
+        // ArchiveTuneX: la frequenza massima dello schermo la dà la piattaforma (Display di Android / ProMotion su iPhone)
+        moe.rukamori.archivetune.compat.platformMaxRefreshRate() ?: DEFAULT_STANDARD_REFRESH_RATE_FPS
     }
 }
 

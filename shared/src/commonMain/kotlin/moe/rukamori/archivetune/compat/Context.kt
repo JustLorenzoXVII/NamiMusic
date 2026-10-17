@@ -55,14 +55,14 @@ abstract class Context {
 
     fun getString(
         resource: StringResource,
-        vararg formatArgs: Any,
-    ): String = runBlocking { org.jetbrains.compose.resources.getString(resource, *formatArgs) }
+        vararg formatArgs: Any?,
+    ): String = runBlocking { org.jetbrains.compose.resources.getString(resource, *formatArgs.map { it ?: "null" }.toTypedArray()) }
 
     fun getQuantityString(
         resource: PluralStringResource,
         quantity: Int,
-        vararg formatArgs: Any,
-    ): String = runBlocking { getPluralString(resource, quantity, *formatArgs) }
+        vararg formatArgs: Any?,
+    ): String = runBlocking { getPluralString(resource, quantity, *formatArgs.map { it ?: "null" }.toTypedArray()) }
 
     companion object {
         const val PACKAGE_NAME = "com.justlorenzo.archivetunex"

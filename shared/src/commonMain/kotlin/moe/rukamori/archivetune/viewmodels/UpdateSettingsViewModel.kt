@@ -59,7 +59,7 @@ class UpdateSettingsViewModel constructor(
         observeSettings: ObserveUpdateSettingsUseCase,
         private val updateSettings: UpdateUpdateSettingsUseCase,
     ) : ViewModel() {
-        private val error = MutableStateFlow<Int?>(null)
+        private val error = MutableStateFlow<StringResource?>(null)
         private var automaticChecksJob: Job? = null
         private var notificationsJob: Job? = null
 

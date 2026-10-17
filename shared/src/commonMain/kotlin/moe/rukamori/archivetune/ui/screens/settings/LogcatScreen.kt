@@ -92,6 +92,7 @@ import moe.rukamori.archivetune.viewmodels.LogcatUiEntry
 import moe.rukamori.archivetune.viewmodels.LogcatUiModel
 import moe.rukamori.archivetune.viewmodels.LogcatViewModel
 import moe.rukamori.archivetune.ui.component.IconButton as ArchiveTuneIconButton
+import org.jetbrains.compose.resources.StringResource
 
 @Composable
 fun LogcatScreen(
@@ -653,7 +654,7 @@ private fun LogcatErrorState(
     }
 }
 
-private val LogcatLevel.labelResId: Int
+private val LogcatLevel.labelResId: StringResource
     get() =
         when (this) {
             LogcatLevel.VERBOSE -> Res.string.log_level_verbose

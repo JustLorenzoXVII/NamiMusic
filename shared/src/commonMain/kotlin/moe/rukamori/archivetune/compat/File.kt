@@ -143,6 +143,14 @@ class File(
 
     fun resolve(child: String): File = File(this, child)
 
+    fun resolve(child: File): File = if (child.path.startsWith("/")) child else File(this, child.path)
+
+    /** Percorso relativo a [base] (come kotlin.io.relativeTo). */
+    fun relativeTo(base: File): File {
+        val basePath = base.path.trimEnd('/') + "/"
+        return File(if (path.startsWith(basePath)) path.removePrefix(basePath) else path)
+    }
+
     override fun toString(): String = path
 
     override fun equals(other: Any?): Boolean = other is File && other.path == path

@@ -33,6 +33,7 @@ import moe.rukamori.archivetune.lastfm.models.TokenResponse
 import moe.rukamori.archivetune.compat.Uri
 import moe.rukamori.archivetune.compat.MessageDigest
 import moe.rukamori.archivetune.compat.toSortedMap
+import moe.rukamori.archivetune.compat.toByteArray
 
 object LastFM {
     const val DEFAULT_API_ENDPOINT = "https://ws.audioscrobbler.com/2.0/"

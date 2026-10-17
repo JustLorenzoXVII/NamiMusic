@@ -673,7 +673,7 @@ private fun PreferenceGroupScope.sponsorBlockPreferences(
             values = categoryOptions,
             checkedValues = draftCategoryOptions,
             selectionText =
-                androidx.compose.ui.res.pluralStringResource(
+                org.jetbrains.compose.resources.pluralStringResource(
                     Res.plurals.n_selected,
                     selectedCount,
                     selectedCount,

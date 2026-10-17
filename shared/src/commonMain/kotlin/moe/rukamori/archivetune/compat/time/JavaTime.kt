@@ -160,6 +160,9 @@ class LocalDate internal constructor(
     val dayOfYear: Int get() = value.dayOfYear
     val dayOfWeek: DayOfWeek get() = DayOfWeek.entries[value.dayOfWeek.ordinal]
 
+    /** LocalDate.with(DayOfWeek.X): lo stesso giorno della settimana ISO corrente (da lunedì a domenica). */
+    fun with(day: DayOfWeek): LocalDate = plusDays((day.ordinal - dayOfWeek.ordinal).toLong())
+
 
 
 
@@ -261,6 +264,15 @@ class LocalDateTime internal constructor(
 
     fun plusSeconds(seconds: Long): LocalDateTime = shiftUtc(seconds * 1000)
 
+    fun plusNanos(nanos: Long): LocalDateTime =
+        LocalDateTime(
+            KInstant
+                .fromEpochSeconds(0, value.toInstant(TimeZone.UTC).let { it.epochSeconds * 1_000_000_000L + it.nanosecondsOfSecond } + nanos)
+                .toLocalDateTime(TimeZone.UTC),
+        )
+
+    fun minusNanos(nanos: Long): LocalDateTime = plusNanos(-nanos)
+
     fun minusSeconds(seconds: Long): LocalDateTime = shiftUtc(-seconds * 1000)
 
     fun plusMinutes(minutes: Long): LocalDateTime = shiftUtc(minutes * 60_000)
@@ -296,6 +308,15 @@ class LocalDateTime internal constructor(
     fun withNano(nano: Int): LocalDateTime = LocalDateTime(KLocalDateTime(value.date, KLocalTime(value.hour, value.minute, value.second, nano)))
 
     fun withDayOfMonth(day: Int): LocalDateTime = LocalDateTime(KLocalDateTime(KLocalDate(value.year, value.month, day), value.time))
+
+    fun withMonth(month: Int): LocalDateTime =
+        LocalDateTime(KLocalDateTime(KLocalDate(value.year, month, minOf(value.date.day, lastDayOf(value.year, month))), value.time))
+
+    fun withYear(year: Int): LocalDateTime =
+        LocalDateTime(KLocalDateTime(KLocalDate(year, value.month, minOf(value.date.day, lastDayOf(year, value.month.ordinal + 1))), value.time))
+
+    fun withDayOfYear(day: Int): LocalDateTime =
+        LocalDateTime(KLocalDateTime(KLocalDate(value.year, 1, 1).plus(day - 1, DateTimeUnit.DAY), value.time))
 
     fun toLocalDate(): LocalDate = LocalDate(value.date)
 
@@ -370,6 +391,8 @@ class LocalTime internal constructor(
     val second: Int get() = value.second
 
     override fun compareTo(other: LocalTime): Int = value.compareTo(other.value)
+
+    fun format(formatter: DateTimeFormatter): String = formatter.format(LocalDateTime(KLocalDateTime(KLocalDate(2000, 1, 1), value)))
 
     override fun toString(): String = value.toString()
 
@@ -584,4 +607,13 @@ class Year private constructor(
 
         fun of(year: Int): Year = Year(year)
     }
+}
+
+
+private fun lastDayOf(
+    year: Int,
+    month: Int,
+): Int {
+    val first = KLocalDate(year, month, 1)
+    return first.plus(1, DateTimeUnit.MONTH).minus(1, DateTimeUnit.DAY).day
 }

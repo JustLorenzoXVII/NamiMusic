@@ -144,10 +144,14 @@ class Document internal constructor() : Node(DOCUMENT_NODE, "#document") {
 
     fun createTextNode(text: String): Text = Text(text, cdata = false)
 
-    val documentElement: Element?
+    /** Come in Java: sempre presente per un documento letto con successo. */
+    val documentElement: Element
+        get() = documentElementOrNull ?: throw XmlParseException("Documento vuoto")
+
+    internal val documentElementOrNull: Element?
         get() = children.filterIsInstance<Element>().firstOrNull()
 
-    fun getElementsByTagName(name: String): NodeList = documentElement?.let { root ->
+    fun getElementsByTagName(name: String): NodeList = documentElementOrNull?.let { root ->
         val all = mutableListOf<Node>()
         if (name == "*" || root.tagName == name) all += root
         val inner = root.getElementsByTagName(name)
@@ -247,7 +251,7 @@ object XmlParser {
             }
         }
         flushText()
-        if (document.documentElement == null) throw XmlParseException("Documento vuoto")
+        if (document.documentElementOrNull == null) throw XmlParseException("Documento vuoto")
         return document
     }
 

@@ -78,9 +78,5 @@ internal expect fun platformAdjustStreamVolume(
     flags: Int,
 )
 
-/** android.text.format.DateFormat: solo is24HourFormat. */
-object DateFormat {
-    fun is24HourFormat(context: Context): Boolean = platformIs24HourFormat()
-}
 
 internal expect fun platformIs24HourFormat(): Boolean

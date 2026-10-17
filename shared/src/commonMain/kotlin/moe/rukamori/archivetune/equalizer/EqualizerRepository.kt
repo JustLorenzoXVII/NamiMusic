@@ -42,6 +42,8 @@ import moe.rukamori.archivetune.playback.EqualizerJson
 import moe.rukamori.archivetune.playback.EqualizerPlaybackController
 import moe.rukamori.archivetune.utils.dataStore
 import moe.rukamori.archivetune.compat.UUID
+import moe.rukamori.archivetune.compat.bufferedWriter
+import moe.rukamori.archivetune.compat.bufferedReader
 
 data class EqualizerRepositorySnapshot(
     val controlMode: EqualizerControlMode,

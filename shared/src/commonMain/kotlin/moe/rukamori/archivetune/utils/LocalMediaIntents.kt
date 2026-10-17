@@ -14,3 +14,10 @@ fun String.isLocalMediaId(): Boolean {
         else -> false
     }
 }
+
+/** Condivide un file audio locale. Su iPhone i brani locali non ci sono, quindi restituisce false. */
+expect fun shareLocalAudio(
+    context: moe.rukamori.archivetune.compat.Context,
+    mediaId: String,
+    mimeType: String? = null,
+): Boolean

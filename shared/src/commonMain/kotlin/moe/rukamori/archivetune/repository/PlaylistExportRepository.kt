@@ -24,6 +24,7 @@ import moe.rukamori.archivetune.db.entities.Playlist
 import moe.rukamori.archivetune.db.entities.PlaylistSong
 import kotlinx.io.IOException
 import moe.rukamori.archivetune.compat.Writer
+import moe.rukamori.archivetune.compat.bufferedWriter
 
 class PlaylistExportRepository constructor(
         private val context: Context,

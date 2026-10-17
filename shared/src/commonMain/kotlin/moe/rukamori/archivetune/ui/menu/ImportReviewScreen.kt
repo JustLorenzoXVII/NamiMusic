@@ -570,7 +570,7 @@ private enum class ImportReplacementSource {
     YOUTUBE,
 }
 
-private val ImportSource.labelRes: Int
+private val ImportSource.labelRes: StringResource
     get() =
         when (this) {
             ImportSource.LOCAL -> Res.string.import_source_local

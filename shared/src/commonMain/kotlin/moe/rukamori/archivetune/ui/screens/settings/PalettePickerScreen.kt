@@ -134,6 +134,7 @@ import moe.rukamori.archivetune.ui.theme.palette.TonalPalettes
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.utils.rememberPreference
 import org.jetbrains.compose.resources.StringResource
+import moe.rukamori.archivetune.compat.bufferedReader
 
 private enum class SeedRole {
     PRIMARY,
@@ -912,7 +913,7 @@ object ThemePalettes {
     fun getRandomPalette(): ThemePalette = allPalettes.random()
 
     fun generateRandomPalette(): ThemePalette {
-        val random = java.util.Random()
+        val random = kotlin.random.Random.Default
         val primaryHue = random.nextFloat() * 360f
         val primarySaturation = 0.5f + random.nextFloat() * 0.4f
         val primaryLightness = 0.4f + random.nextFloat() * 0.25f

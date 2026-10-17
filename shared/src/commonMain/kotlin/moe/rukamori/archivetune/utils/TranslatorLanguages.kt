@@ -23,11 +23,12 @@ object TranslatorLanguages {
      */
     fun load(context: Context): List<TranslatorLang> {
         try {
+            // ArchiveTuneX: il file è nelle risorse Compose invece che negli asset Android
             val json =
-                context.assets
-                    .open("translator_languages.json")
-                    .bufferedReader()
-                    .use { it.readText() }
+                kotlinx.coroutines.runBlocking {
+                    archivetunex.shared.generated.resources.Res
+                        .readBytes("files/translator_languages.json")
+                }.decodeToString()
             val arr = JSONArray(json)
             val out = mutableListOf<TranslatorLang>()
             for (i in 0 until arr.length()) {

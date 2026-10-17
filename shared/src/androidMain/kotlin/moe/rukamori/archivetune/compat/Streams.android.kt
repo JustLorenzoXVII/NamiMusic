@@ -56,3 +56,8 @@ internal actual fun platformInflateRaw(data: ByteArray, expectedSize: Int): Byte
     inflater.end()
     return out.toByteArray()
 }
+
+internal actual fun platformPersistedUriPermissions(): List<UriPermission> =
+    AndroidAppContext.context.contentResolver.persistedUriPermissions.map { permission ->
+        UriPermission(Uri.parse(permission.uri.toString()), permission.isReadPermission, permission.isWritePermission)
+    }

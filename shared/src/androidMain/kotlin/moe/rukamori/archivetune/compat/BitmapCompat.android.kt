@@ -15,3 +15,12 @@ actual fun encodePng(image: ImageBitmap): ByteArray {
     image.asAndroidBitmap().compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
     return out.toByteArray()
 }
+
+actual fun imageBitmapFromArgb(
+    pixels: IntArray,
+    width: Int,
+    height: Int,
+): androidx.compose.ui.graphics.ImageBitmap {
+    val bitmap = android.graphics.Bitmap.createBitmap(pixels, width, height, android.graphics.Bitmap.Config.ARGB_8888)
+    return bitmap.asImageBitmap()
+}

@@ -90,7 +90,7 @@ import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.utils.rememberPreference
 
 private val SpotifyAccountIconSize = 44.dp
-private const val SpotifyLoginUserAgent =
+internal const val SpotifyLoginUserAgent =
     "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36"
 
 @Composable

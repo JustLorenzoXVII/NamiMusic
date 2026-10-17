@@ -117,6 +117,7 @@ import moe.rukamori.archivetune.viewmodels.MusicTogetherStatusUiModel
 import moe.rukamori.archivetune.viewmodels.MusicTogetherUiModel
 import moe.rukamori.archivetune.viewmodels.MusicTogetherViewModel
 import moe.rukamori.archivetune.ui.component.IconButton as AtIconButton
+import org.jetbrains.compose.resources.DrawableResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -470,7 +471,7 @@ private fun MusicTogetherDialogs(
 private fun StatusCard(
     status: MusicTogetherStatusUiModel,
     sessionShare: MusicTogetherSessionShareUiModel?,
-    onCopy: (Int, String) -> Unit,
+    onCopy: (StringResource, String) -> Unit,
     onShare: (String) -> Unit,
     onLeave: () -> Unit,
 ) {
@@ -560,7 +561,7 @@ private fun StatusCard(
 @Composable
 private fun SessionShareCard(
     sessionShare: MusicTogetherSessionShareUiModel,
-    onCopy: (Int, String) -> Unit,
+    onCopy: (StringResource, String) -> Unit,
     onShare: (String) -> Unit,
 ) {
     Surface(
@@ -1079,7 +1080,7 @@ private fun activityMessage(item: MusicTogetherActivityLogItemUiModel): String =
 
 @Composable
 private fun SectionCard(
-    @androidx.annotation.DrawableRes iconResId: Int,
+    iconResId: DrawableResource,
     titleResId: StringResource,
     accent: Color,
     modifier: Modifier = Modifier,
@@ -1135,7 +1136,7 @@ private fun SectionCard(
 
 @Composable
 private fun SettingsRow(
-    @androidx.annotation.DrawableRes iconResId: Int,
+    iconResId: DrawableResource,
     titleResId: StringResource,
     subtitle: String,
     subtitleMaxLines: Int = 1,
@@ -1179,7 +1180,7 @@ private fun SettingsRow(
 
 @Composable
 private fun ToggleRow(
-    @androidx.annotation.DrawableRes iconResId: Int,
+    iconResId: DrawableResource,
     titleResId: StringResource,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
@@ -1216,7 +1217,7 @@ private fun ToggleRow(
 
 @Composable
 private fun AccentIcon(
-    @androidx.annotation.DrawableRes iconResId: Int,
+    iconResId: DrawableResource,
     accent: Color,
     modifier: Modifier = Modifier,
     size: androidx.compose.ui.unit.Dp = 44.dp,
@@ -1257,7 +1258,7 @@ private fun InfoPill(text: String) {
 
 @Composable
 private fun EmptyPanel(
-    @androidx.annotation.DrawableRes iconResId: Int,
+    iconResId: DrawableResource,
     titleResId: StringResource,
     bodyResId: StringResource,
 ) {
@@ -1428,7 +1429,7 @@ private fun WelcomeDialog(
 
 @Composable
 private fun InstructionRow(
-    @androidx.annotation.DrawableRes iconResId: Int,
+    iconResId: DrawableResource,
     titleResId: StringResource,
     bodyResId: StringResource,
     accent: Color,

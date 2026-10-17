@@ -47,6 +47,7 @@ import kotlinx.io.IOException
 import moe.rukamori.archivetune.compat.URI
 import moe.rukamori.archivetune.compat.Base64
 import moe.rukamori.archivetune.compat.UUID
+import moe.rukamori.archivetune.compat.String
 
 object SpotifyCanvasProvider {
     private const val CANVAS_URL = "https://spclient.wg.spotify.com/canvaz-cache/v0/canvases"
@@ -295,7 +296,7 @@ object SpotifyCanvasProvider {
 
     private fun isCanvasUrl(value: String): Boolean = try {
         val uri = URI(value)
-        uri.scheme == "https" && uri.host == "canvaz.scdn.co" && uri.path.endsWith(".mp4")
+        uri.scheme == "https" && uri.host == "canvaz.scdn.co" && uri.path.orEmpty().endsWith(".mp4")
     } catch (_: IllegalArgumentException) {
         false
     } catch (_: IllegalArgumentException) {

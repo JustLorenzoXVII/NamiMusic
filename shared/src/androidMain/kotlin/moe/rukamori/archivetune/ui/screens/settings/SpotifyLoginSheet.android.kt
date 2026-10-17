@@ -380,7 +380,7 @@ private fun String.isWebViewLoadableUrl(): Boolean {
 }
 
 private fun String.intentBrowserFallbackUrl(): String? =
-    runCatching { Intent.parseUri(this, Intent.URI_INTENT_SCHEME) }
+    runCatching { android.content.Intent.parseUri(this, android.content.Intent.URI_INTENT_SCHEME) }
         .getOrNull()
         ?.getStringExtra("browser_fallback_url")
         ?.takeIf { it.isWebViewLoadableUrl() }

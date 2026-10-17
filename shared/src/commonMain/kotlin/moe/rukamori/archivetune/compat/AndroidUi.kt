@@ -344,3 +344,6 @@ class NumberFormat private constructor(
         fun getNumberInstance(@Suppress("UNUSED_PARAMETER") locale: Locale? = null): NumberFormat = NumberFormat(3)
     }
 }
+
+/** Frequenza di aggiornamento massima dello schermo, in Hz (null se non nota). */
+expect fun platformMaxRefreshRate(): Float?

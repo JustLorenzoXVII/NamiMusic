@@ -121,7 +121,7 @@ class PlaylistTagsViewModel constructor(
         private val selectedBulkPlaylistIds = MutableStateFlow<Set<String>>(emptySet())
         private val isBulkAssignVisible = MutableStateFlow(false)
         private val isManagementVisible = MutableStateFlow(false)
-        private val operationError = MutableStateFlow<Int?>(null)
+        private val operationError = MutableStateFlow<StringResource?>(null)
         private val editor = MutableStateFlow<PlaylistTagEditorState>(PlaylistTagEditorState.Hidden)
         private val colorPicker = MutableStateFlow<PlaylistTagColorPickerState>(PlaylistTagColorPickerState.Hidden)
         private var writeJob: Job? = null

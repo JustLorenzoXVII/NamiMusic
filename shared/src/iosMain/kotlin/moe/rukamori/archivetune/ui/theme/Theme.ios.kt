@@ -9,5 +9,17 @@ import androidx.compose.ui.text.font.FontFamily
 actual fun systemDynamicColorScheme(darkTheme: Boolean): ColorScheme? = null
 
 actual object CustomFontLoader {
+    actual val supportedMimeTypes: Array<String> = arrayOf("font/ttf", "application/x-font-ttf", "application/octet-stream")
+
+    actual fun displayName(
+        context: moe.rukamori.archivetune.compat.Context,
+        uri: moe.rukamori.archivetune.compat.Uri,
+    ): String = uri.toString().substringAfterLast('/').substringBefore('?')
+
+    actual fun isSupportedTtf(
+        context: moe.rukamori.archivetune.compat.Context,
+        uri: moe.rukamori.archivetune.compat.Uri,
+    ): Boolean = displayName(context, uri).endsWith(".ttf", ignoreCase = true)
+
     actual suspend fun loadFontFamily(uriString: String): FontFamily? = null
 }

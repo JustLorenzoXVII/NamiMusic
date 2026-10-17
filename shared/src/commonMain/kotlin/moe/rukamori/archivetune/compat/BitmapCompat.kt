@@ -10,8 +10,12 @@ import moe.rukamori.archivetune.ui.theme.extractThemeColor
  * che esiste sia su Android sia su iPhone.
  */
 class Bitmap(
-    val image: ImageBitmap,
+    image: ImageBitmap,
 ) {
+    /** L'immagine attuale: setPixels la sostituisce con una nuova (le ImageBitmap non si modificano). */
+    var image: ImageBitmap = image
+        private set
+
     val width: Int
         get() = image.width
     val height: Int
@@ -26,7 +30,40 @@ class Bitmap(
     fun copy(
         config: Config,
         isMutable: Boolean,
-    ): Bitmap = this
+    ): Bitmap = Bitmap(image)
+
+    /** Come Bitmap.getPixels: legge i pixel ARGB in [pixels]. */
+    fun getPixels(
+        pixels: IntArray,
+        offset: Int,
+        stride: Int,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+    ) {
+        image.readPixels(pixels, x, y, width, height, offset, stride)
+    }
+
+    /** Come Bitmap.setPixels per l'intera immagine (l'unico uso in ArchiveTune). */
+    fun setPixels(
+        pixels: IntArray,
+        offset: Int,
+        stride: Int,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+    ) {
+        val full = IntArray(this.width * this.height)
+        image.readPixels(full)
+        for (row in 0 until height) {
+            for (col in 0 until width) {
+                full[(y + row) * this.width + (x + col)] = pixels[offset + row * stride + col]
+            }
+        }
+        image = imageBitmapFromArgb(full, this.width, this.height)
+    }
 
     fun recycle() = Unit
 
@@ -85,3 +122,10 @@ fun scaleImageBitmap(
 
 /** Codifica un'immagine in PNG. */
 expect fun encodePng(image: ImageBitmap): ByteArray
+
+/** Crea una ImageBitmap da pixel ARGB (Android: android.graphics.Bitmap, iPhone: Skia). */
+expect fun imageBitmapFromArgb(
+    pixels: IntArray,
+    width: Int,
+    height: Int,
+): ImageBitmap

@@ -500,7 +500,7 @@ fun OnlinePlaylistScreen(
                                                                     position = index,
                                                                     setVideoId = song.setVideoId,
                                                                 )
-                                                            }.forEach(::insert)
+                                                            }.forEach { insert(it) }
                                                     }
                                                 }
                                             } else {

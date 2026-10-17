@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import moe.rukamori.archivetune.BuildConfig
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.DrawableResource
 
 class ObserveOnboardingDataUseCase constructor(
         private val repository: OnboardingRepository,
@@ -109,7 +110,7 @@ class BuildOnboardingUiStateUseCase constructor() {
                 }
             }
 
-        private fun OnboardingPermissionId.descriptionResId(): Int =
+        private fun OnboardingPermissionId.descriptionResId(): StringResource =
             when (this) {
                 OnboardingPermissionId.NOTIFICATIONS -> {
                     Res.string.onboarding_permission_notifications_desc
@@ -152,7 +153,7 @@ class BuildOnboardingUiStateUseCase constructor() {
                 }
             }
 
-        private fun OnboardingPermissionId.iconResId(): Int =
+        private fun OnboardingPermissionId.iconResId(): DrawableResource =
             when (this) {
                 OnboardingPermissionId.NOTIFICATIONS -> Res.drawable.music_note
                 OnboardingPermissionId.LOCAL_AUDIO -> Res.drawable.storage

@@ -954,7 +954,7 @@ interface DatabaseDao {
     )
     fun artistsBookmarkedByPlayTimeAsc(): Flow<List<Artist>>
 
-    suspend fun artists(
+    fun artists(
         sortType: ArtistSortType,
         descending: Boolean,
     ) = when (sortType) {
@@ -968,7 +968,7 @@ interface DatabaseDao {
             .reversed(descending)
     }
 
-    suspend fun artistsBookmarked(
+    fun artistsBookmarked(
         sortType: ArtistSortType,
         descending: Boolean,
     ) = when (sortType) {
@@ -1078,7 +1078,7 @@ interface DatabaseDao {
     )
     fun albumsLikedByPlayTimeAsc(): Flow<List<Album>>
 
-    suspend fun albums(
+    fun albums(
         sortType: AlbumSortType,
         descending: Boolean,
     ) = when (sortType) {
@@ -1121,7 +1121,7 @@ interface DatabaseDao {
         albums.filter { album -> album.artists.none { it.blockedAt != null } }.reversed(descending)
     }
 
-    suspend fun albumsLiked(
+    fun albumsLiked(
         sortType: AlbumSortType,
         descending: Boolean,
     ) = when (sortType) {
@@ -1298,7 +1298,7 @@ interface DatabaseDao {
     )
     fun playlistsByCustomOrderAsc(): Flow<List<Playlist>>
 
-    suspend fun playlists(
+    fun playlists(
         sortType: PlaylistSortType,
         descending: Boolean,
     ) = when (sortType) {

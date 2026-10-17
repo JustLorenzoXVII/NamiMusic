@@ -12,6 +12,7 @@ import moe.rukamori.archivetune.compat.putIfAbsent
 import androidx.compose.runtime.Immutable
 import moe.rukamori.archivetune.compat.Locale
 import moe.rukamori.archivetune.db.MusicDatabase
+import moe.rukamori.archivetune.compat.lowercase
 
 data class LocalSongScanConfig(
     val minimumDurationSeconds: Int = 0,
