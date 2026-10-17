@@ -12,6 +12,11 @@ import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSThread
 import platform.Foundation.NSUserDomainMask
 import platform.Foundation.timeIntervalSince1970
+import platform.Foundation.NSDateFormatter
+import platform.Foundation.NSLocale
+import platform.Foundation.currentLocale
+import platform.AVFAudio.AVAudioSession
+import platform.AVFAudio.outputVolume
 
 actual fun isMainThread(): Boolean = NSThread.isMainThread
 
@@ -89,7 +94,7 @@ actual fun platformSetScreenBrightness(level: Float?) {
 actual fun openSystemEqualizerPanel(audioSessionId: Int) = Unit
 
 actual object DeviceVolume {
-    actual fun fraction(): Float = platform.AVFAudio.AVAudioSession.sharedInstance().outputVolume
+    actual fun fraction(): Float = AVAudioSession.sharedInstance().outputVolume
 
     actual fun setFraction(fraction: Float) = Unit
 
@@ -129,7 +134,7 @@ internal actual fun platformAdjustStreamVolume(
 
 internal actual fun platformIs24HourFormat(): Boolean {
     val format =
-        platform.Foundation.NSDateFormatter.dateFormatFromTemplate("j", 0u, platform.Foundation.NSLocale.currentLocale)
+        NSDateFormatter.dateFormatFromTemplate("j", 0u, NSLocale.currentLocale)
             ?: return true
     return !format.contains('a')
 }

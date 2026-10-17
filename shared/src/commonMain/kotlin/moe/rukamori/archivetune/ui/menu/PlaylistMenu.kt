@@ -1052,7 +1052,7 @@ public fun PlaylistMenu(
 }
 
 private fun Throwable.syncErrorDetail(context: moe.rukamori.archivetune.compat.Context): String =
-    localizedMessage
+    message
         ?.takeIf(String::isNotBlank)
-        ?: javaClass.simpleName.takeIf(String::isNotBlank)
+        ?: this::class.simpleName?.takeIf(String::isNotBlank)
         ?: context.getString(Res.string.error_unknown)

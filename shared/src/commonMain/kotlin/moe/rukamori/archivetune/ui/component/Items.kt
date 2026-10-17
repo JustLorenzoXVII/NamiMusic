@@ -910,7 +910,7 @@ private fun playlistCountText(
 private fun playlistPlaceholderIcon(
     playlist: Playlist,
     autoPlaylist: Boolean,
-): Int =
+): DrawableResource =
     when (playlist.playlist.name) {
         stringResource(Res.string.liked) -> Res.drawable.favorite_border
         stringResource(Res.string.offline) -> Res.drawable.offline

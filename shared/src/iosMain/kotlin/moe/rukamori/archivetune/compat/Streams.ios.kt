@@ -1,8 +1,5 @@
 package moe.rukamori.archivetune.compat
 
-import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.reinterpret
-import kotlinx.cinterop.usePinned
 
 /** Su iPhone i documenti scelti arrivano come file:// (copiati nella sandbox dell'app). */
 internal actual fun platformOpenInputStream(uri: Uri): InputStream? {
@@ -29,30 +26,7 @@ internal actual fun platformGetType(uri: Uri): String? =
         else -> null
     }
 
-@OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
-internal actual fun platformInflateRaw(data: ByteArray, expectedSize: Int): ByteArray {
-    if (data.isEmpty()) return ByteArray(0)
-    // Compression di Apple: COMPRESSION_ZLIB è proprio DEFLATE raw (RFC 1951).
-    var capacity = maxOf(expectedSize, data.size * 4, 1024)
-    while (true) {
-        val out = ByteArray(capacity)
-        val written =
-            data.usePinned { src ->
-                out.usePinned { dst ->
-                    platform.compression.compression_decode_buffer(
-                        dst.addressOf(0).reinterpret(),
-                        capacity.toULong(),
-                        src.addressOf(0).reinterpret(),
-                        data.size.toULong(),
-                        null,
-                        platform.compression.COMPRESSION_ZLIB,
-                    )
-                }
-            }.toInt()
-        if (written <= 0) throw kotlinx.io.IOException("Decompressione zip non riuscita")
-        if (written < capacity || expectedSize in 1..capacity) return out.copyOf(written)
-        capacity *= 2
-    }
-}
+/** DEFLATE "raw" (RFC 1951) dei file zip, decodificato in Kotlin puro. */
+internal actual fun platformInflateRaw(data: ByteArray, expectedSize: Int): ByteArray = RawInflater(data, expectedSize).inflate()
 
 internal actual fun platformPersistedUriPermissions(): List<UriPermission> = emptyList()

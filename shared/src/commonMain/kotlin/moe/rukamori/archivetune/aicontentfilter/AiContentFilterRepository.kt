@@ -288,7 +288,7 @@ class AiContentFilterRepository constructor(
                     }
                     output.write(buffer, 0, bytesRead)
                 }
-                output.toString(Charsets.UTF_8.name())
+                output.toByteArray().decodeToString()
             }
         }
 
