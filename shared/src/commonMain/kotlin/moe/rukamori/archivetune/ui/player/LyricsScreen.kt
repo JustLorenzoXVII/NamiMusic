@@ -9,6 +9,7 @@
 
 package moe.rukamori.archivetune.ui.player
 
+import moe.rukamori.archivetune.compat.LruMap
 import moe.rukamori.archivetune.compat.platformContext
 
 import archivetunex.shared.generated.resources.*
@@ -255,9 +256,7 @@ fun LyricsScreen(
 
     val gradientColorsCache =
         remember {
-            object : LinkedHashMap<String, List<Color>>(20, 0.75f, true) {
-                override fun removeEldestEntry(eldest: Map.Entry<String, List<Color>>) = size > 20
-            }
+            LruMap<String, List<Color>>(20)
         }
     val fallbackColor = remember { Color.Black.toArgb() }
 

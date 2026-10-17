@@ -7,6 +7,7 @@
 
 package moe.rukamori.archivetune.ui.player
 
+import moe.rukamori.archivetune.compat.LruMap
 import moe.rukamori.archivetune.compat.platformContext
 
 import moe.rukamori.archivetune.compat.getOrDefault
@@ -107,10 +108,7 @@ private fun NewMiniPlayer(
     }
     val gradientColorsCache =
         remember {
-            object : LinkedHashMap<String, List<Color>>(MiniPlayerPaletteCacheSize, 0.75f, true) {
-                override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, List<Color>>?): Boolean =
-                    size > MiniPlayerPaletteCacheSize
-            }
+            LruMap<String, List<Color>>(MiniPlayerPaletteCacheSize)
         }
     val fallbackColor = MaterialTheme.colorScheme.surface.toArgb()
     val shouldUseArtworkBackground = miniPlayerBackgroundStyle != MiniPlayerBackgroundStyle.THEME

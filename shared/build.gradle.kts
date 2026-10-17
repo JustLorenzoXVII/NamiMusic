@@ -42,6 +42,31 @@ kotlin {
        }
     }
     
+    compilerOptions {
+        // API sperimentali usate dall'interfaccia di ArchiveTune (nell'originale con @OptIn sparsi)
+        optIn.addAll(
+            "androidx.compose.material3.ExperimentalMaterial3Api",
+            "androidx.compose.material3.ExperimentalMaterial3ExpressiveApi",
+            "androidx.compose.material.ExperimentalMaterialApi",
+            "androidx.compose.foundation.ExperimentalFoundationApi",
+            "androidx.compose.foundation.layout.ExperimentalLayoutApi",
+            "androidx.compose.animation.ExperimentalAnimationApi",
+            "androidx.compose.animation.ExperimentalSharedTransitionApi",
+            "androidx.compose.ui.ExperimentalComposeUiApi",
+            "org.jetbrains.compose.resources.ExperimentalResourceApi",
+            "kotlinx.coroutines.ExperimentalCoroutinesApi",
+            "kotlinx.coroutines.FlowPreview",
+            "kotlinx.coroutines.DelicateCoroutinesApi",
+            "kotlinx.serialization.ExperimentalSerializationApi",
+            "kotlin.time.ExperimentalTime",
+            "kotlin.uuid.ExperimentalUuidApi",
+            "kotlin.io.encoding.ExperimentalEncodingApi",
+            "kotlinx.cinterop.ExperimentalForeignApi",
+            "kotlinx.cinterop.BetaInteropApi",
+        )
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
     sourceSets {
         androidMain.dependencies {
             implementation(libs.accompanist.lyrics.ui)

@@ -7,6 +7,7 @@
 
 package moe.rukamori.archivetune.ui.screens
 
+import androidx.savedstate.read
 import moe.rukamori.archivetune.compat.Uri
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -150,7 +151,7 @@ fun NavGraphBuilder.navigationBuilder(
                 },
             ),
     ) { backStackEntry ->
-        val selectedYear = backStackEntry.arguments?.getInt("year")?.takeIf { it > 0 }
+        val selectedYear = backStackEntry.arguments?.read { getIntOrNull("year") }?.takeIf { it > 0 }
         YearInMusicScreen(
             navController = navController,
             initialYear = selectedYear,
@@ -160,7 +161,7 @@ fun NavGraphBuilder.navigationBuilder(
         MusicRecognitionScreen(navController)
     }
     composable(MusicRecognitionDetailsRoute) { backStackEntry ->
-        val encodedTrack = backStackEntry.arguments?.getString("encodedTrack").orEmpty()
+        val encodedTrack = backStackEntry.arguments?.read { getStringOrNull("encodedTrack") }.orEmpty()
         MusicRecognitionDetailsScreen(navController, encodedTrack)
     }
     composable(Screens.MoodAndGenres.route) {
@@ -497,7 +498,7 @@ fun NavGraphBuilder.navigationBuilder(
                 },
             ),
     ) { backStackEntry ->
-        val channelName = backStackEntry.arguments?.getString("channel")
+        val channelName = backStackEntry.arguments?.read { getStringOrNull("channel") }
         val channel = UpdateChannel.fromStoredName(channelName, defaultUpdateChannel)
         ChangelogScreen(navController, channel = channel)
     }

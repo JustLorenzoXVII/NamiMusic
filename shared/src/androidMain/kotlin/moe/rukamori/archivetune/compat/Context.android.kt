@@ -140,3 +140,12 @@ internal actual fun platformAdjustStreamVolume(
 
 internal actual fun platformIs24HourFormat(): Boolean =
     android.text.format.DateFormat.is24HourFormat(com.justlorenzo.archivetunex.player.AndroidAppContext.context)
+
+internal actual fun platformRestartApp() {
+    val context = com.justlorenzo.archivetunex.player.AndroidAppContext.context
+    val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+    if (launchIntent != null) {
+        launchIntent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        context.startActivity(launchIntent)
+    }
+}

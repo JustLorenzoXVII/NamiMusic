@@ -22,6 +22,8 @@ dependencies {
 android {
     namespace = "com.justlorenzo.archivetunex"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
+    // Haze 2.0 richiede le API Android 37.2 (come nell'originale)
+    compileSdkMinor = 2
 
     defaultConfig {
         applicationId = "com.justlorenzo.archivetunex"

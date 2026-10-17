@@ -175,7 +175,7 @@ fun SpotifyPlaylistScreen(
             HeaderDownloadState.Completed -> {
                 if (removeCompleted) {
                     sendRemoveDownloads(
-                        context = navController.context,
+                        context = moe.rukamori.archivetune.compat.AppContext,
                         songIds = songIds,
                     )
                 }
@@ -183,7 +183,7 @@ fun SpotifyPlaylistScreen(
 
             is HeaderDownloadState.Partial -> {
                 sendRemoveDownloads(
-                    context = navController.context,
+                    context = moe.rukamori.archivetune.compat.AppContext,
                     songIds = songIds,
                     downloads = latestDownloads,
                 )
@@ -191,7 +191,7 @@ fun SpotifyPlaylistScreen(
 
             HeaderDownloadState.None -> {
                 sendAddMissingDownloads(
-                    context = navController.context,
+                    context = moe.rukamori.archivetune.compat.AppContext,
                     songs =
                         items.map { item ->
                             HeaderDownloadItem(

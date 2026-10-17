@@ -7,6 +7,7 @@
 
 package moe.rukamori.archivetune.spotify
 
+import moe.rukamori.archivetune.compat.LruMap
 import kotlinx.coroutines.IO
 
 import moe.rukamori.archivetune.compat.media3.MediaItem
@@ -27,9 +28,7 @@ object SpotifyPlaybackResolver {
 
     private val mutex = Mutex()
     private val cache =
-        object : LinkedHashMap<String, MediaMetadata>(CACHE_MAX_SIZE, 0.75f, true) {
-            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, MediaMetadata>?): Boolean = size > CACHE_MAX_SIZE
-        }
+        LruMap<String, MediaMetadata>(CACHE_MAX_SIZE)
 
     suspend fun resolveToMediaItem(track: SpotifyTrack): MediaItem? = resolveToMetadata(track)?.toMediaItem()
 

@@ -125,7 +125,7 @@ fun DownloadLibraryScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is DownloadLibraryEvent.Message -> {
-                    snackbarHostState.showSnackbar(navController.context.getString(event.messageRes))
+                    snackbarHostState.showSnackbar(moe.rukamori.archivetune.compat.AppContext.getString(event.messageRes))
                 }
 
                 is DownloadLibraryEvent.Navigate -> {

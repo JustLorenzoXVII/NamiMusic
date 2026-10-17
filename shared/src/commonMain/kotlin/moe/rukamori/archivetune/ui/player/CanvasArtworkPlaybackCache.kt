@@ -7,6 +7,7 @@
 
 package moe.rukamori.archivetune.ui.player
 
+import moe.rukamori.archivetune.compat.LruMap
 import kotlinx.coroutines.IO
 
 import kotlin.concurrent.Volatile
@@ -65,7 +66,7 @@ object CanvasArtworkPlaybackCache {
     private const val DOWNLOAD_RETRY_DELAY_MS = 750L
     private const val CACHE_SIZE_BYTES_PER_MEGABYTE = 1024L * 1024L
 
-    private val map = LinkedHashMap<String, CanvasCacheEntry>(DEFAULT_MAX_SIZE_MEGABYTES, 0.75f, true)
+    private val map = LruMap<String, CanvasCacheEntry>()
     private val cacheJobs = LinkedHashMap<String, Job>()
     private val activeCalls = LinkedHashMap<Call, Job>()
     private val pendingFiles = LinkedHashMap<String, Job>()

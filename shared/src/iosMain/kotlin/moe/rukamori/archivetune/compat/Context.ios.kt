@@ -133,3 +133,6 @@ internal actual fun platformIs24HourFormat(): Boolean {
             ?: return true
     return !format.contains('a')
 }
+
+/** Su iPhone un'app non può riavviarsi da sola: dopo il ripristino si chiude e va riaperta. */
+internal actual fun platformRestartApp() = Unit

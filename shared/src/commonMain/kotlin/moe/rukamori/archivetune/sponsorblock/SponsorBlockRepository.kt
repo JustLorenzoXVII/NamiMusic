@@ -7,6 +7,7 @@
 
 package moe.rukamori.archivetune.sponsorblock
 
+import moe.rukamori.archivetune.compat.LruMap
 import moe.rukamori.archivetune.compat.Charsets
 
 import moe.rukamori.archivetune.innertube.network.createPlatformHttpClient
@@ -63,15 +64,7 @@ class SponsorBlockRepository constructor(
             }
 
         private val responseCache =
-            object : LinkedHashMap<SponsorBlockRequestKey, List<SponsorBlockRawSegment>>(
-                MAX_CACHE_ENTRIES + 1,
-                0.75f,
-                true,
-            ) {
-                override fun removeEldestEntry(
-                    eldest: MutableMap.MutableEntry<SponsorBlockRequestKey, List<SponsorBlockRawSegment>>,
-                ): Boolean = size > MAX_CACHE_ENTRIES
-            }
+            LruMap<SponsorBlockRequestKey, List<SponsorBlockRawSegment>>(MAX_CACHE_ENTRIES)
 
         fun observeSettings(): Flow<SponsorBlockSettings> =
             context.dataStore.data

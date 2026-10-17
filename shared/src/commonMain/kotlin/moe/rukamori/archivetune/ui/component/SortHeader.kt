@@ -40,7 +40,7 @@ import moe.rukamori.archivetune.constants.PlaylistSortType
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-inline fun <reified T : Enum<T>> SortHeader(
+internal inline fun <reified T : Enum<T>> SortHeader(
     sortType: T,
     sortDescending: Boolean,
     crossinline onSortTypeChange: (T) -> Unit,

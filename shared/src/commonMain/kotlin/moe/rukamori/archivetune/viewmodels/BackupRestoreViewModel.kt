@@ -645,7 +645,8 @@ class BackupRestoreViewModel constructor(
                             completedUnits++
                             if (includeLibrary) {
                                 emit(context.getString(Res.string.restore_step_stopping_playback), indeterminate = true)
-                                context.stopService(Intent(context, MusicService::class))
+                                // ArchiveTuneX: il lettore è nel processo, lo si ferma prima di sostituire il database
+                                moe.rukamori.archivetune.compat.stopPlaybackForRestore()
                                 database.awaitIdle()
                                 database.checkpoint()
                                 database.close()
@@ -724,7 +725,7 @@ class BackupRestoreViewModel constructor(
                             }
 
                             _backupRestoreProgress.value = null
-                            context.startActivity(Intent(context, MainActivity::class))
+                            moe.rukamori.archivetune.compat.restartAppAfterRestore()
                             exitProcess(0)
                         }
                     } catch (cancellation: CancellationException) {

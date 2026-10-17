@@ -22,3 +22,16 @@ object System {
 
     fun lineSeparator(): String = "\n"
 }
+
+/** Ferma la riproduzione prima di un ripristino del backup (nell'originale: stopService(MusicService)). */
+fun stopPlaybackForRestore() {
+    moe.rukamori.archivetune.playback.MusicServiceHolder.instance?.stopAndClearPlayback(clearPersistentState = false)
+}
+
+/**
+ * Dopo un ripristino l'originale riapre MainActivity e chiude il processo.
+ * Su Android si riavvia l'app; su iPhone l'app si chiude e va riaperta.
+ */
+fun restartAppAfterRestore() = platformRestartApp()
+
+internal expect fun platformRestartApp()

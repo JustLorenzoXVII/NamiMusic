@@ -1746,7 +1746,7 @@ fun ItemThumbnail(
                             .allowHardware(true)
                             .apply {
                                 if (guardedWidthPx != null && guardedHeightPx != null) {
-                                    size(guardedWidthPx, guardedHeightPx)
+                                    size(coil3.size.Size(guardedWidthPx, guardedHeightPx))
                                 }
                             }.build()
                     }
@@ -1867,7 +1867,7 @@ fun LocalThumbnail(
                     .allowHardware(true)
                     .apply {
                         if (widthPx != null && heightPx != null) {
-                            size(widthPx, heightPx)
+                            size(coil3.size.Size(widthPx, heightPx))
                         }
                     }.build()
             }

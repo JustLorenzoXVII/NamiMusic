@@ -7,6 +7,7 @@
 
 package moe.rukamori.archivetune.spotify
 
+import moe.rukamori.archivetune.compat.LruMap
 import moe.rukamori.archivetune.spotify.models.SpotifyPlaylist
 import moe.rukamori.archivetune.spotify.models.SpotifyTrack
 
@@ -34,26 +35,14 @@ object SpotifyMapper {
      * Bounded to [NORM_CACHE_MAX_SIZE] entries to limit memory usage.
      */
     private val normalizeCache =
-        object : LinkedHashMap<String, String>(
-            NORM_CACHE_MAX_SIZE,
-            0.75f,
-            true,
-        ) {
-            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, String>?): Boolean = size > NORM_CACHE_MAX_SIZE
-        }
+        LruMap<String, String>(NORM_CACHE_MAX_SIZE)
 
     /**
      * LRU cache for pre-computed bigram sets. Avoids re-creating Set<String>
      * on every stringSimilarity call for the same normalized string.
      */
     private val bigramCache =
-        object : LinkedHashMap<String, Set<String>>(
-            NORM_CACHE_MAX_SIZE,
-            0.75f,
-            true,
-        ) {
-            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Set<String>>?): Boolean = size > NORM_CACHE_MAX_SIZE
-        }
+        LruMap<String, Set<String>>(NORM_CACHE_MAX_SIZE)
 
     /**
      * Pre-computed data for one side of a match comparison.

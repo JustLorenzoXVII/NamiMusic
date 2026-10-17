@@ -111,7 +111,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.graphics.shapes.Morph
 import androidx.graphics.shapes.RoundedPolygon
-import androidx.graphics.shapes.toPath
+import moe.rukamori.archivetune.compat.toComposePath
 import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.Outline
@@ -5071,7 +5071,7 @@ internal class EditorialMorphShape(
         layoutDirection: LayoutDirection,
         density: Density
     ): Outline {
-        val path = morph.toPath(progress).asComposePath()
+        val path = morph.toComposePath(progress)
         val matrix = Matrix()
         val bounds = morph.calculateBounds()
         val boundsWidth = bounds[2] - bounds[0]
@@ -5092,7 +5092,7 @@ internal class EditorialPolygonShape(
         layoutDirection: LayoutDirection,
         density: Density
     ): Outline {
-        val path = polygon.toPath().asComposePath()
+        val path = polygon.toComposePath()
         val matrix = Matrix()
         val bounds = polygon.calculateBounds()
         val boundsWidth = bounds[2] - bounds[0]

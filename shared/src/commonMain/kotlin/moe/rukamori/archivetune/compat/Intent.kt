@@ -6,6 +6,16 @@ package moe.rukamori.archivetune.compat
  * Su Android diventa un Intent vero; su iPhone apre Safari o il foglio di condivisione.
  */
 class Intent() {
+    /** Intent(context, Classe::class): in ArchiveTuneX indica solo la schermata/servizio di destinazione. */
+    constructor(
+        @Suppress("UNUSED_PARAMETER") context: Context,
+        target: kotlin.reflect.KClass<*>,
+    ) : this() {
+        targetClassName = target.simpleName
+    }
+
+    var targetClassName: String? = null
+
     var action: String? = null
     var data: Uri? = null
     var type: String? = null
