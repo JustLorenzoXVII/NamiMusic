@@ -1,0 +1,81 @@
+== /home/runner/.gradle/caches/modules-2/files-2.1/io.github.dokar3/quickjs-kt-iosarm64/1.0.15/9663b48150be0eb25063067ff503094d304819e5/quickjs-iosArm64Main.klib
+5:    // package name: com.dokar.quickjs
+17:    package {
+22:    // package name: com.dokar.quickjs
+118:    package {
+123:    // package name: com.dokar.quickjs
+156:    package {
+161:    // package name: com.dokar.quickjs
+215:    package {
+222:    // package name: com.dokar.quickjs
+224:    package {
+237:    // package name: com.dokar.quickjs
+286:    package {
+296:    // package name: com.dokar.quickjs
+337:      public final inline suspend fun <reified T#0 /* T */> evaluate(bytecode: kotlin/ByteArray): T#0
+340:      public final inline suspend fun <reified T#0 /* T */> evaluate(code: kotlin/String, filename: kotlin/String /* = ... */, asModule: kotlin/Boolean /* = ... */): T#0
+606:    package {
+611:    // package name: com.dokar.quickjs
+627:    package {
+632:    // package name: com.dokar.quickjs.alias
+634:    package {
+680:    // package name: com.dokar.quickjs.binding
+691:      public abstract fun <T#0 /* R */> function(name: kotlin/String, block: com/dokar/quickjs/binding/FunctionBinding<T#0>): kotlin/Unit
+693:      public abstract fun <T#0 /* R */> asyncFunction(name: kotlin/String, block: com/dokar/quickjs/binding/AsyncFunctionBinding<T#0>): kotlin/Unit
+715:    package {
+719:      public final inline fun <T#0 /* R */ : kotlin/Any?> com/dokar/quickjs/QuickJs.function(name: kotlin/String, crossinline block: kotlin/Function1<@kotlin/ParameterName(name = "args") kotlin/Array<kotlin/Any?>, T#0>): kotlin/Unit
+721:      public final inline fun <T#0 /* R */> com/dokar/quickjs/QuickJs.asyncFunction(name: kotlin/String, crossinline block: suspend kotlin/Function2<@kotlin/ParameterName(name = "args") kotlin/Array<kotlin/Any?>, kotlin/coroutines/Continuation<T#0>, kotlin/Any?>): kotlin/Unit
+731:    // package name: com.dokar.quickjs.binding
+733:    package {
+735:      public final inline fun <reified T#0 /* T */ : kotlin/Any?, T#1 /* R */ : kotlin/Any?> com/dokar/quickjs/QuickJs.function(name: kotlin/String, crossinline block: kotlin/Function1<T#0, T#1>): kotlin/Unit
+737:      public final inline fun <reified T#0 /* T */ : kotlin/Any?, T#1 /* R */ : kotlin/Any?> com/dokar/quickjs/QuickJs.asyncFunction(name: kotlin/String, crossinline block: suspend kotlin/Function2<T#0, kotlin/coroutines/Continuation<T#1>, kotlin/Any?>): kotlin/Unit
+739:      public final inline fun <reified T#0 /* T */ : kotlin/Any?, T#1 /* R */ : kotlin/Any?> com/dokar/quickjs/binding/ObjectBindingScope.function(name: kotlin/String, crossinline block: kotlin/Function1<T#0, T#1>): kotlin/Unit
+741:      public final inline fun <reified T#0 /* T */ : kotlin/Any?, reified T#1 /* R */ : kotlin/Any?> com/dokar/quickjs/binding/ObjectBindingScope.asyncFunction(name: kotlin/String, crossinline block: suspend kotlin/Function2<T#0, kotlin/coroutines/Continuation<T#1>, kotlin/Any?>): kotlin/Unit
+754:    // package name: com.dokar.quickjs.binding
+795:    package {
+800:    // package name: com.dokar.quickjs.binding
+845:      public open fun <T#0 /* R */> function(name: kotlin/String, block: com/dokar/quickjs/binding/FunctionBinding<T#0>): kotlin/Unit
+847:      public open fun <T#0 /* R */> asyncFunction(name: kotlin/String, block: com/dokar/quickjs/binding/AsyncFunctionBinding<T#0>): kotlin/Unit
+908:    package {
+917:    // package name: com.dokar.quickjs.binding
+932:    package {
+937:    // package name: com.dokar.quickjs.binding
+983:    package {
+990:    // package name: com.dokar.quickjs.binding
+1028:    package {
+1033:    // package name: com.dokar.quickjs.binding
+1054:    package {
+1059:    // package name: com.dokar.quickjs.binding
+1061:    package {
+1069:    // package name: com.dokar.quickjs.bridge
+1116:    package {
+1121:    // package name: com.dokar.quickjs.bridge
+1230:    package {
+1239:    // package name: com.dokar.quickjs.bridge
+1241:    package {
+1252:    // package name: com.dokar.quickjs.bridge
+1254:    package {
+1269:    // package name: com.dokar.quickjs.bridge
+1271:    package {
+1278:    // package name: com.dokar.quickjs.bridge
+1280:    package {
+1291:      internal final fun kotlinx/cinterop/CPointer<quickjs/JSContext>.evaluate(code: kotlin/String, filename: kotlin/String, asModule: kotlin/Boolean): com/dokar/quickjs/bridge/JsPromise
+1294:      internal final fun kotlinx/cinterop/CPointer<quickjs/JSContext>.evaluate(bytecode: kotlin/ByteArray): com/dokar/quickjs/bridge/JsPromise
+1303:    // package name: com.dokar.quickjs.bridge
+1305:    package {
+1312:    // package name: com.dokar.quickjs.bridge
+1314:    package {
+1343:    // package name: com.dokar.quickjs.bridge
+1345:    package {
+1378:    // package name: com.dokar.quickjs.bridge
+1380:    package {
+1387:    // package name: com.dokar.quickjs.bridge
+1389:    package {
+1408:    // package name: com.dokar.quickjs.bridge
+1410:    package {
+1419:    // package name: com.dokar.quickjs.bridge
+1421:    package {
+1428:    // package name: com.dokar.quickjs.converter
+1438:    package {
+1443:    // package name: com.dokar.quickjs.converter
+1460:    package {

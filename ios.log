@@ -1,0 +1,322 @@
+> Task :innertube:kmpPartiallyResolvedDependenciesChecker
+> Task :innertube:checkKotlinGradlePluginConfigurationErrors SKIPPED
+
+> Task :innertube:downloadKotlinNativeDistribution
+Kotlin/Native bundle directory /home/runner/.konan/kotlin-native-prebuilt-linux-x86_64-2.4.20 is not empty. Native bundle files will be overwritten.
+
+> Task :innertube:compileKotlinIosArm64
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/innertube/src/commonMain/kotlin/moe/rukamori/archivetune/innertube/pages/PodcastPage.kt:64:21 Unnecessary safe call on a non-null receiver of type 'BrowseResponse.Contents'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/innertube/src/commonMain/kotlin/moe/rukamori/archivetune/innertube/pages/PodcastPage.kt:133:17 Unnecessary safe call on a non-null receiver of type 'Runs'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/innertube/src/commonMain/kotlin/moe/rukamori/archivetune/innertube/pages/SearchSummaryPage.kt:178:37 Unnecessary safe call on a non-null receiver of type 'List<List<Run>>'.
+
+> Task :innertube:exportCrossCompilationMetadataForIosArm64ApiElements
+
+> Task :shared:checkIosArm64MainComposeLibrariesCompatibility
+w: Skiko dependencies' versions are incompatible.
+    io.coil-kt.coil3:coil-core-iosarm64:3.5.0
+    \--- org.jetbrains.skiko:skiko:0.144.6 -> 0.150.1
+
+    io.coil-kt.coil3:coil-svg-iosarm64:3.5.0
+    \--- org.jetbrains.skiko:skiko:0.144.6 -> 0.150.1
+
+This may lead to compilation errors or unexpected behavior at runtime.
+Such version mismatch might be caused by dependency constraints in one of the included libraries.
+You can inspect resulted dependencies tree via `./gradlew :shared:dependencies  --configuration iosArm64CompileKlibraries`.
+See more details in Gradle documentation: https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sec:listing-dependencies
+
+Note: Skiko is considered implementation detail in Compose Multiplatform and might be incompatible across versions.
+Please align Skiko dependencies to the same version. If possible, avoid direct Skiko references and use Compose APIs instead.
+
+
+> Task :shared:kmpPartiallyResolvedDependenciesChecker
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :shared:downloadKotlinNativeDistribution
+> Task :shared:convertXmlValueResourcesForAppleMain NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForAppleMain NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForAppleMain NO-SOURCE
+> Task :shared:generateResourceAccessorsForAppleMain NO-SOURCE
+> Task :shared:convertXmlValueResourcesForCommonMain UP-TO-DATE
+> Task :shared:copyNonXmlValueResourcesForCommonMain UP-TO-DATE
+> Task :shared:prepareComposeResourcesTaskForCommonMain UP-TO-DATE
+> Task :shared:generateResourceAccessorsForCommonMain UP-TO-DATE
+> Task :shared:convertXmlValueResourcesForIosArm64Main NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForIosArm64Main NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForIosArm64Main NO-SOURCE
+> Task :shared:generateResourceAccessorsForIosArm64Main NO-SOURCE
+> Task :shared:convertXmlValueResourcesForIosMain NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForIosMain NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForIosMain NO-SOURCE
+> Task :shared:generateResourceAccessorsForIosMain NO-SOURCE
+> Task :shared:convertXmlValueResourcesForNativeMain NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForNativeMain NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForNativeMain NO-SOURCE
+> Task :shared:generateResourceAccessorsForNativeMain NO-SOURCE
+> Task :shared:generateActualResourceCollectorsForIosArm64Main
+> Task :shared:generateComposeResClass UP-TO-DATE
+> Task :shared:generateExpectResourceCollectorsForCommonMain UP-TO-DATE
+> Task :shared:kspKotlinIosArm64
+> Task :shared:copyRoomSchemas NO-SOURCE
+> Task :shared:compileKotlinIosArm64
+w: Opt-in requirement marker 'androidx.compose.material.ExperimentalMaterialApi' is unresolved. Make sure it's present in the module dependencies.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/MainActivity.kt:866:29 'fun currentWindowAdaptiveInfo(supportLargeAndXLargeWidth: Boolean = ...): WindowAdaptiveInfo' is deprecated. Please use V2 version of this function to support L and XL width size classes.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/MainActivity.kt:1754:81 'fun rememberRichTooltipPositionProvider(spacingBetweenTooltipAndAnchor: Dp = ...): PopupPositionProvider' is deprecated. Deprecated in favor of rememberTooltipPositionProvider API.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/MainActivity.kt:1756:81 'fun rememberPlainTooltipPositionProvider(spacingBetweenTooltipAndAnchor: Dp = ...): PopupPositionProvider' is deprecated. Deprecated in favor of rememberTooltipPositionProvider API.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/MainActivity.kt:2216:69 Expression is unused.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/MainActivity.kt:2220:69 Expression is unused.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/MainActivity.kt:2607:47 Unnecessary safe call on a non-null receiver of type 'Bundle'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/about/AboutAttributionRepository.kt:33:50 Non-public primary constructor is exposed via the generated 'copy()' method of the 'data' class.
+
+The generated 'copy()' will change its visibility in future releases.
+
+To suppress the warning do one of the following:
+- Annotate the data class with the '@ConsistentCopyVisibility' annotation.
+- Use the '-Xconsistent-data-class-copy-visibility' compiler flag.
+- Annotate the data class with the '@ExposedCopyVisibility' annotation 
+  (Discouraged, but can be used to keep binary compatibility).
+
+To learn more, see the documentation of the '@ConsistentCopyVisibility' and '@ExposedCopyVisibility' annotations.
+
+This will become an error in language version 2.5. See https://youtrack.jetbrains.com/issue/KT-11914.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/about/AboutAttributionRepository.kt:48:54 Non-public primary constructor is exposed via the generated 'copy()' method of the 'data' class.
+
+The generated 'copy()' will change its visibility in future releases.
+
+To suppress the warning do one of the following:
+- Annotate the data class with the '@ConsistentCopyVisibility' annotation.
+- Use the '-Xconsistent-data-class-copy-visibility' compiler flag.
+- Annotate the data class with the '@ExposedCopyVisibility' annotation 
+  (Discouraged, but can be used to keep binary compatibility).
+
+To learn more, see the documentation of the '@ConsistentCopyVisibility' and '@ExposedCopyVisibility' annotations.
+
+This will become an error in language version 2.5. See https://youtrack.jetbrains.com/issue/KT-11914.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/about/AboutAttributionRepository.kt:73:45 Non-public primary constructor is exposed via the generated 'copy()' method of the 'data' class.
+
+The generated 'copy()' will change its visibility in future releases.
+
+To suppress the warning do one of the following:
+- Annotate the data class with the '@ConsistentCopyVisibility' annotation.
+- Use the '-Xconsistent-data-class-copy-visibility' compiler flag.
+- Annotate the data class with the '@ExposedCopyVisibility' annotation 
+  (Discouraged, but can be used to keep binary compatibility).
+
+To learn more, see the documentation of the '@ConsistentCopyVisibility' and '@ExposedCopyVisibility' annotations.
+
+This will become an error in language version 2.5. See https://youtrack.jetbrains.com/issue/KT-11914.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/about/AboutContributorsRepository.kt:39:39 Non-public primary constructor is exposed via the generated 'copy()' method of the 'data' class.
+
+The generated 'copy()' will change its visibility in future releases.
+
+To suppress the warning do one of the following:
+- Annotate the data class with the '@ConsistentCopyVisibility' annotation.
+- Use the '-Xconsistent-data-class-copy-visibility' compiler flag.
+- Annotate the data class with the '@ExposedCopyVisibility' annotation 
+  (Discouraged, but can be used to keep binary compatibility).
+
+To learn more, see the documentation of the '@ConsistentCopyVisibility' and '@ExposedCopyVisibility' annotations.
+
+This will become an error in language version 2.5. See https://youtrack.jetbrains.com/issue/KT-11914.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ai/AiLyricsDocument.kt:104:47 Unnecessary safe call on a non-null receiver of type 'String'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ai/AiLyricsDocument.kt:129:40 Elvis operator (?:) always returns the left operand of non-nullable type 'NamedNodeMap'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ai/AiLyricsDocument.kt:132:38 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ai/AiLyricsDocument.kt:134:43 Unnecessary safe call on a non-null receiver of type 'String'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ai/AiLyricsDocument.kt:198:41 Unnecessary safe call on a non-null receiver of type 'String'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/aicontentfilter/AiContentFilterRepository.kt:240:29 The corresponding parameter in the supertype 'Callback' is named 'e'. This may cause problems when calling this function with named arguments.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/betterlyrics/TTMLParser.kt:133:49 Elvis operator (?:) always returns the left operand of non-nullable type 'Element'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/betterlyrics/TTMLParser.kt:551:42 Condition is always 'true'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/betterlyrics/TTMLParser.kt:679:37 Elvis operator (?:) always returns the left operand of non-nullable type 'NamedNodeMap'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/betterlyrics/TTMLParser.kt:682:49 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/betterlyrics/TTMLParser.kt:684:43 Unnecessary safe call on a non-null receiver of type 'String'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/betterlyrics/TTMLParser.kt:700:20 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/canvas/CanvasNetworkAccess.kt:59:17 Condition is always 'false'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/compat/JvmCompat.kt:154:47 Redundant creation of Json format. Creating instances for each use can be slow.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/compat/JvmCompat.kt:243:47 Redundant creation of Json format. Creating instances for each use can be slow.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/compat/JvmCompat.kt:753:47 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/compat/JvmCompat.kt:762:31 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/discord/DiscordAssetRegistrar.kt:223:41 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/discord/DiscordAssetRegistrar.kt:258:49 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/discord/DiscordOAuthRepository.kt:344:40 Cast is redundant.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/discord/DiscordOAuthRepository.kt:365:40 Cast is redundant.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/discord/DiscordSocialPresenceClient.kt:127:82 Unnecessary non-null assertion (!!) on a non-null receiver of type 'Exception'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/discord/GatewayClient.kt:258:56 Cast is redundant.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/discord/GatewayClient.kt:322:38 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/downloads/DownloadedArtworkRepository.kt:264:29 The corresponding parameter in the supertype 'Callback' is named 'e'. This may cause problems when calling this function with named arguments.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/lyrics/LyricsHelper.kt:315:45 Unnecessary safe call on a non-null receiver of type 'LyricsHelper.Candidate'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/lyrics/MegalobizLyricsProvider.kt:113:57 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/paxsenix/PaxsenixLyrics.kt:303:13 'when' is exhaustive so 'else' is redundant here.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/playback/PlaybackResumptionPlanner.kt:43:34 Condition is always 'true'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/playback/PlayerConnection.kt:164:41 The corresponding parameter in the supertype 'Listener' is named 'playbackState'. This may cause problems when calling this function with named arguments.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/together/MusicTogetherRepository.kt:63:47 Unnecessary safe call on a non-null receiver of type 'String'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/together/TogetherClient.kt:459:33 Expression is unused.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/together/TogetherOnlineHost.kt:450:33 Expression is unused.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/together/TogetherServer.kt:432:25 Expression is unused.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/component/BottomSheet.kt:342:21 Expression is unused.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/component/FloatingNavigationToolbar.kt:134:58 Unnecessary safe call on a non-null receiver of type '() -> Unit'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/component/Lyrics.kt:648:41 Unnecessary non-null assertion (!!) on a non-null receiver of type 'String'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/component/Lyrics.kt:2331:69 'when' is exhaustive so 'else' is redundant here.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/component/LyricsEnhanced.kt:331:43 Elvis operator (?:) always returns the left operand of non-nullable type 'FontFamily'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/component/LyricsEnhanced.kt:336:43 Elvis operator (?:) always returns the left operand of non-nullable type 'FontFamily'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/component/LyricsEnhanced.kt:762:22 'fun rememberModalBottomSheetState(skipPartiallyExpanded: Boolean = ..., confirmValueChange: (SheetValue) -> Boolean = ...): SheetState' is deprecated. Use rememberBottomSheetState with Hidden initial value.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/component/LyricsEnhanced.kt:953:40 Unnecessary non-null assertion (!!) on a non-null receiver of type 'List<WordTimestamp>'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/component/LyricsEnhanced.kt:954:38 Unnecessary non-null assertion (!!) on a non-null receiver of type 'List<WordTimestamp>'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/component/LyricsEnhanced.kt:961:86 Unnecessary non-null assertion (!!) on a non-null receiver of type 'List<WordTimestamp>'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/component/LyricsShareDialog.kt:147:27 'fun currentWindowAdaptiveInfo(supportLargeAndXLargeWidth: Boolean = ...): WindowAdaptiveInfo' is deprecated. Please use V2 version of this function to support L and XL width size classes.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/component/LyricsV2.kt:745:67 Elvis operator (?:) always returns the left operand of non-nullable type 'FontFamily'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/component/LyricsV2.kt:764:51 Unnecessary non-null assertion (!!) on a non-null receiver of type 'List<WordTimestamp>'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/component/LyricsV2.kt:800:71 Elvis operator (?:) always returns the left operand of non-nullable type 'FontFamily'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/component/LyricsV2.kt:912:72 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/component/Preference.kt:377:22 'fun rememberModalBottomSheetState(skipPartiallyExpanded: Boolean = ..., confirmValueChange: (SheetValue) -> Boolean = ...): SheetState' is deprecated. Use rememberBottomSheetState with Hidden initial value.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/component/Preference.kt:441:22 'fun rememberModalBottomSheetState(skipPartiallyExpanded: Boolean = ..., confirmValueChange: (SheetValue) -> Boolean = ...): SheetState' is deprecated. Use rememberBottomSheetState with Hidden initial value.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/component/StarDialog.kt:46:22 'fun rememberModalBottomSheetState(skipPartiallyExpanded: Boolean = ..., confirmValueChange: (SheetValue) -> Boolean = ...): SheetState' is deprecated. Use rememberBottomSheetState with Hidden initial value.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/menu/EqualizerDialog.kt:234:39 'fun largeTopAppBarColors(containerColor: Color = ..., scrolledContainerColor: Color = ..., navigationIconContentColor: Color = ..., titleContentColor: Color = ..., actionIconContentColor: Color = ...): TopAppBarColors' is deprecated. Use topAppBarColors instead.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/menu/LyricsMenu.kt:538:46 'fun Modifier.menuAnchor(): Modifier' is deprecated. Use overload that takes ExposedDropdownMenuAnchorType and enabled parameters.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/menu/LyricsMenu.kt:591:46 'fun Modifier.menuAnchor(): Modifier' is deprecated. Use overload that takes ExposedDropdownMenuAnchorType and enabled parameters.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/player/CanvasArtworkPlaybackCache.kt:603:42 Elvis operator (?:) always returns the left operand of non-nullable type 'ResponseBody'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/player/PlaybackError.kt:74:21 'val LocalClipboardManager: ProvidableCompositionLocal<ClipboardManager>' is deprecated. Use LocalClipboard instead which supports suspend functions.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/player/Player.kt:2439:79 Redundant call of conversion method.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/player/PlayerComponents.kt:752:13 Expression is unused.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/player/PlayerComponents.kt:1811:13 Expression is unused.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/player/PlayerComponents.kt:4296:113 Redundant call of conversion method.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/player/Queue.kt:1096:79 Unnecessary safe call on a non-null receiver of type 'TogetherSessionState.Joined'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/player/Thumbnail.kt:530:67 Unnecessary safe call on a non-null receiver of type 'CanvasVideo'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/player/ThumbnailSwapState.kt:60:33 Condition is always 'false'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/ChartsScreen.kt:201:63 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/ExploreScreen.kt:230:55 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/HistoryScreen.kt:293:29 Expression is unused.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/NewReleaseScreen.kt:271:31 'val Icons.Outlined.QueueMusic: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Outlined.QueueMusic.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/NewReleaseScreen.kt:507:5 'fun TabRow(selectedTabIndex: Int, modifier: Modifier = ..., containerColor: Color = ..., contentColor: Color = ..., indicator: ComposableFunction1<List<TabPosition>, Unit> = ..., divider: ComposableFunction0<Unit> = ..., tabs: ComposableFunction0<Unit>): Unit' is deprecated. Replaced with PrimaryTabRow and SecondaryTabRow.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/NewReleaseScreen.kt:517:26 'fun Modifier.tabIndicatorOffset(currentTabPosition: TabPosition): Modifier' is deprecated. Solely for use alongside deprecated TabRowDefaults.Indicator method. For recommended PrimaryIndicator and SecondaryIndicator methods, please use TabIndicatorScope.tabIndicatorOffset method.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/NewsScreen.kt:238:47 'fun largeTopAppBarColors(containerColor: Color = ..., scrolledContainerColor: Color = ..., navigationIconContentColor: Color = ..., titleContentColor: Color = ..., actionIconContentColor: Color = ...): TopAppBarColors' is deprecated. Use topAppBarColors instead.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/StatsScreen.kt:559:80 Redundant call of conversion method.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/StatsScreen.kt:1049:66 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/StatsScreen.kt:1322:61 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/ViewNewsScreen.kt:143:39 'fun largeTopAppBarColors(containerColor: Color = ..., scrolledContainerColor: Color = ..., navigationIconContentColor: Color = ..., titleContentColor: Color = ..., actionIconContentColor: Color = ...): TopAppBarColors' is deprecated. Use topAppBarColors instead.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/library/LibraryMixScreen.kt:123:17 Expression is unused.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/library/LibraryScreen.kt:227:25 'when' is exhaustive so 'else' is redundant here.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/library/LocalSongScreen.kt:149:26 'fun rememberModalBottomSheetState(skipPartiallyExpanded: Boolean = ..., confirmValueChange: (SheetValue) -> Boolean = ...): SheetState' is deprecated. Use rememberBottomSheetState with Hidden initial value.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/library/LocalSongScreen.kt:418:47 'fun largeTopAppBarColors(containerColor: Color = ..., scrolledContainerColor: Color = ..., navigationIconContentColor: Color = ..., titleContentColor: Color = ..., actionIconContentColor: Color = ...): TopAppBarColors' is deprecated. Use topAppBarColors instead.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/library/LocalSongScreen.kt:773:32 Unnecessary non-null assertion (!!) on a non-null receiver of type 'LocalSongScanSummary'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/musicrecognition/MusicRecognitionDetailsScreen.kt:107:27 'fun currentWindowAdaptiveInfo(supportLargeAndXLargeWidth: Boolean = ...): WindowAdaptiveInfo' is deprecated. Please use V2 version of this function to support L and XL width size classes.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/musicrecognition/MusicRecognitionDetailsScreen.kt:166:12 'val windowWidthSizeClass: WindowWidthSizeClass' is deprecated. Use either isWidthAtLeastBreakpoint or isAtLeastBreakpoint to check matching bounds.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/musicrecognition/MusicRecognitionDetailsScreen.kt:166:36 'class WindowWidthSizeClass : Any' is deprecated. WindowWidthSizeClass will not be developed further, use WindowSizeClass instead.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/musicrecognition/MusicRecognitionDetailsScreen.kt:166:57 'val COMPACT: WindowWidthSizeClass' is deprecated. WindowWidthSizeClass not be developed further.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/musicrecognition/MusicRecognitionScreen.kt:139:34 'fun rememberModalBottomSheetState(skipPartiallyExpanded: Boolean = ..., confirmValueChange: (SheetValue) -> Boolean = ...): SheetState' is deprecated. Use rememberBottomSheetState with Hidden initial value.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/musicrecognition/MusicRecognitionScreen.kt:140:35 'fun rememberModalBottomSheetState(skipPartiallyExpanded: Boolean = ..., confirmValueChange: (SheetValue) -> Boolean = ...): SheetState' is deprecated. Use rememberBottomSheetState with Hidden initial value.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/musicrecognition/MusicRecognitionScreen.kt:253:27 'fun currentWindowAdaptiveInfo(supportLargeAndXLargeWidth: Boolean = ...): WindowAdaptiveInfo' is deprecated. Please use V2 version of this function to support L and XL width size classes.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/musicrecognition/MusicRecognitionScreen.kt:297:39 'fun largeTopAppBarColors(containerColor: Color = ..., scrolledContainerColor: Color = ..., navigationIconContentColor: Color = ..., titleContentColor: Color = ..., actionIconContentColor: Color = ...): TopAppBarColors' is deprecated. Use topAppBarColors instead.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/playlist/LocalPlaylistScreen.kt:893:29 'fun rememberSwipeToDismissBoxState(initialValue: SwipeToDismissBoxValue = ..., confirmValueChange: (SwipeToDismissBoxValue) -> Boolean = ..., positionalThreshold: (Float) -> Float = ...): SwipeToDismissBoxState' is deprecated. confirmValueChange is deprecated without replacement. Rather than relying on a callback to veto state changes, the anchor set should not include disallowed anchors. See androidx.compose.foundation.samples.AnchoredDraggableDynamicAnchorsSample for an example of using dynamic anchors over confirmValueChange.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/settings/AboutScreen.kt:179:39 'fun largeTopAppBarColors(containerColor: Color = ..., scrolledContainerColor: Color = ..., navigationIconContentColor: Color = ..., titleContentColor: Color = ..., actionIconContentColor: Color = ...): TopAppBarColors' is deprecated. Use topAppBarColors instead.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/settings/AboutScreen.kt:293:13 Expression is unused.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/settings/AccountSettings.kt:295:39 'fun largeTopAppBarColors(containerColor: Color = ..., scrolledContainerColor: Color = ..., navigationIconContentColor: Color = ..., titleContentColor: Color = ..., actionIconContentColor: Color = ...): TopAppBarColors' is deprecated. Use topAppBarColors instead.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/settings/AiIntegrationSettings.kt:616:22 'fun rememberModalBottomSheetState(skipPartiallyExpanded: Boolean = ..., confirmValueChange: (SheetValue) -> Boolean = ...): SheetState' is deprecated. Use rememberBottomSheetState with Hidden initial value.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/settings/AodCustomizedScreen.kt:317:39 'fun largeTopAppBarColors(containerColor: Color = ..., scrolledContainerColor: Color = ..., navigationIconContentColor: Color = ..., titleContentColor: Color = ..., actionIconContentColor: Color = ...): TopAppBarColors' is deprecated. Use topAppBarColors instead.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/settings/CanvasSettings.kt:75:13 Expression is unused.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/settings/ContentSettings.kt:301:17 Expression is unused.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/settings/DiscordSettings.kt:435:39 'fun largeTopAppBarColors(containerColor: Color = ..., scrolledContainerColor: Color = ..., navigationIconContentColor: Color = ..., titleContentColor: Color = ..., actionIconContentColor: Color = ...): TopAppBarColors' is deprecated. Use topAppBarColors instead.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/settings/IconScreen.kt:135:17 Expression is unused.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/settings/LastFMSettings.kt:171:17 Expression is unused.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/settings/ListenBrainzManager.kt:119:42 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/settings/ListenBrainzManager.kt:187:42 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/settings/MusicTogetherScreen.kt:132:27 'fun currentWindowAdaptiveInfo(supportLargeAndXLargeWidth: Boolean = ...): WindowAdaptiveInfo' is deprecated. Please use V2 version of this function to support L and XL width size classes.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/settings/MusicTogetherScreen.kt:194:39 'fun largeTopAppBarColors(containerColor: Color = ..., scrolledContainerColor: Color = ..., navigationIconContentColor: Color = ..., titleContentColor: Color = ..., actionIconContentColor: Color = ...): TopAppBarColors' is deprecated. Use topAppBarColors instead.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/settings/MusicTogetherScreen.kt:382:13 Expression is unused.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/settings/PalettePickerScreen.kt:1635:21 'val LocalClipboardManager: ProvidableCompositionLocal<ClipboardManager>' is deprecated. Use LocalClipboard instead which supports suspend functions.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/settings/PlayerSettings.kt:653:55 Unnecessary safe call on a non-null receiver of type 'SponsorBlockSettingsUiData'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/settings/SettingsScreen.kt:144:39 'fun largeTopAppBarColors(containerColor: Color = ..., scrolledContainerColor: Color = ..., navigationIconContentColor: Color = ..., titleContentColor: Color = ..., actionIconContentColor: Color = ...): TopAppBarColors' is deprecated. Use topAppBarColors instead.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/settings/StorageSettings.kt:119:35 'fun rememberModalBottomSheetState(skipPartiallyExpanded: Boolean = ..., confirmValueChange: (SheetValue) -> Boolean = ...): SheetState' is deprecated. Use rememberBottomSheetState with Hidden initial value.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/settings/StorageSettings.kt:508:17 Expression is unused.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/screens/settings/UpdateScreen.kt:145:27 'fun currentWindowAdaptiveInfo(supportLargeAndXLargeWidth: Boolean = ...): WindowAdaptiveInfo' is deprecated. Please use V2 version of this function to support L and XL width size classes.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/theme/Theme.kt:204:5 'constructor(primary: Color, onPrimary: Color, primaryContainer: Color, onPrimaryContainer: Color, inversePrimary: Color, secondary: Color, onSecondary: Color, secondaryContainer: Color, onSecondaryContainer: Color, tertiary: Color, onTertiary: Color, tertiaryContainer: Color, onTertiaryContainer: Color, background: Color, onBackground: Color, surface: Color, onSurface: Color, surfaceVariant: Color, onSurfaceVariant: Color, surfaceTint: Color, inverseSurface: Color, inverseOnSurface: Color, error: Color, onError: Color, errorContainer: Color, onErrorContainer: Color, outline: Color, outlineVariant: Color, scrim: Color, surfaceBright: Color, surfaceDim: Color, surfaceContainer: Color, surfaceContainerHigh: Color, surfaceContainerHighest: Color, surfaceContainerLow: Color, surfaceContainerLowest: Color): ColorScheme' is deprecated. Use constructor with additional 'fixed' container roles.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/theme/Theme.kt:330:12 'constructor(primary: Color, onPrimary: Color, primaryContainer: Color, onPrimaryContainer: Color, inversePrimary: Color, secondary: Color, onSecondary: Color, secondaryContainer: Color, onSecondaryContainer: Color, tertiary: Color, onTertiary: Color, tertiaryContainer: Color, onTertiaryContainer: Color, background: Color, onBackground: Color, surface: Color, onSurface: Color, surfaceVariant: Color, onSurfaceVariant: Color, surfaceTint: Color, inverseSurface: Color, inverseOnSurface: Color, error: Color, onError: Color, errorContainer: Color, onErrorContainer: Color, outline: Color, outlineVariant: Color, scrim: Color, surfaceBright: Color, surfaceDim: Color, surfaceContainer: Color, surfaceContainerHigh: Color, surfaceContainerHighest: Color, surfaceContainerLow: Color, surfaceContainerLowest: Color): ColorScheme' is deprecated. Use constructor with additional 'fixed' container roles.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/utils/DiscordImageResolver.kt:83:50 Unnecessary safe call on a non-null receiver of type 'SavedArtwork'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/utils/ImageBlurUtils.kt:52:65 Elvis operator (?:) always returns the left operand of non-nullable type 'Bitmap'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/utils/SyncUtils.kt:1079:46 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/viewmodels/AboutViewModel.kt:78:33 Non-public primary constructor is exposed via the generated 'copy()' method of the 'data' class.
+
+The generated 'copy()' will change its visibility in future releases.
+
+To suppress the warning do one of the following:
+- Annotate the data class with the '@ConsistentCopyVisibility' annotation.
+- Use the '-Xconsistent-data-class-copy-visibility' compiler flag.
+- Annotate the data class with the '@ExposedCopyVisibility' annotation 
+  (Discouraged, but can be used to keep binary compatibility).
+
+To learn more, see the documentation of the '@ConsistentCopyVisibility' and '@ExposedCopyVisibility' annotations.
+
+This will become an error in language version 2.5. See https://youtrack.jetbrains.com/issue/KT-11914.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/viewmodels/AboutViewModel.kt:99:32 Non-public primary constructor is exposed via the generated 'copy()' method of the 'data' class.
+
+The generated 'copy()' will change its visibility in future releases.
+
+To suppress the warning do one of the following:
+- Annotate the data class with the '@ConsistentCopyVisibility' annotation.
+- Use the '-Xconsistent-data-class-copy-visibility' compiler flag.
+- Annotate the data class with the '@ExposedCopyVisibility' annotation 
+  (Discouraged, but can be used to keep binary compatibility).
+
+To learn more, see the documentation of the '@ConsistentCopyVisibility' and '@ExposedCopyVisibility' annotations.
+
+This will become an error in language version 2.5. See https://youtrack.jetbrains.com/issue/KT-11914.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/viewmodels/AboutViewModel.kt:158:52 Non-public primary constructor is exposed via the generated 'copy()' method of the 'data' class.
+
+The generated 'copy()' will change its visibility in future releases.
+
+To suppress the warning do one of the following:
+- Annotate the data class with the '@ConsistentCopyVisibility' annotation.
+- Use the '-Xconsistent-data-class-copy-visibility' compiler flag.
+- Annotate the data class with the '@ExposedCopyVisibility' annotation 
+  (Discouraged, but can be used to keep binary compatibility).
+
+To learn more, see the documentation of the '@ConsistentCopyVisibility' and '@ExposedCopyVisibility' annotations.
+
+This will become an error in language version 2.5. See https://youtrack.jetbrains.com/issue/KT-11914.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/viewmodels/AboutViewModel.kt:194:47 Non-public primary constructor is exposed via the generated 'copy()' method of the 'data' class.
+
+The generated 'copy()' will change its visibility in future releases.
+
+To suppress the warning do one of the following:
+- Annotate the data class with the '@ConsistentCopyVisibility' annotation.
+- Use the '-Xconsistent-data-class-copy-visibility' compiler flag.
+- Annotate the data class with the '@ExposedCopyVisibility' annotation 
+  (Discouraged, but can be used to keep binary compatibility).
+
+To learn more, see the documentation of the '@ConsistentCopyVisibility' and '@ExposedCopyVisibility' annotations.
+
+This will become an error in language version 2.5. See https://youtrack.jetbrains.com/issue/KT-11914.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/viewmodels/AboutViewModel.kt:216:41 Non-public primary constructor is exposed via the generated 'copy()' method of the 'data' class.
+
+The generated 'copy()' will change its visibility in future releases.
+
+To suppress the warning do one of the following:
+- Annotate the data class with the '@ConsistentCopyVisibility' annotation.
+- Use the '-Xconsistent-data-class-copy-visibility' compiler flag.
+- Annotate the data class with the '@ExposedCopyVisibility' annotation 
+  (Discouraged, but can be used to keep binary compatibility).
+
+To learn more, see the documentation of the '@ConsistentCopyVisibility' and '@ExposedCopyVisibility' annotations.
+
+This will become an error in language version 2.5. See https://youtrack.jetbrains.com/issue/KT-11914.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/viewmodels/HomeViewModel.kt:986:51 Unnecessary safe call on a non-null receiver of type 'HomePage.Chip'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/viewmodels/IconViewModel.kt:78:32 Non-public primary constructor is exposed via the generated 'copy()' method of the 'data' class.
+
+The generated 'copy()' will change its visibility in future releases.
+
+To suppress the warning do one of the following:
+- Annotate the data class with the '@ConsistentCopyVisibility' annotation.
+- Use the '-Xconsistent-data-class-copy-visibility' compiler flag.
+- Annotate the data class with the '@ExposedCopyVisibility' annotation 
+  (Discouraged, but can be used to keep binary compatibility).
+
+To learn more, see the documentation of the '@ConsistentCopyVisibility' and '@ExposedCopyVisibility' annotations.
+
+This will become an error in language version 2.5. See https://youtrack.jetbrains.com/issue/KT-11914.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/viewmodels/SponsorBlockSettingsViewModel.kt:268:37 Unnecessary safe call on a non-null receiver of type 'SponsorBlockSettingsUiData'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/viewmodels/SponsorBlockSettingsViewModel.kt:274:64 Unnecessary safe call on a non-null receiver of type 'SponsorBlockSettingsUiData'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/viewmodels/SponsorBlockSettingsViewModel.kt:276:54 Unnecessary safe call on a non-null receiver of type 'SponsorBlockSettingsUiData'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/iosMain/kotlin/moe/rukamori/archivetune/compat/BackHandler.ios.kt:12:37 'fun BackHandler(enabled: Boolean = ..., onBack: () -> Unit): Unit' is deprecated. Use NavigationEventHandler instead.
+
+> Task :shared:linkDebugFrameworkIosArm64 SKIPPED
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/ios-1792228955122.json
+
+BUILD SUCCESSFUL in 4m 47s
+16 actionable tasks: 10 executed, 6 up-to-date
