@@ -32,7 +32,6 @@ import moe.rukamori.archivetune.compat.media3.Timeline
 // ArchiveTuneX (solo Android): import androidx.activity.ComponentActivity
 import moe.rukamori.archivetune.compat.BackHandler
 // ArchiveTuneX (solo Android): import androidx.activity.compose.setContent
-import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -330,6 +329,9 @@ import moe.rukamori.archivetune.compat.uppercase
 import moe.rukamori.archivetune.compat.contentResolver
 import moe.rukamori.archivetune.compat.platformContext
 import org.jetbrains.compose.resources.DrawableResource
+import kotlinx.coroutines.IO
+import moe.rukamori.archivetune.compat.System
+import androidx.savedstate.read
 
 @Suppress("DEPRECATION", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
 /**
@@ -743,7 +745,7 @@ class MainActivity(
                     if (customThemeColorValue.startsWith("#")) {
                         try {
                             val colorString = customThemeColorValue.removePrefix("#")
-                            Color(android.graphics.Color.parseColor("#$colorString"))
+                            Color(moe.rukamori.archivetune.compat.AndroidColor.parseColor("#$colorString"))
                         } catch (e: Exception) {
                             DefaultThemeColor
                         }
@@ -886,7 +888,7 @@ class MainActivity(
                             ?.takeIf {
                                 it.destination.route?.startsWith(OnlineSearchResultRoutePrefix) == true
                             }?.arguments
-                            ?.getString(OnlineSearchResultArgument)
+                            ?.read { getStringOrNull(OnlineSearchResultArgument) }
                     var onlineSearchSort by rememberSaveable { mutableStateOf(OnlineSearchSort.DEFAULT) }
                     val isYearInMusicScreen = currentRoute?.startsWith("year_in_music") == true
 
@@ -1281,7 +1283,7 @@ class MainActivity(
                                 decodeOnlineSearchQuery(
                                     navBackStackEntry
                                         ?.arguments
-                                        ?.getString(OnlineSearchResultArgument)
+                                        ?.read { getStringOrNull(OnlineSearchResultArgument) }
                                         .orEmpty(),
                                 )
                             onQueryChange(
@@ -2970,7 +2972,7 @@ private fun HomeOverflowFab(
 
 @Composable
 private fun HomeOverflowMenuIcon(
-    @DrawableRes iconRes: DrawableResource,
+    iconRes: DrawableResource,
     contentDescription: String?,
     pureBlack: Boolean,
 ) {

@@ -172,6 +172,7 @@ class ZipInputStream(
     val nextEntry: ZipEntry?
         get() = getNextEntry()
 
+    @kotlin.jvm.JvmName("getNextEntryCall")
     fun getNextEntry(): ZipEntry? {
         index++
         val item = items.getOrNull(index) ?: run {

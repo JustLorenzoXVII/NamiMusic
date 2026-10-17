@@ -61,8 +61,10 @@ class File(
     val isFile: Boolean
         get() = SystemFileSystem.metadataOrNull(kPath)?.isRegularFile == true
 
+    @kotlin.jvm.JvmName("isDirectoryCall")
     fun isDirectory(): Boolean = isDirectory
 
+    @kotlin.jvm.JvmName("isFileCall")
     fun isFile(): Boolean = isFile
 
     fun length(): Long = SystemFileSystem.metadataOrNull(kPath)?.size ?: 0L
