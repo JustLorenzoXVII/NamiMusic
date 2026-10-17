@@ -19,6 +19,13 @@ sealed interface Route {
     data class Playlist(val playlistId: String) : Route
 
     data class LocalPlaylist(val playlistId: String, val title: String) : Route
+
+    data object Downloads : Route
+
+    data object Liked : Route
+
+    /** Pagina di YouTube Music generica (generi e mood, "altro" di una sezione). */
+    data class Browse(val browseId: String, val params: String?, val title: String) : Route
 }
 
 /**

@@ -23,7 +23,9 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import archivetunex.shared.generated.resources.Res
 import archivetunex.shared.generated.resources.arrow_back
 import archivetunex.shared.generated.resources.download
@@ -97,14 +99,15 @@ fun DetailHeader(
     ) {
         Artwork(
             artworkUrl,
-            Modifier.size(240.dp),
-            shape = if (artworkShape == CircleShape) CircleShape else artworkShape,
+            Modifier.size(250.dp).shadow(28.dp, artworkShape),
+            shape = artworkShape,
             sizePx = 720,
         )
         Text(
             title,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Black,
+            letterSpacing = (-0.5).sp,
             textAlign = TextAlign.Center,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
@@ -114,7 +117,8 @@ fun DetailHeader(
             Text(
                 subtitle,
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,

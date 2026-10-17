@@ -1,5 +1,13 @@
 package com.justlorenzo.archivetunex.ui.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.Brush
+import com.justlorenzo.archivetunex.ui.components.animatedArtworkColor
+import com.justlorenzo.archivetunex.ui.components.rememberArtworkColors
+import com.justlorenzo.archivetunex.ui.components.tint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -61,8 +69,20 @@ private fun detailPadding(): PaddingValues {
 
 /** Pagina con freccia indietro sopra il contenuto. */
 @Composable
-private fun DetailScaffold(content: @Composable () -> Unit) {
+private fun DetailScaffold(
+    accentUrl: String?,
+    content: @Composable () -> Unit,
+) {
+    // In alto una sfumatura del colore della copertina, che sfuma nello sfondo
+    val accent = animatedArtworkColor(rememberArtworkColors(accentUrl), MaterialTheme.colorScheme.background)
+    val background = MaterialTheme.colorScheme.background
     Box(Modifier.fillMaxSize()) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(520.dp)
+                .background(Brush.verticalGradient(listOf(accent.tint(background, 0.6f), accent.tint(background, 0.2f), background))),
+        )
         content()
         BackButton()
     }
@@ -82,7 +102,7 @@ fun AlbumScreen(browseId: String) {
     val saved by remember(browseId) { actions.database.album(browseId) }.collectAsState(null)
     val (menuSong, setMenuSong) = rememberSongMenu()
 
-    DetailScaffold {
+    DetailScaffold((page.value as? LoadState.Ready)?.value?.album?.thumbnail) {
         when (val state = page.value) {
             LoadState.Loading -> LoadingBox(Modifier.padding(top = 120.dp))
             is LoadState.Failed -> ErrorBox(state.message, page::reload, Modifier.padding(top = 120.dp))
@@ -168,7 +188,7 @@ fun PlaylistScreen(playlistId: String) {
             }
         }
 
-    DetailScaffold {
+    DetailScaffold((page.value as? LoadState.Ready)?.value?.first?.playlist?.thumbnail) {
         when (val state = page.value) {
             LoadState.Loading -> LoadingBox(Modifier.padding(top = 120.dp))
             is LoadState.Failed -> ErrorBox(state.message, page::reload, Modifier.padding(top = 120.dp))
@@ -235,7 +255,7 @@ fun LocalPlaylistScreen(
     val songs = remember(entries) { entries.map { it.song.toMediaMetadata() } }
     val name = playlist?.playlist?.name ?: title
 
-    DetailScaffold {
+    DetailScaffold(songs.firstOrNull()?.thumbnailUrl) {
         LazyColumn(Modifier.fillMaxSize(), contentPadding = detailPadding()) {
             item(key = "header") {
                 DetailHeader(
@@ -311,7 +331,7 @@ fun ArtistScreen(browseId: String) {
     val page = rememberLoadable(browseId) { YouTube.artist(browseId) }
     val saved by remember(browseId) { actions.database.artist(browseId) }.collectAsState(null)
 
-    DetailScaffold {
+    DetailScaffold((page.value as? LoadState.Ready)?.value?.artist?.thumbnail) {
         when (val state = page.value) {
             LoadState.Loading -> LoadingBox(Modifier.padding(top = 120.dp))
             is LoadState.Failed -> ErrorBox(state.message, page::reload, Modifier.padding(top = 120.dp))
@@ -325,7 +345,7 @@ fun ArtistScreen(browseId: String) {
                             title = artistItem.title,
                             subtitle = null,
                             detail = artistItem.monthlyListenerCountText ?: artistItem.subscriberCountText,
-                            artworkShape = CircleShape,
+                            artworkShape = com.justlorenzo.archivetunex.ui.components.ArtistShape,
                         ) {
                             androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 (artistItem.shuffleEndpoint ?: artistItem.playEndpoint)?.let { endpoint ->

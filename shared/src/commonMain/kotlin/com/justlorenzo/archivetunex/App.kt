@@ -1,6 +1,26 @@
 package com.justlorenzo.archivetunex
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.text.font.FontWeight
+import archivetunex.shared.generated.resources.atx_home
+import com.justlorenzo.archivetunex.ui.screens.BrowseScreen
+import com.justlorenzo.archivetunex.ui.screens.DownloadsScreen
+import com.justlorenzo.archivetunex.ui.screens.LikedScreen
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -12,8 +32,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -25,10 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import archivetunex.shared.generated.resources.Res
-import archivetunex.shared.generated.resources.home_filled
-import archivetunex.shared.generated.resources.home_outlined
 import archivetunex.shared.generated.resources.library_filled
-import archivetunex.shared.generated.resources.library_outlined
 import archivetunex.shared.generated.resources.search
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
@@ -122,80 +137,130 @@ fun App() {
 private fun AppContent(navigator: AtxNavigator) {
     val stateHolder = rememberSaveableStateHolder()
 
-    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        // Pagina corrente della scheda; ogni pagina ricorda il punto in cui la si era lasciata
-        val stack = navigator.currentStack
-        val route = stack.lastOrNull()
-        val key = "${navigator.tab}-${stack.size}-$route"
+    // Surface: dà a tutti i testi il colore giusto per il tema (chiaro o scuro)
+    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Box(Modifier.fillMaxSize()) {
-            stateHolder.SaveableStateProvider(key) {
-                when (route) {
-                    null ->
-                        when (navigator.tab) {
-                            Tab.Home -> HomeScreen()
-                            Tab.Search -> SearchScreen()
-                            Tab.Library -> LibraryScreen()
-                        }
-                    is Route.Album -> AlbumScreen(route.browseId)
-                    is Route.Artist -> ArtistScreen(route.browseId)
-                    is Route.Playlist -> PlaylistScreen(route.playlistId)
-                    is Route.LocalPlaylist -> LocalPlaylistScreen(route.playlistId, route.title)
+            // Pagina corrente della scheda; ogni pagina ricorda il punto in cui la si era lasciata
+            val stack = navigator.currentStack
+            val route = stack.lastOrNull()
+            val key = "${navigator.tab}-${stack.size}-$route"
+            AnimatedContent(
+                targetState = key,
+                transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(160)) },
+                label = "pagina",
+                modifier = Modifier.fillMaxSize(),
+            ) { _ ->
+                stateHolder.SaveableStateProvider(key) {
+                    when (route) {
+                        null ->
+                            when (navigator.tab) {
+                                Tab.Home -> HomeScreen()
+                                Tab.Search -> SearchScreen()
+                                Tab.Library -> LibraryScreen()
+                            }
+                        is Route.Album -> AlbumScreen(route.browseId)
+                        is Route.Artist -> ArtistScreen(route.browseId)
+                        is Route.Playlist -> PlaylistScreen(route.playlistId)
+                        is Route.LocalPlaylist -> LocalPlaylistScreen(route.playlistId, route.title)
+                        is Route.Browse -> BrowseScreen(route.browseId, route.params, route.title)
+                        Route.Downloads -> DownloadsScreen()
+                        Route.Liked -> LikedScreen()
+                    }
                 }
             }
-        }
 
-        Column(Modifier.align(Alignment.BottomCenter)) {
-            MiniPlayer(Modifier.padding(bottom = 8.dp))
-            NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
-                TabItem(navigator, Tab.Home, "Home", Res.drawable.home_filled, Res.drawable.home_outlined)
-                TabItem(navigator, Tab.Search, "Cerca", Res.drawable.search, Res.drawable.search)
-                TabItem(navigator, Tab.Library, "Libreria", Res.drawable.library_filled, Res.drawable.library_outlined)
+            // Barra fluttuante in basso: mini player e schede a pillola
+            Column(
+                Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding().padding(bottom = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                MiniPlayer()
+                FloatingTabs(navigator, Modifier.align(Alignment.CenterHorizontally))
             }
-        }
 
-        AnimatedVisibility(
-            visible = navigator.playerExpanded,
-            enter = slideInVertically { it },
-            exit = slideOutVertically { it },
+            AnimatedVisibility(
+                visible = navigator.playerExpanded,
+                enter = slideInVertically(tween(380)) { it },
+                exit = slideOutVertically(tween(300)) { it },
+            ) {
+                PlayerScreen()
+            }
+            AnimatedVisibility(
+                visible = navigator.lyricsVisible,
+                enter = slideInVertically(tween(380)) { it },
+                exit = slideOutVertically(tween(300)) { it },
+            ) {
+                LyricsOverlay()
+            }
+            AnimatedVisibility(visible = navigator.settingsVisible, enter = fadeIn(), exit = fadeOut()) {
+                SettingsOverlay()
+            }
+            AnimatedVisibility(visible = navigator.loginVisible, enter = fadeIn(), exit = fadeOut()) {
+                LoginOverlay()
+            }
+            AnimatedVisibility(visible = navigator.logsVisible, enter = fadeIn(), exit = fadeOut()) {
+                LogsOverlay()
+            }
+            if (navigator.queueVisible) QueueSheet()
+            if (navigator.accountVisible) AccountSheet()
+        }
+    }
+}
+
+/** Schede a pillola fluttuante: quella attiva si allarga e mostra il nome (stile Expressive). */
+@Composable
+private fun FloatingTabs(
+    navigator: AtxNavigator,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.shadow(16.dp, RoundedCornerShape(36.dp)),
+        shape = RoundedCornerShape(36.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    ) {
+        Row(
+            Modifier.padding(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            PlayerScreen()
+            TabPill(navigator, Tab.Home, "Home", Res.drawable.atx_home)
+            TabPill(navigator, Tab.Search, "Cerca", Res.drawable.search)
+            TabPill(navigator, Tab.Library, "Libreria", Res.drawable.library_filled)
         }
-        AnimatedVisibility(
-            visible = navigator.lyricsVisible,
-            enter = slideInVertically { it },
-            exit = slideOutVertically { it },
-        ) {
-            LyricsOverlay()
-        }
-        AnimatedVisibility(visible = navigator.settingsVisible, enter = fadeIn(), exit = fadeOut()) {
-            SettingsOverlay()
-        }
-        AnimatedVisibility(visible = navigator.loginVisible, enter = fadeIn(), exit = fadeOut()) {
-            LoginOverlay()
-        }
-        AnimatedVisibility(visible = navigator.logsVisible, enter = fadeIn(), exit = fadeOut()) {
-            LogsOverlay()
-        }
-        if (navigator.queueVisible) QueueSheet()
-        if (navigator.accountVisible) AccountSheet()
     }
 }
 
 @Composable
-private fun androidx.compose.foundation.layout.RowScope.TabItem(
+private fun TabPill(
     navigator: AtxNavigator,
     tab: Tab,
     label: String,
-    selectedIcon: DrawableResource,
     icon: DrawableResource,
 ) {
     val selected = navigator.tab == tab
-    NavigationBarItem(
-        selected = selected,
-        onClick = { navigator.selectTab(tab) },
-        icon = { AtxIcon(if (selected) selectedIcon else icon, null) },
-        label = { Text(label) },
+    val container by animateColorAsState(
+        if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh,
+        label = "tab",
     )
+    val content by animateColorAsState(
+        if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+        label = "tabContent",
+    )
+    Row(
+        Modifier
+            .clip(RoundedCornerShape(30.dp))
+            .background(container)
+            .clickable { navigator.selectTab(tab) }
+            .animateContentSize(spring(dampingRatio = 0.6f, stiffness = 500f))
+            .padding(horizontal = if (selected) 20.dp else 18.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        AtxIcon(icon, if (selected) null else label, tint = content)
+        if (selected) {
+            Text(label, color = content, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+        }
+    }
 }
 
 /** Errori di caricamento delle copertine nel registro errori. */

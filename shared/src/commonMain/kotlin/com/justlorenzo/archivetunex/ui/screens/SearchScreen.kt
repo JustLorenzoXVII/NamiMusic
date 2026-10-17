@@ -1,6 +1,14 @@
 package com.justlorenzo.archivetunex.ui.screens
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.compositeOver
+import com.justlorenzo.archivetunex.ui.Route
+import com.justlorenzo.archivetunex.ui.components.ScreenTitle
+import com.justlorenzo.archivetunex.ui.components.SectionHeader
+import com.justlorenzo.archivetunex.ui.components.readableOn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -114,16 +122,11 @@ fun SearchScreen() {
     }
 
     Column(Modifier.fillMaxSize()) {
+        ScreenTitle("Cerca", overline = "YouTube Music")
         Column(
-            Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 16.dp).padding(top = 12.dp),
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 8.dp, bottom = 4.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                "Cerca",
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(start = 4.dp),
-            )
             TextField(
                 value = text,
                 onValueChange = {
@@ -173,28 +176,13 @@ fun SearchScreen() {
                     onOpen = { openItem(it, actions, navigator) },
                 )
 
-            history.isNotEmpty() ->
-                LazyColumn(contentPadding = BottomContentPadding, modifier = Modifier.fillMaxSize()) {
-                    item {
-                        Row(
-                            Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                "Ricerche recenti",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.weight(1f),
-                            )
-                            TextButton(onClick = { actions.database.query { clearSearchHistory() } }) { Text("Cancella") }
-                        }
-                    }
-                    items(history, key = { it.id }) { entry ->
-                        QueryRow(entry.query, Res.drawable.history, onClick = { submit(entry.query) }, onFill = { text = entry.query })
-                    }
-                }
-
-            else -> EmptyState("Cerca brani, album, artisti e playlist su YouTube Music.", icon = Res.drawable.search)
+            else ->
+                SearchHome(
+                    history = history.take(6),
+                    onQuery = { submit(it) },
+                    onFill = { text = it },
+                    onClearHistory = { actions.database.query { clearSearchHistory() } },
+                )
         }
     }
 
@@ -308,5 +296,96 @@ private fun ItemRow(
                 overflow = TextOverflow.Ellipsis,
             )
         }
+    }
+}
+
+/** Cerca senza testo: ricerche recenti e i generi/mood di YouTube Music, colorati. */
+@Composable
+private fun SearchHome(
+    history: List<SearchHistory>,
+    onQuery: (String) -> Unit,
+    onFill: (String) -> Unit,
+    onClearHistory: () -> Unit,
+) {
+    val navigator = LocalNavigator.current
+    val moods = rememberLoadable(Unit) { YouTube.moodAndGenres() }
+
+    LazyColumn(contentPadding = BottomContentPadding, modifier = Modifier.fillMaxSize()) {
+        if (history.isNotEmpty()) {
+            item(key = "history-title") {
+                Row(
+                    Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        "Ricerche recenti",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.ExtraBold,
+                        modifier = Modifier.weight(1f),
+                    )
+                    TextButton(onClick = onClearHistory) { Text("Cancella") }
+                }
+            }
+            items(history, key = { it.id }) { entry ->
+                QueryRow(entry.query, Res.drawable.history, onClick = { onQuery(entry.query) }, onFill = { onFill(entry.query) })
+            }
+        }
+        when (val state = moods.value) {
+            LoadState.Loading -> item(key = "moods-loading") { LoadingBox() }
+            is LoadState.Failed -> Unit
+            is LoadState.Ready ->
+                state.value.forEachIndexed { index, group ->
+                    item(key = "moods-title-$index") { SectionHeader(group.title) }
+                    val rows = group.items.chunked(2)
+                    items(rows.size, key = { "moods-$index-$it" }) { rowIndex ->
+                        Row(
+                            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 5.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            rows[rowIndex].forEach { mood ->
+                                MoodTile(
+                                    title = mood.title,
+                                    color = Color(mood.stripeColor),
+                                    modifier = Modifier.weight(1f),
+                                    onClick = { navigator.open(Route.Browse(mood.endpoint.browseId, mood.endpoint.params, mood.title)) },
+                                )
+                            }
+                            if (rows[rowIndex].size == 1) androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
+                        }
+                    }
+                }
+        }
+    }
+}
+
+/** Riquadro di un genere: colore pieno di YouTube Music, testo grande. */
+@Composable
+private fun MoodTile(
+    title: String,
+    color: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    val base = color.copy(alpha = 1f)
+    androidx.compose.foundation.layout.Box(
+        modifier
+            .height(84.dp)
+            .clip(RoundedCornerShape(22.dp))
+            .background(
+                androidx.compose.ui.graphics.Brush.linearGradient(
+                    listOf(base, base.copy(alpha = 0.65f).compositeOver(Color.Black)),
+                ),
+            ).clickable(onClick = onClick)
+            .padding(14.dp),
+    ) {
+        Text(
+            title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Black,
+            color = base.readableOn(),
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.align(Alignment.BottomStart),
+        )
     }
 }

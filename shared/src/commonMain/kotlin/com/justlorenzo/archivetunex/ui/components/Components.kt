@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
@@ -20,7 +21,9 @@ import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.toShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -35,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import archivetunex.shared.generated.resources.Res
 import archivetunex.shared.generated.resources.check
 import archivetunex.shared.generated.resources.download
@@ -105,13 +109,14 @@ fun SectionHeader(
     onMore: (() -> Unit)? = null,
 ) {
     Row(
-        modifier = modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = 8.dp, bottom = 4.dp),
+        modifier = modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = 20.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             title,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.ExtraBold,
+            letterSpacing = (-0.5).sp,
             modifier = Modifier.weight(1f),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -231,7 +236,7 @@ fun ItemCard(
     item: YTItem,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    width: Dp = 150.dp,
+    width: Dp = 168.dp,
 ) {
     Column(
         modifier = modifier.width(width).clip(MaterialTheme.shapes.medium).clickable(onClick = onClick).padding(4.dp),
@@ -240,7 +245,7 @@ fun ItemCard(
         Artwork(
             item.thumbnail,
             Modifier.size(width - 8.dp),
-            shape = if (item is ArtistItem) CircleShape else MaterialTheme.shapes.large,
+            shape = if (item is ArtistItem) ArtistShape else MaterialTheme.shapes.extraLarge,
             sizePx = 400,
         )
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -259,6 +264,45 @@ fun ItemCard(
                 overflow = TextOverflow.Ellipsis,
             )
         }
+    }
+}
+
+/** Forma "biscotto" di Material 3 Expressive per i volti degli artisti. */
+val ArtistShape: Shape
+    @Composable get() = MaterialShapes.Cookie9Sided.toShape()
+
+/** Titolo grande delle schermate principali, con una riga sopra (es. il saluto). */
+@Composable
+fun ScreenTitle(
+    title: String,
+    modifier: Modifier = Modifier,
+    overline: String? = null,
+    trailing: @Composable () -> Unit = {},
+) {
+    Row(
+        modifier.fillMaxWidth().statusBarsPadding().padding(start = 20.dp, end = 8.dp, top = 16.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.Bottom,
+    ) {
+        Column(Modifier.weight(1f)) {
+            if (overline != null) {
+                Text(
+                    overline.uppercase(),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.5.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+            Text(
+                title,
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Black,
+                letterSpacing = (-1.5).sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        trailing()
     }
 }
 
@@ -292,7 +336,7 @@ fun ErrorBox(
 }
 
 /** Spazio in fondo alle liste, per non finire sotto mini player e barra delle schede. */
-val BottomContentPadding = PaddingValues(bottom = 200.dp)
+val BottomContentPadding = PaddingValues(bottom = 210.dp)
 
 @Composable
 fun EmptyState(
