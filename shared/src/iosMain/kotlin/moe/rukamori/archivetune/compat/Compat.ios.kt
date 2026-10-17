@@ -9,7 +9,9 @@ internal actual fun platformLog(
     tag: String,
     message: String,
 ) {
-    NSLog("%@", "$level/$tag: $message")
+    // Niente NSLog: e' una funzione variadica e Kotlin/Native non converte la String in NSString
+    // per gli argomenti "...", quindi l'app crashava al primo messaggio di log.
+    println("$level/$tag: $message")
 }
 
 private fun Locale.toNs(): platform.Foundation.NSLocale = platform.Foundation.NSLocale(localeIdentifier = if (country.isBlank()) language else "${language}_$country")
