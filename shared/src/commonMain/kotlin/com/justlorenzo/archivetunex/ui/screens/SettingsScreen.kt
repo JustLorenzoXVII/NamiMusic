@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.justlorenzo.archivetunex.ui.screens
 
 import androidx.compose.animation.AnimatedContent
@@ -56,6 +58,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
+import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -699,13 +704,24 @@ private fun PlayerPage() {
                 onSelect = { saveEnum(SliderStyleKey, it) },
             ) { slider -> SliderPreview(slider) }
         }
-        SettingsGroup("Pulsante Play") {
+        SettingsGroup("Comandi") {
             PreviewChoices(
                 options = PlayButtonShape.entries,
                 selected = style.playButton,
                 label = { it.label },
                 onSelect = { saveEnum(PlayButtonShapeKey, it) },
             ) { shape ->
+                if (shape == PlayButtonShape.Group) {
+                    val c = MaterialTheme.colorScheme.primary
+                    Row(horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.width(24.dp).height(40.dp).clip(RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp, topEnd = 6.dp, bottomEnd = 6.dp)).background(c.copy(alpha = 0.2f)))
+                        Box(Modifier.width(40.dp).height(48.dp).clip(RoundedCornerShape(16.dp)).background(c), contentAlignment = Alignment.Center) {
+                            AtxIcon(Res.drawable.play, null, size = 26.dp, tint = MaterialTheme.colorScheme.onPrimary)
+                        }
+                        Box(Modifier.width(24.dp).height(40.dp).clip(RoundedCornerShape(topStart = 6.dp, bottomStart = 6.dp, topEnd = 20.dp, bottomEnd = 20.dp)).background(c.copy(alpha = 0.2f)))
+                    }
+                    return@PreviewChoices
+                }
                 Box(
                     Modifier.size(60.dp).clip(playShapeOf(shape)).background(MaterialTheme.colorScheme.primary),
                     contentAlignment = Alignment.Center,
@@ -738,33 +754,48 @@ private fun PlayerLayoutPreview(layout: PlayerLayout) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         when (layout) {
-            PlayerLayout.Classic -> {
-                Spacer(Modifier.height(8.dp))
-                Box(Modifier.size(34.dp).clip(RoundedCornerShape(7.dp)).background(art))
+            PlayerLayout.Card -> {
+                Spacer(Modifier.height(10.dp))
+                Box(Modifier.size(32.dp).shadow(4.dp, RoundedCornerShape(7.dp)).clip(RoundedCornerShape(7.dp)).background(art))
             }
-            PlayerLayout.Immersive -> Box(Modifier.fillMaxWidth().height(44.dp).background(art))
             PlayerLayout.Vinyl -> {
-                Spacer(Modifier.height(7.dp))
-                Box(Modifier.size(36.dp).clip(CircleShape).background(Color(0xFF111114)), contentAlignment = Alignment.Center) {
-                    Box(Modifier.size(15.dp).clip(CircleShape).background(art))
+                Spacer(Modifier.height(12.dp))
+                Box(Modifier.width(44.dp).height(26.dp)) {
+                    Box(Modifier.offset(x = 16.dp).size(26.dp).clip(CircleShape).background(Color(0xFF111114)), contentAlignment = Alignment.Center) {
+                        Box(Modifier.size(9.dp).clip(CircleShape).background(art))
+                    }
+                    Box(Modifier.size(26.dp).clip(RoundedCornerShape(5.dp)).background(art))
                 }
             }
-            PlayerLayout.Minimal -> {
-                Spacer(Modifier.height(10.dp))
-                Box(Modifier.padding(start = 6.dp).align(Alignment.Start).size(16.dp).clip(RoundedCornerShape(4.dp)).background(art))
-                Box(Modifier.padding(start = 6.dp, top = 4.dp).align(Alignment.Start).width(34.dp).height(6.dp).clip(RoundedCornerShape(3.dp)).background(MaterialTheme.colorScheme.onSurface))
-                Box(Modifier.padding(start = 6.dp, top = 3.dp).align(Alignment.Start).width(24.dp).height(6.dp).clip(RoundedCornerShape(3.dp)).background(MaterialTheme.colorScheme.onSurface))
+            PlayerLayout.Stack -> {
+                Spacer(Modifier.height(12.dp))
+                Box(Modifier.size(36.dp)) {
+                    Box(Modifier.offset(x = 9.dp, y = (-3).dp).size(26.dp).rotate(9f).clip(RoundedCornerShape(6.dp)).background(Color(0xFF7B5CFF).copy(alpha = 0.6f)))
+                    Box(Modifier.offset(x = 5.dp, y = (-1).dp).size(26.dp).rotate(4.5f).clip(RoundedCornerShape(6.dp)).background(Color(0xFF3FA7FF).copy(alpha = 0.8f)))
+                    Box(Modifier.offset(y = 4.dp).size(26.dp).clip(RoundedCornerShape(6.dp)).background(art))
+                }
             }
-            PlayerLayout.Card -> {
-                Spacer(Modifier.height(6.dp))
-                Box(Modifier.size(28.dp).clip(RoundedCornerShape(6.dp)).background(art))
+            PlayerLayout.Cassette -> {
+                Spacer(Modifier.height(14.dp))
+                Column(
+                    Modifier.width(42.dp).height(27.dp).clip(RoundedCornerShape(5.dp)).background(Color(0xFFE6C9A8)).padding(3.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Box(Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(2.dp)).background(art))
+                    Spacer(Modifier.height(2.dp))
+                    Box(Modifier.width(22.dp).height(6.dp).clip(CircleShape).background(Color(0xFF3B2A1A)))
+                }
+            }
+            PlayerLayout.Poster -> {
+                Box(Modifier.fillMaxWidth().height(30.dp).background(art))
+                Box(Modifier.padding(start = 5.dp, top = 3.dp).align(Alignment.Start).width(38.dp).height(8.dp).clip(RoundedCornerShape(2.dp)).background(MaterialTheme.colorScheme.onSurface))
+                Box(Modifier.padding(start = 5.dp, top = 2.dp).align(Alignment.Start).width(26.dp).height(8.dp).clip(RoundedCornerShape(2.dp)).background(primary))
             }
         }
         Spacer(Modifier.weight(1f))
         Column(
             Modifier
                 .padding(4.dp)
-                .then(if (layout == PlayerLayout.Card) Modifier.clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceContainerHighest) else Modifier)
                 .padding(3.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(3.dp),
@@ -779,7 +810,7 @@ private fun PlayerLayoutPreview(layout: PlayerLayout) {
 private fun playShapeOf(shape: PlayButtonShape): Shape =
     when (shape) {
         PlayButtonShape.CookieSpin, PlayButtonShape.Cookie -> MaterialShapes.Cookie9Sided.toShape()
-        PlayButtonShape.Circle -> CircleShape
+        PlayButtonShape.Circle, PlayButtonShape.Group -> CircleShape
         PlayButtonShape.Squircle -> RoundedCornerShape(20.dp)
     }
 
@@ -794,10 +825,15 @@ private fun PlayerBackgroundPreview(background: PlayerBackground) {
             .clip(RoundedCornerShape(12.dp))
             .background(
                 when (background) {
+                    PlayerBackground.Glow ->
+                        Brush.radialGradient(
+                            listOf(accent.copy(alpha = 0.55f).compositeOver(accent.copy(alpha = 0.25f).compositeOver(base)), accent.copy(alpha = 0.25f).compositeOver(base)),
+                            center = androidx.compose.ui.geometry.Offset(80f, 260f),
+                            radius = 220f,
+                        )
                     PlayerBackground.Gradient -> Brush.verticalGradient(listOf(accent.copy(alpha = 0.7f).compositeOver(base), base))
                     PlayerBackground.Blur ->
                         Brush.radialGradient(listOf(accent.copy(alpha = 0.6f).compositeOver(base), Color(0xFF7B5CFF).copy(alpha = 0.5f).compositeOver(base), base))
-                    PlayerBackground.Solid -> Brush.verticalGradient(listOf(accent.copy(alpha = 0.6f).compositeOver(base), accent.copy(alpha = 0.6f).compositeOver(base)))
                     PlayerBackground.Plain -> Brush.verticalGradient(listOf(base, base))
                 },
             ).border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp)),
@@ -948,6 +984,15 @@ private fun MiniProgressPreview(progress: MiniProgress) {
         when (progress) {
             MiniProgress.Line ->
                 Box(Modifier.align(Alignment.BottomStart).padding(horizontal = 8.dp).fillMaxWidth(0.5f).height(3.dp).background(primary))
+            MiniProgress.Wave ->
+                androidx.compose.material3.LinearWavyProgressIndicator(
+                    progress = { 0.5f },
+                    color = primary,
+                    trackColor = primary.copy(alpha = 0.2f),
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(horizontal = 8.dp, vertical = 4.dp).fillMaxWidth().height(6.dp),
+                )
+            MiniProgress.Frame ->
+                Box(Modifier.padding(4.dp).size(28.dp).border(3.dp, primary, RoundedCornerShape(8.dp)))
             MiniProgress.Fill -> Box(Modifier.fillMaxWidth(0.5f).height(36.dp).background(primary.copy(alpha = 0.25f)))
             MiniProgress.Ring ->
                 androidx.compose.material3.CircularProgressIndicator(

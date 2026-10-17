@@ -79,6 +79,7 @@ fun Artwork(
     modifier: Modifier = Modifier,
     shape: Shape = MaterialTheme.shapes.medium,
     sizePx: Int = 544,
+    colorFilter: androidx.compose.ui.graphics.ColorFilter? = null,
 ) {
     Box(
         modifier = modifier.clip(shape).background(MaterialTheme.colorScheme.surfaceContainerHigh),
@@ -95,6 +96,7 @@ fun Artwork(
                 model = remember(url, sizePx) { url.resize(sizePx, sizePx) },
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
+                colorFilter = colorFilter,
                 modifier = Modifier.fillMaxSize(),
             )
         }

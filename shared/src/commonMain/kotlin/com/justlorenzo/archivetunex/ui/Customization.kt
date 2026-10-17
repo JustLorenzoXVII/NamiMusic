@@ -91,20 +91,20 @@ enum class TabLabels(
 enum class PlayerLayout(
     val label: String,
 ) {
-    Classic("Classico"),
-    Immersive("Immersivo"),
+    Card("Copertina"),
     Vinyl("Vinile"),
-    Minimal("Minimal"),
-    Card("A scheda"),
+    Stack("Pila"),
+    Cassette("Cassetta"),
+    Poster("Poster"),
 }
 
 /** Sfondo del player a schermo intero. */
 enum class PlayerBackground(
     val label: String,
 ) {
+    Glow("Bagliore"),
     Gradient("Sfumatura"),
     Blur("Copertina sfocata"),
-    Solid("Colore pieno"),
     Plain("Tema"),
 }
 
@@ -117,10 +117,11 @@ enum class SliderStyleChoice(
     Classic("Classica"),
 }
 
-/** Forma del pulsante Play. */
+/** Pulsanti del player: gruppo connesso (come Fuji) o Play a forma scelta. */
 enum class PlayButtonShape(
     val label: String,
 ) {
+    Group("Gruppo connesso"),
     CookieSpin("Biscotto che ruota"),
     Cookie("Biscotto"),
     Circle("Cerchio"),
@@ -156,6 +157,8 @@ enum class MiniProgress(
     val label: String,
 ) {
     Line("Linea"),
+    Wave("Onda"),
+    Frame("Cornice"),
     Fill("Riempimento"),
     Ring("Anello"),
     None("Nessuno"),
@@ -219,10 +222,10 @@ data class AtxStyle(
     val corners: ArtworkCorners = ArtworkCorners.Large,
     val tabLabels: TabLabels = TabLabels.Selected,
     val coloredHome: Boolean = true,
-    val playerLayout: PlayerLayout = PlayerLayout.Classic,
-    val playerBackground: PlayerBackground = PlayerBackground.Gradient,
+    val playerLayout: PlayerLayout = PlayerLayout.Card,
+    val playerBackground: PlayerBackground = PlayerBackground.Glow,
     val slider: SliderStyleChoice = SliderStyleChoice.Wavy,
-    val playButton: PlayButtonShape = PlayButtonShape.CookieSpin,
+    val playButton: PlayButtonShape = PlayButtonShape.Group,
     val shrinkArtworkOnPause: Boolean = true,
     val showRemainingTime: Boolean = true,
     val coloredPlayerControls: Boolean = true,

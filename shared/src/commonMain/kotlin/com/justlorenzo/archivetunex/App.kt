@@ -64,7 +64,6 @@ import com.justlorenzo.archivetunex.ui.screens.HomeScreen
 import com.justlorenzo.archivetunex.ui.screens.LibraryScreen
 import com.justlorenzo.archivetunex.ui.screens.LocalPlaylistScreen
 import com.justlorenzo.archivetunex.ui.screens.LoginOverlay
-import com.justlorenzo.archivetunex.ui.screens.LyricsOverlay
 import com.justlorenzo.archivetunex.ui.screens.SettingsOverlay
 import com.justlorenzo.archivetunex.ui.screens.LogsOverlay
 import com.justlorenzo.archivetunex.ui.screens.MiniPlayer
@@ -150,7 +149,13 @@ fun App() {
         useSystemColors = style.themeSource == ThemeSource.System,
         pureBlack = style.pureBlack,
     ) {
-        CompositionLocalProvider(LocalNavigator provides navigator, LocalActions provides actions, LocalAtxStyle provides style) {
+        CompositionLocalProvider(
+            LocalNavigator provides navigator,
+            LocalActions provides actions,
+            LocalAtxStyle provides style,
+            moe.rukamori.archivetune.LocalPlayerConnection provides actions.player,
+            moe.rukamori.archivetune.LocalDatabase provides actions.database,
+        ) {
             BackHandler(enabled = navigator.canGoBack) { navigator.back() }
             AppContent(navigator)
         }
@@ -211,13 +216,6 @@ private fun AppContent(navigator: AtxNavigator) {
                 exit = slideOutVertically(tween(300)) { it },
             ) {
                 PlayerScreen()
-            }
-            AnimatedVisibility(
-                visible = navigator.lyricsVisible,
-                enter = slideInVertically(tween(380)) { it },
-                exit = slideOutVertically(tween(300)) { it },
-            ) {
-                LyricsOverlay()
             }
             AnimatedVisibility(visible = navigator.settingsVisible, enter = fadeIn(), exit = fadeOut()) {
                 SettingsOverlay()
