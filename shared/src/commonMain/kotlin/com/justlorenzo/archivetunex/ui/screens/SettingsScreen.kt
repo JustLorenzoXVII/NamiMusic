@@ -81,6 +81,7 @@ import archivetunex.shared.generated.resources.palette
 import archivetunex.shared.generated.resources.play
 import archivetunex.shared.generated.resources.security
 import archivetunex.shared.generated.resources.skip_next
+import archivetunex.shared.generated.resources.skip_previous
 import archivetunex.shared.generated.resources.sliders
 import archivetunex.shared.generated.resources.storage
 import archivetunex.shared.generated.resources.tune
