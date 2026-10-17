@@ -21,6 +21,10 @@ import moe.rukamori.archivetune.utils.NetworkConnectivityObserver
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import moe.rukamori.archivetune.playback.preload.PlaybackPerformanceSettingsRepository
+import moe.rukamori.archivetune.musicrecognition.MusicRecognitionRepository
+import moe.rukamori.archivetune.logcat.LogcatRepository
+import moe.rukamori.archivetune.androidauto.AndroidAutoSettingsRepository
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import moe.rukamori.archivetune.androidauto.AndroidAutoSettingsUseCases
@@ -49,10 +53,10 @@ val archiveTuneCoreModule: Module =
         single { MusicService(get(), get()).also { MusicServiceHolder.instance = it } }
         single { moe.rukamori.archivetune.localmedia.createLocalSongScanner(get()) }
         singleOf(::EqualizerPlaybackController)
-        singleOf(::moe.rukamori.archivetune.androidauto.AndroidAutoSettingsRepository)
-        singleOf(::moe.rukamori.archivetune.logcat.LogcatRepository)
-        singleOf(::moe.rukamori.archivetune.musicrecognition.MusicRecognitionRepository)
-        singleOf(::moe.rukamori.archivetune.playback.preload.PlaybackPerformanceSettingsRepository)
+        singleOf(::AndroidAutoSettingsRepository)
+        singleOf(::LogcatRepository)
+        singleOf(::MusicRecognitionRepository)
+        singleOf(::PlaybackPerformanceSettingsRepository)
         factoryOf(::AndroidAutoSettingsUseCases)
         factoryOf(::ClearLogcatUseCase)
         factoryOf(::ExportLogcatUseCase)
