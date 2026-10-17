@@ -214,13 +214,30 @@ private fun AppContent(navigator: AtxNavigator) {
                 val density = androidx.compose.ui.platform.LocalDensity.current
                 var tabsWidth by remember { mutableStateOf(0.dp) }
                 androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxWidth()) {
+                    val miniStyle = LocalAtxStyle.current
                     val extra =
-                        when (LocalAtxStyle.current.miniLayout) {
-                            com.justlorenzo.archivetunex.ui.MiniLayout.Pill -> 0.dp
-                            com.justlorenzo.archivetunex.ui.MiniLayout.Floating -> 48.dp
-                            com.justlorenzo.archivetunex.ui.MiniLayout.Large -> 96.dp
+                        when (miniStyle.miniLayout) {
+                            com.justlorenzo.archivetunex.ui.MiniLayout.Pill -> 24.dp
+                            com.justlorenzo.archivetunex.ui.MiniLayout.Floating -> 64.dp
+                            com.justlorenzo.archivetunex.ui.MiniLayout.Large -> 110.dp
                         }
-                    val target = if (tabsWidth > 0.dp) (tabsWidth + extra).coerceIn(280.dp, maxWidth - 24.dp) else maxWidth - 24.dp
+                    // Spazio minimo per leggere il titolo: copertina + almeno 150 dp di testo + i pulsanti scelti
+                    val art =
+                        when (miniStyle.miniLayout) {
+                            com.justlorenzo.archivetunex.ui.MiniLayout.Pill -> 50.dp
+                            com.justlorenzo.archivetunex.ui.MiniLayout.Floating -> 56.dp
+                            com.justlorenzo.archivetunex.ui.MiniLayout.Large -> 80.dp
+                        }
+                    val buttons =
+                        when (miniStyle.miniButtons) {
+                            com.justlorenzo.archivetunex.ui.MiniButtons.PlayOnly -> 1
+                            com.justlorenzo.archivetunex.ui.MiniButtons.PlayNext -> 2
+                            com.justlorenzo.archivetunex.ui.MiniButtons.All -> 3
+                        }
+                    val readable = 16.dp + art + 12.dp + 150.dp + 12.dp + 48.dp * buttons + 12.dp
+                    val limit = maxWidth - 24.dp
+                    val target =
+                        if (tabsWidth > 0.dp) maxOf(tabsWidth + extra, readable).coerceAtMost(limit) else limit
                     val miniWidth by androidx.compose.animation.core.animateDpAsState(target, spring(dampingRatio = 0.8f, stiffness = 400f), label = "miniWidth")
                     MiniPlayer(Modifier.align(Alignment.Center).width(miniWidth))
                 }
