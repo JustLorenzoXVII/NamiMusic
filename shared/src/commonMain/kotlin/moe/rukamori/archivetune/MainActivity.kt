@@ -193,7 +193,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import moe.rukamori.archivetune.aod.ACTION_AOD_MODE
 import moe.rukamori.archivetune.constants.AodAutoStartScreenOffKey
 import moe.rukamori.archivetune.constants.AppBarHeight
 import moe.rukamori.archivetune.constants.AppFontPreference
@@ -255,7 +254,6 @@ import moe.rukamori.archivetune.onboarding.OnboardingScreenState
 import moe.rukamori.archivetune.onboarding.OnboardingViewModel
 import moe.rukamori.archivetune.playback.DownloadUtil
 import moe.rukamori.archivetune.playback.MusicService
-import moe.rukamori.archivetune.playback.MusicService.MusicBinder
 import moe.rukamori.archivetune.playback.PlayerConnection
 import moe.rukamori.archivetune.playback.queues.ListQueue
 import moe.rukamori.archivetune.playback.queues.LocalAlbumRadio
@@ -275,7 +273,6 @@ import moe.rukamori.archivetune.ui.component.MarkdownText
 import moe.rukamori.archivetune.ui.component.NetworkStatusBanner
 import moe.rukamori.archivetune.ui.component.StarDialog
 import moe.rukamori.archivetune.ui.component.TopSearch
-import moe.rukamori.archivetune.ui.component.TvNavigationRail
 import moe.rukamori.archivetune.ui.component.rememberBottomSheetState
 import moe.rukamori.archivetune.ui.component.shimmer.ShimmerTheme
 import moe.rukamori.archivetune.ui.menu.YouTubeSongMenu
@@ -328,6 +325,11 @@ import kotlin.time.Duration.Companion.days
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import moe.rukamori.archivetune.compat.Activity
+import moe.rukamori.archivetune.compat.lowercase
+import moe.rukamori.archivetune.compat.uppercase
+import moe.rukamori.archivetune.compat.contentResolver
+import moe.rukamori.archivetune.compat.platformContext
+import org.jetbrains.compose.resources.DrawableResource
 
 @Suppress("DEPRECATION", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
 /**
@@ -335,6 +337,9 @@ import moe.rukamori.archivetune.compat.Activity
  * (sopra la [Activity] di compat) che contiene la stessa interfaccia: [Content] è il vecchio setContent.
  * Android e iPhone la creano all'avvio con [ArchiveTuneXRuntime].
  */
+/** Azione per aprire lo schermo AOD (dall'originale aod/AodModeEntryPoint.kt). */
+const val ACTION_AOD_MODE = "moe.rukamori.archivetune.action.AOD_MODE"
+
 class MainActivity(
     val database: MusicDatabase,
     val downloadUtil: DownloadUtil,
@@ -541,17 +546,13 @@ class MainActivity(
                         }
                         if (downloaded.isNotEmpty()) {
                             downloaded.forEach { song ->
-                                val downloadRequest = androidx.media3.exoplayer.offline.DownloadRequest
+                                // ArchiveTuneX: stessa richiesta, inviata al gestore dei download comune
+                                val downloadRequest = moe.rukamori.archivetune.compat.media3.DownloadRequest
                                     .Builder(song.id, song.id.toUri())
                                     .setCustomCacheKey(song.id)
-                                    .setData(song.title.toByteArray())
+                                    .setData(song.title.encodeToByteArray())
                                     .build()
-                                androidx.media3.exoplayer.offline.DownloadService.sendAddDownload(
-                                    this@MainActivity,
-                                    moe.rukamori.archivetune.playback.ExoDownloadService::class.java,
-                                    downloadRequest,
-                                    false,
-                                )
+                                downloadUtil.addDownload(downloadRequest)
                             }
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(this@MainActivity, "Re-downloading ${downloaded.size} offline songs...", Toast.LENGTH_LONG).show()
@@ -589,8 +590,7 @@ class MainActivity(
                     }
                 }
 
-                moe.rukamori.archivetune.utils.UpdateNotificationManager
-                    .checkForUpdates(this@MainActivity)
+                // ArchiveTuneX: niente notifiche di aggiornamento (TestFlight / Android Studio)
             }
 
             // Use remembered instances so the same state object is used everywhere
@@ -775,9 +775,9 @@ class MainActivity(
                         withContext(Dispatchers.Default) {
                             try {
                                 val result =
-                                    imageLoader.execute(
+                                    this@MainActivity.platformContext.imageLoader.execute(
                                         ImageRequest
-                                            .Builder(this@MainActivity)
+                                            .Builder(this@MainActivity.platformContext)
                                             .data(song.thumbnailUrl)
                                             .allowHardware(false)
                                             .build(),
@@ -1543,37 +1543,7 @@ class MainActivity(
                                 exit = fadeOut(animationSpec = tween(durationMillis = if (disableAnimations) 0 else 100)),
                             ) {
                                 if (isTvDevice) {
-                                    TvNavigationRail(
-                                        items = navigationItems,
-                                        selectedItemRoute =
-                                            if (active) {
-                                                Screens.Search.route
-                                            } else {
-                                                currentRoute
-                                            },
-                                        modifier = Modifier,
-                                        firstItemFocusRequester = tvRailFocusRequester,
-                                        contentFocusRequester =
-                                            if (active ||
-                                                navBackStackEntry?.destination?.route?.startsWith(OnlineSearchResultRoutePrefix) == true
-                                            ) {
-                                                searchBarFocusRequester
-                                            } else {
-                                                contentAreaFocusRequester
-                                            },
-                                        onItemClick = { screen ->
-                                            val wasPlayerActive = playerBottomSheetState.isExpandedOrExpanding
-                                            if (wasPlayerActive) {
-                                                playerBottomSheetState.collapse(if (disableAnimations) snap() else spring())
-                                            }
-                                            val isSelected =
-                                                navBackStackEntry?.destination?.hierarchy?.any { it.route == screen.route } == true
-                                            if (wasPlayerActive && isSelected) {
-                                                return@TvNavigationRail
-                                            }
-                                            handlePrimaryNavigationClick(screen, isSelected)
-                                        },
-                                    )
+                                    // ArchiveTuneX: interfaccia TV non disponibile
                                 } else {
                                     NavigationRail(
                                         containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer,
@@ -2522,7 +2492,7 @@ class MainActivity(
             navController.navigate(route) {
                 launchSingleTop = true
             }
-            intent.removeExtra("navigate_to")
+            intent.extras.remove("navigate_to")
             return
         }
         val dataUri = intent.data
@@ -2753,7 +2723,7 @@ class MainActivity(
         }
     }
 
-    private fun android.net.Uri.requestsShuffledPlayback(): Boolean {
+    private fun Uri.requestsShuffledPlayback(): Boolean {
         val value = getQueryParameter("shuffle")?.trim()?.lowercase(Locale.US) ?: return false
         return value == "1" || value == "true"
     }
@@ -2864,7 +2834,7 @@ class MainActivity(
                     onClick = { pendingBackupRestoreUri = null },
                     shapes = ButtonDefaults.shapes(),
                 ) {
-                    Text(stringResource(android.Res.string.cancel))
+                    Text(stringResource(Res.string.cancel))
                 }
             },
         )
@@ -3000,7 +2970,7 @@ private fun HomeOverflowFab(
 
 @Composable
 private fun HomeOverflowMenuIcon(
-    @DrawableRes iconRes: Int,
+    @DrawableRes iconRes: DrawableResource,
     contentDescription: String?,
     pureBlack: Boolean,
 ) {
