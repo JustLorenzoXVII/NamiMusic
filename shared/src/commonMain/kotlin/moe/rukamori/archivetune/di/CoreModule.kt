@@ -21,6 +21,14 @@ import moe.rukamori.archivetune.utils.NetworkConnectivityObserver
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import org.koin.core.module.dsl.viewModelOf
+import moe.rukamori.archivetune.spotify.GetSpotifyLikedSongsUseCase
+import moe.rukamori.archivetune.spotify.ResolveSpotifyPlaylistDownloadsUseCase
+import moe.rukamori.archivetune.spotify.SpotifyAccountViewModel
+import moe.rukamori.archivetune.spotify.SpotifyLibraryRepository
+import moe.rukamori.archivetune.spotify.SpotifyLibraryViewModel
+import moe.rukamori.archivetune.spotify.SpotifyLikedSongsViewModel
+import moe.rukamori.archivetune.spotify.SpotifyPlaylistViewModel
 import moe.rukamori.archivetune.playback.preload.PlaybackPerformanceSettingsRepository
 import moe.rukamori.archivetune.musicrecognition.MusicRecognitionRepository
 import moe.rukamori.archivetune.logcat.LogcatRepository
@@ -53,6 +61,13 @@ val archiveTuneCoreModule: Module =
         single { MusicService(get(), get()).also { MusicServiceHolder.instance = it } }
         single { moe.rukamori.archivetune.localmedia.createLocalSongScanner(get()) }
         singleOf(::EqualizerPlaybackController)
+        singleOf(::SpotifyLibraryRepository)
+        factoryOf(::GetSpotifyLikedSongsUseCase)
+        factoryOf(::ResolveSpotifyPlaylistDownloadsUseCase)
+        viewModelOf(::SpotifyAccountViewModel)
+        viewModelOf(::SpotifyLibraryViewModel)
+        viewModelOf(::SpotifyLikedSongsViewModel)
+        viewModelOf(::SpotifyPlaylistViewModel)
         singleOf(::AndroidAutoSettingsRepository)
         singleOf(::LogcatRepository)
         singleOf(::MusicRecognitionRepository)
