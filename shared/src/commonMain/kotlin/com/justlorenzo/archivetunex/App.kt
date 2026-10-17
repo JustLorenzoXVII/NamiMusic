@@ -144,25 +144,28 @@ private fun AppContent(navigator: AtxNavigator) {
             val stack = navigator.currentStack
             val route = stack.lastOrNull()
             val key = "${navigator.tab}-${stack.size}-$route"
+            // Durante la dissolvenza ci sono due pagine insieme: ognuna usa il proprio stato
+            // (targetState), così le chiavi non si ripetono.
             AnimatedContent(
-                targetState = key,
+                targetState = Triple(key, navigator.tab, route),
                 transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(160)) },
+                contentKey = { it.first },
                 label = "pagina",
                 modifier = Modifier.fillMaxSize(),
-            ) { _ ->
-                stateHolder.SaveableStateProvider(key) {
-                    when (route) {
+            ) { (pageKey, pageTab, pageRoute) ->
+                stateHolder.SaveableStateProvider(pageKey) {
+                    when (pageRoute) {
                         null ->
-                            when (navigator.tab) {
+                            when (pageTab) {
                                 Tab.Home -> HomeScreen()
                                 Tab.Search -> SearchScreen()
                                 Tab.Library -> LibraryScreen()
                             }
-                        is Route.Album -> AlbumScreen(route.browseId)
-                        is Route.Artist -> ArtistScreen(route.browseId)
-                        is Route.Playlist -> PlaylistScreen(route.playlistId)
-                        is Route.LocalPlaylist -> LocalPlaylistScreen(route.playlistId, route.title)
-                        is Route.Browse -> BrowseScreen(route.browseId, route.params, route.title)
+                        is Route.Album -> AlbumScreen(pageRoute.browseId)
+                        is Route.Artist -> ArtistScreen(pageRoute.browseId)
+                        is Route.Playlist -> PlaylistScreen(pageRoute.playlistId)
+                        is Route.LocalPlaylist -> LocalPlaylistScreen(pageRoute.playlistId, pageRoute.title)
+                        is Route.Browse -> BrowseScreen(pageRoute.browseId, pageRoute.params, pageRoute.title)
                         Route.Downloads -> DownloadsScreen()
                         Route.Liked -> LikedScreen()
                     }
