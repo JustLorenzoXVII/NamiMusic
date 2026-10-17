@@ -44,8 +44,6 @@ android {
             excludes += "META-INF/LICENSE.md"
             excludes += "META-INF/INDEX.LIST"
             excludes += "META-INF/DEPENDENCIES"
-            excludes += "META-INF/*.kotlin_module"
-            pickFirsts += "META-INF/versions/9/previous-compilation-data.bin"
         }
     }
     buildTypes {
