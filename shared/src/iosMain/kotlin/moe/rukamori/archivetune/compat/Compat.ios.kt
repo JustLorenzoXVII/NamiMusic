@@ -12,7 +12,21 @@ internal actual fun platformLog(
     // Niente NSLog: e' una funzione variadica e Kotlin/Native non converte la String in NSString
     // per gli argomenti "...", quindi l'app crashava al primo messaggio di log.
     println("$level/$tag: $message")
+    // Su iPhone non c'è il logcat di sistema: ogni messaggio (Log e Timber) va anche nei
+    // "Debug Logs" dell'app (Impostazioni → Varie → Debug Logs), così si può leggere sul telefono.
+    val priority =
+        when (level) {
+            "V" -> Log.VERBOSE
+            "D" -> Log.DEBUG
+            "I" -> Log.INFO
+            "W" -> Log.WARN
+            else -> Log.ERROR
+        }
+    runCatching { moe.rukamori.archivetune.utils.GlobalLog.append(priority, tag, message) }
 }
+
+// Su iPhone platformLog alimenta già i Debug Logs: nessun albero Timber in più.
+internal actual fun plantPlatformLogTrees() = Unit
 
 private fun Locale.toNs(): platform.Foundation.NSLocale = platform.Foundation.NSLocale(localeIdentifier = if (country.isBlank()) language else "${language}_$country")
 

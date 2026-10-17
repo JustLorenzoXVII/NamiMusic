@@ -1,6 +1,7 @@
 package com.justlorenzo.archivetunex
 
 import moe.rukamori.archivetune.MainActivity
+import moe.rukamori.archivetune.compat.plantArchiveTuneLogTrees
 import moe.rukamori.archivetune.di.archiveTuneCoreModule
 import moe.rukamori.archivetune.di.archiveTuneInjectedModule
 import org.koin.mp.KoinPlatform
@@ -15,6 +16,7 @@ object ArchiveTuneXRuntime {
 
     fun start(): MainActivity {
         host?.let { return it }
+        plantArchiveTuneLogTrees()
         if (KoinPlatform.getKoinOrNull() == null) {
             startKoin {
                 modules(archiveTuneCoreModule, archiveTuneInjectedModule)

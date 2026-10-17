@@ -159,6 +159,14 @@ fun Double.toFixed(decimals: Int): String {
     return "$sign$integer.$fraction"
 }
 
+/** Alberi di log dell'avvio dell'app (Timber.plant in App.onCreate dell'originale). */
+internal expect fun plantPlatformLogTrees()
+
+fun plantArchiveTuneLogTrees() {
+    Timber.uprootAll()
+    plantPlatformLogTrees()
+}
+
 internal expect fun platformLog(
     level: String,
     tag: String,

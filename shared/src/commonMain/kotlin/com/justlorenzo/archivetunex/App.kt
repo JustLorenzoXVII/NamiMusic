@@ -6,6 +6,8 @@ import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.network.ktor3.KtorNetworkFetcherFactory
 import coil3.request.crossfade
+import coil3.util.Logger
+import moe.rukamori.archivetune.compat.Timber
 import moe.rukamori.archivetune.downloads.DownloadedArtworkRepository
 import moe.rukamori.archivetune.innertube.network.createPlatformHttpClient
 import org.koin.mp.KoinPlatform
@@ -26,6 +28,7 @@ fun App() {
         ImageLoader
             .Builder(context)
             .crossfade(true)
+            .logger(CoilToTimberLogger)
             .components {
                 add(KtorNetworkFetcherFactory(httpClient = { createPlatformHttpClient(proxy = null, dnsOverHttpsUrl = null) {} }))
                 add(downloadedArtwork.coilMapper())
@@ -33,4 +36,20 @@ fun App() {
     }
 
     host.Content()
+}
+
+/** Errori di caricamento delle copertine nei Debug Logs (Impostazioni → Varie → Debug Logs). */
+private object CoilToTimberLogger : Logger {
+    override var minLevel: Logger.Level = Logger.Level.Warn
+
+    override fun log(
+        tag: String,
+        level: Logger.Level,
+        message: String?,
+        throwable: Throwable?,
+    ) {
+        if (level < minLevel) return
+        val text = listOfNotNull(message, throwable?.toString()).joinToString(" - ")
+        Timber.tag("Coil").w(text)
+    }
 }

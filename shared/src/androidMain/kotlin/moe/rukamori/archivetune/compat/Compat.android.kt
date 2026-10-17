@@ -18,6 +18,15 @@ internal actual fun platformLog(
     }
 }
 
+// Come App.onCreate() dell'originale: log su logcat e nei Debug Logs dell'app.
+internal actual fun plantPlatformLogTrees() {
+    Timber.plant(Timber.DebugTree())
+    try {
+        Timber.plant(moe.rukamori.archivetune.utils.GlobalLogTree())
+    } catch (_: Exception) {
+    }
+}
+
 private fun Locale.toJava(): java.util.Locale = java.util.Locale.Builder().setLanguage(language).setRegion(country).build()
 
 private fun java.util.Locale.toCompat(): Locale = Locale(language, country)
