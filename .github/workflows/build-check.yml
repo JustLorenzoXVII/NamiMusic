@@ -44,14 +44,14 @@ jobs:
         continue-on-error: true
         run: |
           set -o pipefail
-          ./gradlew :androidApp:assembleDebug --console=plain --continue 2>&1 | tee android.log
+          ./gradlew :androidApp:assembleDebug --console=plain --continue --no-configuration-cache 2>&1 | tee android.log
 
       - name: Compila Kotlin per iOS (solo codice, senza Xcode)
         id: ios
         continue-on-error: true
         run: |
           set -o pipefail
-          ./gradlew :shared:compileKotlinIosArm64 --console=plain --continue 2>&1 | tee ios.log
+          ./gradlew :shared:compileKotlinIosArm64 --console=plain --continue --no-configuration-cache 2>&1 | tee ios.log
 
       - name: Firme delle API di quickjs-kt (diagnostica)
         if: always()

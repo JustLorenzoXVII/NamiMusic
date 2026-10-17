@@ -146,7 +146,7 @@ import moe.rukamori.archivetune.compat.media3.Player.Companion.STATE_ENDED
 import moe.rukamori.archivetune.compat.AspectRatioFrameLayout
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
-import me.saket.squiggles.SquigglySlider
+import moe.rukamori.archivetune.compat.squiggles.SquigglySlider
 import moe.rukamori.archivetune.canvas.CanvasSource
 import moe.rukamori.archivetune.constants.EnableHapticFeedbackKey
 import moe.rukamori.archivetune.constants.PlayerBackgroundStyle

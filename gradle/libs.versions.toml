@@ -83,7 +83,6 @@ accompanist-lyrics-core = { module = "com.mocharealm.accompanist:lyrics-core", v
 kuromoji-ipadic = { module = "com.atilika.kuromoji:kuromoji-ipadic", version = "0.9.0" }
 window-core = { module = "org.jetbrains.androidx.window:window-core", version = "1.5.1" }
 reorderable = { module = "sh.calvin.reorderable:reorderable", version = "3.1.0" }
-squigglyslider = { module = "me.saket.squigglyslider:squigglyslider", version = "1.0.0" }
 material3-adaptive = { module = "org.jetbrains.compose.material3.adaptive:adaptive", version = "1.3.0-beta02" }
 ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }

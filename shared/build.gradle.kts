@@ -73,7 +73,6 @@ kotlin {
             implementation(libs.reorderable)
             implementation(libs.haze)
             implementation(libs.haze.blur)
-            implementation(libs.squigglyslider)
             implementation(libs.material3.adaptive)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.contentNegotiation)
