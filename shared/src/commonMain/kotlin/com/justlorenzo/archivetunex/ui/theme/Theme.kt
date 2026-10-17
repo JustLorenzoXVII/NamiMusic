@@ -8,6 +8,10 @@ import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import com.materialkolor.PaletteStyle
+import com.materialkolor.dynamicColorScheme
+import moe.rukamori.archivetune.ui.theme.systemDynamicColorScheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.luminance
@@ -77,34 +81,35 @@ private val AtxShapes =
         extraLarge = RoundedCornerShape(32.dp),
     )
 
+/**
+ * Tema di ArchiveTuneX. I colori (sfondi compresi) vengono da:
+ * - i colori di sistema (Material You, Android 12+; su iPhone non esistono e si usa [seed]),
+ * - oppure una tavolozza Material costruita da [seed] (copertina o colore scelto).
+ */
 @Composable
 fun ArchiveTuneXTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    accent: Color = AccentRed,
+    seed: Color = AccentRed,
+    paletteStyle: PaletteStyle = PaletteStyle.TonalSpot,
+    useSystemColors: Boolean = false,
+    pureBlack: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    val base = if (darkTheme) DarkColors else LightColors
-    // L'accento scelto (o quello della copertina) sostituisce il rosso di Fuji
-    val scheme =
-        if (accent == AccentRed) {
-            base
-        } else {
-            val onAccent = if (accent.luminance() > 0.55f) Color(0xFF111114) else Color.White
-            val container = accent.copy(alpha = if (darkTheme) 0.28f else 0.18f).compositeOver(base.background)
-            val onContainer = if (darkTheme) accent.copy(alpha = 0.35f).compositeOver(Color.White) else accent.copy(alpha = 0.6f).compositeOver(Color.Black)
-            base.copy(
-                primary = accent,
-                onPrimary = onAccent,
-                primaryContainer = container,
-                onPrimaryContainer = onContainer,
-                secondary = accent,
-                onSecondary = onAccent,
-                secondaryContainer = container,
-                onSecondaryContainer = onContainer,
-                tertiary = accent,
-                onTertiary = onAccent,
-            )
+    val system = if (useSystemColors) systemDynamicColorScheme(darkTheme) else null
+    val generated =
+        remember(seed, darkTheme, paletteStyle) {
+            dynamicColorScheme(seedColor = seed, isDark = darkTheme, contrastLevel = 0.0, style = paletteStyle)
         }
+    var scheme = system ?: generated
+    if (darkTheme && pureBlack) {
+        scheme =
+            scheme.copy(
+                background = Color.Black,
+                surface = Color.Black,
+                surfaceContainerLowest = Color.Black,
+                surfaceContainerLow = scheme.surfaceContainerLowest,
+            )
+    }
     MaterialExpressiveTheme(
         colorScheme = scheme,
         typography = AtxTypography,

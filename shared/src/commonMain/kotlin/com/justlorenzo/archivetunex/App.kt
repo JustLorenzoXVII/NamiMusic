@@ -73,8 +73,8 @@ import com.justlorenzo.archivetunex.ui.screens.PlaylistScreen
 import com.justlorenzo.archivetunex.ui.screens.QueueSheet
 import com.justlorenzo.archivetunex.ui.screens.SearchScreen
 import com.justlorenzo.archivetunex.ui.theme.ArchiveTuneXTheme
-import com.justlorenzo.archivetunex.ui.theme.AccentRed
-import com.justlorenzo.archivetunex.ui.AccentChoice
+import com.justlorenzo.archivetunex.ui.ThemeSource
+import com.justlorenzo.archivetunex.ui.toMaterialKolor
 import com.justlorenzo.archivetunex.ui.LocalAtxStyle
 import com.justlorenzo.archivetunex.ui.TabLabels
 import com.justlorenzo.archivetunex.ui.rememberAtxStyle
@@ -133,13 +133,23 @@ fun App() {
     LaunchedEffect(dark) { SystemBars.setDarkContent(!dark) }
 
     val style = rememberAtxStyle()
-    // Accento "Dalla copertina": l'app prende il colore del brano in riproduzione
+    // "Colori della copertina": tutta l'app prende i colori del brano in riproduzione
     val nowPlaying by actions.player.mediaMetadata.collectAsState()
-    val dynamicColors = rememberArtworkColors(if (style.accent == AccentChoice.Dynamic) nowPlaying?.thumbnailUrl else null)
-    val accentTarget = style.accent.color ?: dynamicColors?.primary ?: AccentRed
-    val accent by animateColorAsState(accentTarget, tween(600), label = "accent")
+    val albumColors = rememberArtworkColors(if (style.themeSource == ThemeSource.Album) nowPlaying?.thumbnailUrl else null)
+    val seedTarget =
+        when (style.themeSource) {
+            ThemeSource.Album -> albumColors?.primary ?: style.customColor
+            else -> style.customColor
+        }
+    val seed by animateColorAsState(seedTarget, tween(700), label = "seed")
 
-    ArchiveTuneXTheme(darkTheme = dark, accent = if (style.accent == AccentChoice.Fuji) AccentRed else accent) {
+    ArchiveTuneXTheme(
+        darkTheme = dark,
+        seed = seed,
+        paletteStyle = style.paletteStyle.toMaterialKolor(),
+        useSystemColors = style.themeSource == ThemeSource.System,
+        pureBlack = style.pureBlack,
+    ) {
         CompositionLocalProvider(LocalNavigator provides navigator, LocalActions provides actions, LocalAtxStyle provides style) {
             BackHandler(enabled = navigator.canGoBack) { navigator.back() }
             AppContent(navigator)

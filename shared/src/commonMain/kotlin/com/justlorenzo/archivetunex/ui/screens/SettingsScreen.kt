@@ -84,23 +84,35 @@ import archivetunex.shared.generated.resources.skip_next
 import archivetunex.shared.generated.resources.sliders
 import archivetunex.shared.generated.resources.storage
 import archivetunex.shared.generated.resources.tune
-import com.justlorenzo.archivetunex.ui.AccentChoice
-import com.justlorenzo.archivetunex.ui.AccentKey
 import com.justlorenzo.archivetunex.ui.ArtworkCorners
 import com.justlorenzo.archivetunex.ui.ArtworkCornersKey
 import com.justlorenzo.archivetunex.ui.ColoredHomeKey
 import com.justlorenzo.archivetunex.ui.ColoredPlayerControlsKey
+import com.justlorenzo.archivetunex.ui.CustomColorKey
 import com.justlorenzo.archivetunex.ui.LocalActions
 import com.justlorenzo.archivetunex.ui.LocalAtxStyle
 import com.justlorenzo.archivetunex.ui.LocalNavigator
-import com.justlorenzo.archivetunex.ui.MiniPlayerNextKey
-import com.justlorenzo.archivetunex.ui.MiniPlayerProgressKey
+import com.justlorenzo.archivetunex.ui.MiniArtwork
+import com.justlorenzo.archivetunex.ui.MiniArtworkKey
+import com.justlorenzo.archivetunex.ui.MiniButtons
+import com.justlorenzo.archivetunex.ui.MiniButtonsKey
+import com.justlorenzo.archivetunex.ui.MiniLayout
+import com.justlorenzo.archivetunex.ui.MiniLayoutKey
 import com.justlorenzo.archivetunex.ui.MiniPlayerStyle
 import com.justlorenzo.archivetunex.ui.MiniPlayerStyleKey
+import com.justlorenzo.archivetunex.ui.MiniProgress
+import com.justlorenzo.archivetunex.ui.MiniProgressKey
+import com.justlorenzo.archivetunex.ui.MiniShowArtistKey
+import com.justlorenzo.archivetunex.ui.PaletteStyleChoice
+import com.justlorenzo.archivetunex.ui.PaletteStyleKey
 import com.justlorenzo.archivetunex.ui.PlayButtonShape
 import com.justlorenzo.archivetunex.ui.PlayButtonShapeKey
 import com.justlorenzo.archivetunex.ui.PlayerBackground
 import com.justlorenzo.archivetunex.ui.PlayerBackgroundKey
+import com.justlorenzo.archivetunex.ui.PlayerLayout
+import com.justlorenzo.archivetunex.ui.PlayerLayoutKey
+import com.justlorenzo.archivetunex.ui.PresetColors
+import com.justlorenzo.archivetunex.ui.PureBlackKey
 import com.justlorenzo.archivetunex.ui.SettingsPage
 import com.justlorenzo.archivetunex.ui.ShowRemainingTimeKey
 import com.justlorenzo.archivetunex.ui.ShrinkArtworkOnPauseKey
@@ -108,6 +120,13 @@ import com.justlorenzo.archivetunex.ui.SliderStyleChoice
 import com.justlorenzo.archivetunex.ui.SliderStyleKey
 import com.justlorenzo.archivetunex.ui.TabLabels
 import com.justlorenzo.archivetunex.ui.TabLabelsKey
+import com.justlorenzo.archivetunex.ui.ThemeSource
+import com.justlorenzo.archivetunex.ui.ThemeSourceKey
+import com.justlorenzo.archivetunex.ui.toMaterialKolor
+import com.justlorenzo.archivetunex.ui.toPreferenceInt
+import com.materialkolor.dynamicColorScheme
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import com.justlorenzo.archivetunex.ui.components.AtxIcon
 import com.justlorenzo.archivetunex.ui.components.ConfirmDialog
 import kotlinx.coroutines.Dispatchers
@@ -394,6 +413,7 @@ private fun SettingsHome() {
 private fun AppearancePage() {
     val style = LocalAtxStyle.current
     var darkMode by rememberEnumPreference(DarkModeKey, DarkMode.AUTO)
+    val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
 
     SettingsScaffold("Aspetto", overline = "Personalizza") {
         SettingsGroup("Tema") {
@@ -407,20 +427,41 @@ private fun AppearancePage() {
                     ) { Text(label) }
                 }
             }
+            SwitchRow("Nero puro", "Nel tema scuro lo sfondo è nero (schermi OLED)", style.pureBlack) { save(PureBlackKey, it) }
         }
-        SettingsGroup("Colore d'accento") {
-            AccentSwatches(style.accent) { saveEnum(AccentKey, it) }
+
+        SettingsGroup("Colori dell'app") {
+            PreviewChoices(
+                options = ThemeSource.entries,
+                selected = style.themeSource,
+                label = { it.label },
+                onSelect = { saveEnum(ThemeSourceKey, it) },
+            ) { source -> ThemeSourcePreview(source, style.customColor, dark) }
             Text(
-                if (style.accent == AccentChoice.Dynamic) {
-                    "L'app prende il colore della copertina del brano che stai ascoltando."
-                } else {
-                    "Pulsanti, schede e dettagli usano questo colore."
+                when (style.themeSource) {
+                    ThemeSource.System -> "Su Android 12 o successivi usa i colori dello sfondo del telefono. Su iPhone, che non li ha, usa il colore personalizzato."
+                    ThemeSource.Album -> "Sfondi, pulsanti e schede cambiano con la copertina del brano che stai ascoltando."
+                    ThemeSource.Custom -> "Tutta l'app, sfondi compresi, nasce dal colore che scegli qui sotto."
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 16.dp),
             )
         }
+
+        SettingsGroup(if (style.themeSource == ThemeSource.Custom) "Colore personalizzato" else "Colore personalizzato (di riserva)") {
+            ColorPicker(style.customColor) { save(CustomColorKey, it.toPreferenceInt()) }
+        }
+
+        SettingsGroup("Stile della tavolozza") {
+            PreviewChoices(
+                options = PaletteStyleChoice.entries,
+                selected = style.paletteStyle,
+                label = { it.label },
+                onSelect = { saveEnum(PaletteStyleKey, it) },
+            ) { palette -> PalettePreview(style.customColor, palette, dark) }
+        }
+
         SettingsGroup("Angoli delle copertine") {
             PreviewChoices(
                 options = ArtworkCorners.entries,
@@ -430,7 +471,7 @@ private fun AppearancePage() {
             ) { corners ->
                 Box(
                     Modifier.size(64.dp).clip(RoundedCornerShape(corners.radius * 0.6f)).background(
-                        Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))),
+                        Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.tertiary)),
                     ),
                 )
             }
@@ -444,51 +485,161 @@ private fun AppearancePage() {
             ) { labels -> TabsPreview(labels) }
         }
         SettingsGroup {
-            SwitchRow(
-                "Home colorata",
-                "Le card della Home prendono i colori delle copertine",
-                style.coloredHome,
-            ) { save(ColoredHomeKey, it) }
+            SwitchRow("Home colorata", "Le card della Home prendono i colori delle copertine", style.coloredHome) { save(ColoredHomeKey, it) }
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+/** Anteprima di una fonte di colori: tre "schermi" in miniatura. */
 @Composable
-private fun AccentSwatches(
-    selected: AccentChoice,
-    onSelect: (AccentChoice) -> Unit,
+private fun ThemeSourcePreview(
+    source: ThemeSource,
+    custom: Color,
+    dark: Boolean,
 ) {
-    FlowRow(
-        Modifier.fillMaxWidth().padding(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        AccentChoice.entries.forEach { choice ->
-            val isSelected = choice == selected
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(64.dp)) {
-                Box(
-                    Modifier
-                        .size(52.dp)
-                        .clip(if (isSelected) MaterialShapes.Cookie9Sided.toShape() else CircleShape)
-                        .background(
-                            choice.color?.let { Brush.linearGradient(listOf(it, it)) }
-                                ?: Brush.sweepGradient(listOf(Color(0xFFFA4058), Color(0xFFF5B800), Color(0xFF1DB954), Color(0xFF3D7BFF), Color(0xFF8B5CF6), Color(0xFFFA4058))),
-                        ).clickable { onSelect(choice) },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    if (isSelected) AtxIcon(Res.drawable.check, null, tint = Color.White)
-                }
-                Text(
-                    choice.label,
-                    style = MaterialTheme.typography.labelSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(top = 4.dp),
-                )
-            }
+    val seeds =
+        when (source) {
+            ThemeSource.System -> listOf(Color(0xFF7FA6C9), Color(0xFF9BC59D))
+            ThemeSource.Album -> listOf(Color(0xFFFF7A59), Color(0xFF6C5CE7))
+            ThemeSource.Custom -> listOf(custom, custom)
+        }
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        seeds.forEach { seed ->
+            val scheme = remember(seed, dark) { dynamicColorScheme(seedColor = seed, isDark = dark, contrastLevel = 0.0) }
+            MiniScreen(scheme.background, scheme.primary, scheme.surfaceContainerHigh)
         }
     }
+}
+
+/** Schermo in miniatura: sfondo, una card e un pulsante. */
+@Composable
+private fun MiniScreen(
+    background: Color,
+    primary: Color,
+    container: Color,
+) {
+    Column(
+        Modifier.width(40.dp).height(72.dp).clip(RoundedCornerShape(10.dp)).background(background)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(10.dp)).padding(5.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Box(Modifier.fillMaxWidth().height(22.dp).clip(RoundedCornerShape(5.dp)).background(container))
+        Box(Modifier.fillMaxWidth(0.7f).height(5.dp).clip(RoundedCornerShape(3.dp)).background(container))
+        Spacer(Modifier.weight(1f))
+        Box(Modifier.size(14.dp).clip(CircleShape).background(primary))
+    }
+}
+
+/** Le quattro tinte principali che una tavolozza genera dal colore scelto. */
+@Composable
+private fun PalettePreview(
+    seed: Color,
+    palette: PaletteStyleChoice,
+    dark: Boolean,
+) {
+    val scheme = remember(seed, palette, dark) { dynamicColorScheme(seedColor = seed, isDark = dark, contrastLevel = 0.0, style = palette.toMaterialKolor()) }
+    Row(Modifier.clip(RoundedCornerShape(16.dp))) {
+        listOf(scheme.primary, scheme.secondary, scheme.tertiary, scheme.surfaceContainerHigh).forEach {
+            Box(Modifier.width(26.dp).height(60.dp).background(it))
+        }
+    }
+}
+
+/** Selettore del colore: colori pronti più tonalità, saturazione e luminosità. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ColorPicker(
+    color: Color,
+    onChange: (Color) -> Unit,
+) {
+    val hsv = remember(color) { color.toHsv() }
+    var hue by remember(color) { mutableStateOf(hsv[0]) }
+    var saturation by remember(color) { mutableStateOf(hsv[1]) }
+    var value by remember(color) { mutableStateOf(hsv[2]) }
+    val preview = Color.hsv(hue, saturation, value)
+
+    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            PresetColors.forEach { preset ->
+                val selected = preset.toArgb() == color.toArgb()
+                Box(
+                    Modifier
+                        .size(40.dp)
+                        .clip(if (selected) MaterialShapes.Cookie9Sided.toShape() else CircleShape)
+                        .background(preset)
+                        .clickable { onChange(preset) },
+                    contentAlignment = Alignment.Center,
+                ) { if (selected) AtxIcon(Res.drawable.check, null, size = 20.dp, tint = Color.White) }
+            }
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            Box(Modifier.size(52.dp).clip(MaterialShapes.Cookie9Sided.toShape()).background(preview))
+            Column(Modifier.weight(1f)) {
+                Text("Su misura", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text("Sposta i cursori, poi tocca “Usa”", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            TextButton(onClick = { onChange(preview) }) { Text("Usa", fontWeight = FontWeight.Bold) }
+        }
+        GradientSlider(
+            "Tonalità",
+            hue / 360f,
+            Brush.horizontalGradient((0..6).map { Color.hsv(it * 60f % 360f, 0.9f, 0.95f) }),
+        ) { hue = it * 360f }
+        GradientSlider(
+            "Intensità",
+            saturation,
+            Brush.horizontalGradient(listOf(Color.hsv(hue, 0f, value), Color.hsv(hue, 1f, value))),
+        ) { saturation = it }
+        GradientSlider(
+            "Luminosità",
+            value,
+            Brush.horizontalGradient(listOf(Color.Black, Color.hsv(hue, saturation, 1f))),
+        ) { value = it.coerceAtLeast(0.15f) }
+    }
+}
+
+/** Cursore con la sfumatura dei colori dietro. */
+@Composable
+private fun GradientSlider(
+    label: String,
+    value: Float,
+    track: Brush,
+    onChange: (Float) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Box(contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxWidth().height(14.dp).clip(RoundedCornerShape(7.dp)).background(track))
+            androidx.compose.material3.Slider(
+                value = value,
+                onValueChange = onChange,
+                colors =
+                    androidx.compose.material3.SliderDefaults.colors(
+                        thumbColor = Color.White,
+                        activeTrackColor = Color.Transparent,
+                        inactiveTrackColor = Color.Transparent,
+                        activeTickColor = Color.Transparent,
+                        inactiveTickColor = Color.Transparent,
+                    ),
+            )
+        }
+    }
+}
+
+/** Colore in tonalità (0-360), saturazione e luminosità (0-1). */
+private fun Color.toHsv(): FloatArray {
+    val max = maxOf(red, green, blue)
+    val min = minOf(red, green, blue)
+    val delta = max - min
+    val hue =
+        when {
+            delta == 0f -> 0f
+            max == red -> 60f * (((green - blue) / delta) % 6f)
+            max == green -> 60f * (((blue - red) / delta) + 2f)
+            else -> 60f * (((red - green) / delta) + 4f)
+        }.let { if (it < 0) it + 360f else it }
+    val saturation = if (max == 0f) 0f else delta / max
+    return floatArrayOf(hue, saturation, max)
 }
 
 @Composable
@@ -523,6 +674,14 @@ private fun TabsPreview(labels: TabLabels) {
 private fun PlayerPage() {
     val style = LocalAtxStyle.current
     SettingsScaffold("Player", overline = "Personalizza") {
+        SettingsGroup("Disposizione") {
+            PreviewChoices(
+                options = PlayerLayout.entries,
+                selected = style.playerLayout,
+                label = { it.label },
+                onSelect = { saveEnum(PlayerLayoutKey, it) },
+            ) { layout -> PlayerLayoutPreview(layout) }
+        }
         SettingsGroup("Sfondo") {
             PreviewChoices(
                 options = PlayerBackground.entries,
@@ -566,6 +725,55 @@ private fun PlayerPage() {
     }
 }
 
+/** Disegno in miniatura di ogni disposizione del player. */
+@Composable
+private fun PlayerLayoutPreview(layout: PlayerLayout) {
+    val primary = MaterialTheme.colorScheme.primary
+    val muted = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+    val art = Brush.linearGradient(listOf(Color(0xFFFF7A59), Color(0xFFC2185B)))
+    Column(
+        Modifier.width(52.dp).height(84.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.background)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp)),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        when (layout) {
+            PlayerLayout.Classic -> {
+                Spacer(Modifier.height(8.dp))
+                Box(Modifier.size(34.dp).clip(RoundedCornerShape(7.dp)).background(art))
+            }
+            PlayerLayout.Immersive -> Box(Modifier.fillMaxWidth().height(44.dp).background(art))
+            PlayerLayout.Vinyl -> {
+                Spacer(Modifier.height(7.dp))
+                Box(Modifier.size(36.dp).clip(CircleShape).background(Color(0xFF111114)), contentAlignment = Alignment.Center) {
+                    Box(Modifier.size(15.dp).clip(CircleShape).background(art))
+                }
+            }
+            PlayerLayout.Minimal -> {
+                Spacer(Modifier.height(10.dp))
+                Box(Modifier.padding(start = 6.dp).align(Alignment.Start).size(16.dp).clip(RoundedCornerShape(4.dp)).background(art))
+                Box(Modifier.padding(start = 6.dp, top = 4.dp).align(Alignment.Start).width(34.dp).height(6.dp).clip(RoundedCornerShape(3.dp)).background(MaterialTheme.colorScheme.onSurface))
+                Box(Modifier.padding(start = 6.dp, top = 3.dp).align(Alignment.Start).width(24.dp).height(6.dp).clip(RoundedCornerShape(3.dp)).background(MaterialTheme.colorScheme.onSurface))
+            }
+            PlayerLayout.Card -> {
+                Spacer(Modifier.height(6.dp))
+                Box(Modifier.size(28.dp).clip(RoundedCornerShape(6.dp)).background(art))
+            }
+        }
+        Spacer(Modifier.weight(1f))
+        Column(
+            Modifier
+                .padding(4.dp)
+                .then(if (layout == PlayerLayout.Card) Modifier.clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceContainerHighest) else Modifier)
+                .padding(3.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(3.dp),
+        ) {
+            Box(Modifier.width(36.dp).height(3.dp).clip(RoundedCornerShape(2.dp)).background(muted))
+            Box(Modifier.size(11.dp).clip(CircleShape).background(primary))
+        }
+    }
+}
+
 @Composable
 private fun playShapeOf(shape: PlayButtonShape): Shape =
     when (shape) {
@@ -585,10 +793,10 @@ private fun PlayerBackgroundPreview(background: PlayerBackground) {
             .clip(RoundedCornerShape(12.dp))
             .background(
                 when (background) {
-                    PlayerBackground.Gradient -> Brush.verticalGradient(listOf(accent.copy(alpha = 0.7f).compositeOverSafe(base), base))
+                    PlayerBackground.Gradient -> Brush.verticalGradient(listOf(accent.copy(alpha = 0.7f).compositeOver(base), base))
                     PlayerBackground.Blur ->
-                        Brush.radialGradient(listOf(accent.copy(alpha = 0.6f).compositeOverSafe(base), Color(0xFF7B5CFF).copy(alpha = 0.5f).compositeOverSafe(base), base))
-                    PlayerBackground.Solid -> Brush.verticalGradient(listOf(accent.copy(alpha = 0.6f).compositeOverSafe(base), accent.copy(alpha = 0.6f).compositeOverSafe(base)))
+                        Brush.radialGradient(listOf(accent.copy(alpha = 0.6f).compositeOver(base), Color(0xFF7B5CFF).copy(alpha = 0.5f).compositeOver(base), base))
+                    PlayerBackground.Solid -> Brush.verticalGradient(listOf(accent.copy(alpha = 0.6f).compositeOver(base), accent.copy(alpha = 0.6f).compositeOver(base)))
                     PlayerBackground.Plain -> Brush.verticalGradient(listOf(base, base))
                 },
             ).border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp)),
@@ -597,8 +805,6 @@ private fun PlayerBackgroundPreview(background: PlayerBackground) {
         Box(Modifier.size(34.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)))
     }
 }
-
-private fun Color.compositeOverSafe(background: Color): Color = compositeOver(background)
 
 @Composable
 private fun SliderPreview(slider: SliderStyleChoice) {
@@ -631,78 +837,188 @@ private fun MiniPlayerPage() {
     val style = LocalAtxStyle.current
     SettingsScaffold("Mini player", overline = "Personalizza") {
         SettingsGroup("Anteprima") {
-            Box(Modifier.fillMaxWidth().padding(vertical = 16.dp)) {
-                MiniPlayerPreview(style.miniPlayer, style.miniPlayerProgress, style.miniPlayerNext)
-            }
+            Box(Modifier.fillMaxWidth().padding(vertical = 16.dp)) { MiniPlayerPreview(style) }
         }
-        SettingsGroup("Stile") {
+        SettingsGroup("Forma") {
+            PreviewChoices(
+                options = MiniLayout.entries,
+                selected = style.miniLayout,
+                label = { it.label },
+                onSelect = { saveEnum(MiniLayoutKey, it) },
+            ) { layout -> MiniShapePreview(layout) }
+        }
+        SettingsGroup("Colore") {
             PreviewChoices(
                 options = MiniPlayerStyle.entries,
                 selected = style.miniPlayer,
                 label = { it.label },
                 onSelect = { saveEnum(MiniPlayerStyleKey, it) },
-            ) { mini ->
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(36.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(miniColor(mini)),
-                )
+            ) { mini -> Box(Modifier.fillMaxWidth().height(36.dp).clip(RoundedCornerShape(12.dp)).background(miniBrush(mini))) }
+        }
+        SettingsGroup("Copertina") {
+            PreviewChoices(
+                options = MiniArtwork.entries,
+                selected = style.miniArtwork,
+                label = { it.label },
+                onSelect = { saveEnum(MiniArtworkKey, it) },
+            ) { artwork -> MiniArtworkPreview(artwork, 48.dp) }
+        }
+        SettingsGroup("Avanzamento") {
+            PreviewChoices(
+                options = MiniProgress.entries,
+                selected = style.miniProgress,
+                label = { it.label },
+                onSelect = { saveEnum(MiniProgressKey, it) },
+            ) { progress -> MiniProgressPreview(progress) }
+        }
+        SettingsGroup("Pulsanti") {
+            PreviewChoices(
+                options = MiniButtons.entries,
+                selected = style.miniButtons,
+                label = { it.label },
+                onSelect = { saveEnum(MiniButtonsKey, it) },
+            ) { buttons ->
+                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                    if (buttons == MiniButtons.All) AtxIcon(Res.drawable.skip_previous, null, size = 26.dp)
+                    AtxIcon(Res.drawable.play, null, size = 30.dp)
+                    if (buttons != MiniButtons.PlayOnly) AtxIcon(Res.drawable.skip_next, null, size = 26.dp)
+                }
             }
         }
         SettingsGroup("Dettagli") {
-            SwitchRow("Barra di avanzamento", "Una linea sotto il mini player", style.miniPlayerProgress) { save(MiniPlayerProgressKey, it) }
-            SwitchRow("Pulsante brano successivo", null, style.miniPlayerNext) { save(MiniPlayerNextKey, it) }
+            SwitchRow("Mostra l'artista", "Sotto il titolo del brano", style.miniShowArtist) { save(MiniShowArtistKey, it) }
         }
     }
 }
 
 @Composable
-private fun miniColor(mini: MiniPlayerStyle): Color {
+private fun miniBrush(mini: MiniPlayerStyle): Brush {
     val accent = MaterialTheme.colorScheme.primary
+    val surface = MaterialTheme.colorScheme.surfaceContainerHigh
     return when (mini) {
-        MiniPlayerStyle.Tinted -> accent.copy(alpha = 0.28f).compositeOverSafe(MaterialTheme.colorScheme.surfaceContainerHigh)
-        MiniPlayerStyle.Accent -> accent
-        MiniPlayerStyle.Neutral -> MaterialTheme.colorScheme.surfaceContainerHighest
+        MiniPlayerStyle.Tinted -> Brush.linearGradient(listOf(accent.copy(alpha = 0.3f).compositeOver(surface), accent.copy(alpha = 0.3f).compositeOver(surface)))
+        MiniPlayerStyle.Gradient -> Brush.horizontalGradient(listOf(accent.copy(alpha = 0.7f).compositeOver(surface), MaterialTheme.colorScheme.tertiary.copy(alpha = 0.35f).compositeOver(surface)))
+        MiniPlayerStyle.Accent -> Brush.linearGradient(listOf(accent, accent))
+        MiniPlayerStyle.Neutral -> Brush.linearGradient(listOf(MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.colorScheme.surfaceContainerHighest))
     }
 }
 
-/** Mini player finto, per vedere subito l'effetto delle scelte. */
 @Composable
-private fun MiniPlayerPreview(
-    mini: MiniPlayerStyle,
-    progress: Boolean,
-    next: Boolean,
+private fun MiniShapePreview(layout: MiniLayout) {
+    val shape: Shape =
+        when (layout) {
+            MiniLayout.Floating -> RoundedCornerShape(12.dp)
+            MiniLayout.Pill -> RoundedCornerShape(50)
+            MiniLayout.Docked -> RoundedCornerShape(4.dp)
+            MiniLayout.Large -> RoundedCornerShape(14.dp)
+        }
+    val width = if (layout == MiniLayout.Pill) 0.8f else if (layout == MiniLayout.Docked) 1f else 0.92f
+    val height = if (layout == MiniLayout.Large) 46.dp else 30.dp
+    Box(Modifier.fillMaxWidth(width).height(height).clip(shape).background(MaterialTheme.colorScheme.primaryContainer))
+}
+
+@Composable
+private fun MiniArtworkPreview(
+    artwork: MiniArtwork,
+    size: androidx.compose.ui.unit.Dp,
 ) {
-    val container = miniColor(mini)
-    val content = if (mini == MiniPlayerStyle.Accent) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-    Box(Modifier.padding(horizontal = 16.dp).fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(container)) {
+    val art = Brush.linearGradient(listOf(Color(0xFFFF7A59), Color(0xFFC2185B)))
+    when (artwork) {
+        MiniArtwork.Vinyl ->
+            Box(Modifier.size(size).clip(CircleShape).background(Color(0xFF111114)), contentAlignment = Alignment.Center) {
+                Box(Modifier.size(size * 0.42f).clip(CircleShape).background(art))
+            }
+        else -> {
+            val shape: Shape =
+                when (artwork) {
+                    MiniArtwork.Circle -> CircleShape
+                    MiniArtwork.Cookie -> MaterialShapes.Cookie9Sided.toShape()
+                    else -> RoundedCornerShape(size * 0.28f)
+                }
+            Box(Modifier.size(size).clip(shape).background(art))
+        }
+    }
+}
+
+@Composable
+private fun MiniProgressPreview(progress: MiniProgress) {
+    val primary = MaterialTheme.colorScheme.primary
+    Box(Modifier.fillMaxWidth().height(36.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surfaceContainerHighest)) {
+        when (progress) {
+            MiniProgress.Line ->
+                Box(Modifier.align(Alignment.BottomStart).padding(horizontal = 8.dp).fillMaxWidth(0.5f).height(3.dp).background(primary))
+            MiniProgress.Fill -> Box(Modifier.fillMaxWidth(0.5f).height(36.dp).background(primary.copy(alpha = 0.25f)))
+            MiniProgress.Ring ->
+                androidx.compose.material3.CircularProgressIndicator(
+                    progress = { 0.6f },
+                    modifier = Modifier.padding(4.dp).size(28.dp),
+                    color = primary,
+                    strokeWidth = 3.dp,
+                    trackColor = Color.Transparent,
+                )
+            MiniProgress.None -> Unit
+        }
+    }
+}
+
+/** Mini player finto che riflette tutte le scelte, per vedere subito l'effetto. */
+@Composable
+private fun MiniPlayerPreview(style: com.justlorenzo.archivetunex.ui.AtxStyle) {
+    val accent = MaterialTheme.colorScheme.primary
+    val content =
+        if (style.miniPlayer == MiniPlayerStyle.Accent) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+    val (shape, padding, height, artSize) =
+        when (style.miniLayout) {
+            MiniLayout.Floating -> PreviewGeometry(RoundedCornerShape(26.dp), 16.dp, 68.dp, 48.dp)
+            MiniLayout.Pill -> PreviewGeometry(RoundedCornerShape(50), 32.dp, 58.dp, 42.dp)
+            MiniLayout.Docked -> PreviewGeometry(RoundedCornerShape(14.dp), 0.dp, 64.dp, 46.dp)
+            MiniLayout.Large -> PreviewGeometry(RoundedCornerShape(30.dp), 16.dp, 92.dp, 72.dp)
+        }
+    Box(Modifier.padding(horizontal = padding).fillMaxWidth().clip(shape).background(miniBrush(style.miniPlayer))) {
+        if (style.miniProgress == MiniProgress.Fill) Box(Modifier.fillMaxWidth(0.45f).height(height).background(accent.copy(alpha = 0.2f)))
         Row(
-            Modifier.fillMaxWidth().height(68.dp).padding(start = 10.dp, end = 14.dp),
+            Modifier.fillMaxWidth().height(height).padding(start = 10.dp, end = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Box(
-                Modifier.size(48.dp).clip(RoundedCornerShape(14.dp)).background(
-                    Brush.linearGradient(listOf(Color(0xFFFF7A59), Color(0xFFC2185B))),
-                ),
-            )
+            Box(contentAlignment = Alignment.Center) {
+                MiniArtworkPreview(
+                    if (style.miniLayout == MiniLayout.Pill && style.miniArtwork == MiniArtwork.Rounded) MiniArtwork.Circle else style.miniArtwork,
+                    artSize,
+                )
+                if (style.miniProgress == MiniProgress.Ring) {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        progress = { 0.45f },
+                        modifier = Modifier.size(artSize + 6.dp),
+                        color = accent,
+                        strokeWidth = 3.dp,
+                        trackColor = Color.Transparent,
+                    )
+                }
+            }
             Column(Modifier.weight(1f)) {
                 Text("Titolo del brano", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = content)
-                Text("Artista", style = MaterialTheme.typography.bodyMedium, color = content.copy(alpha = 0.7f))
+                if (style.miniShowArtist) Text("Artista", style = MaterialTheme.typography.bodyMedium, color = content.copy(alpha = 0.7f))
             }
+            if (style.miniButtons == MiniButtons.All) AtxIcon(Res.drawable.skip_previous, null, size = 26.dp, tint = content)
             AtxIcon(Res.drawable.play, null, size = 30.dp, tint = content)
-            if (next) AtxIcon(Res.drawable.skip_next, null, size = 28.dp, tint = content)
+            if (style.miniButtons != MiniButtons.PlayOnly) AtxIcon(Res.drawable.skip_next, null, size = 28.dp, tint = content)
         }
-        if (progress) {
+        if (style.miniProgress == MiniProgress.Line) {
             Box(
                 Modifier.align(Alignment.BottomStart).padding(horizontal = 22.dp).fillMaxWidth(0.45f).height(3.dp).clip(RoundedCornerShape(2.dp))
-                    .background(if (mini == MiniPlayerStyle.Accent) content else MaterialTheme.colorScheme.primary),
+                    .background(if (style.miniPlayer == MiniPlayerStyle.Accent) content else accent),
             )
         }
     }
 }
+
+private data class PreviewGeometry(
+    val shape: Shape,
+    val padding: androidx.compose.ui.unit.Dp,
+    val height: androidx.compose.ui.unit.Dp,
+    val artSize: androidx.compose.ui.unit.Dp,
+)
 
 @Composable
 private fun PlaybackPage() {
