@@ -375,7 +375,7 @@ fun MiniPlayer(modifier: Modifier = Modifier) {
                     .graphicsLayer {
                         translationX = swipe.offset.value
                         alpha = 1f - (abs(swipe.offset.value) / 600f).coerceAtMost(0.6f)
-                    }.padding(start = 10.dp, end = 6.dp),
+                    }.padding(start = ((geometry.height - geometry.artSize) / 2 - 4.dp).coerceAtLeast(0.dp), end = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
