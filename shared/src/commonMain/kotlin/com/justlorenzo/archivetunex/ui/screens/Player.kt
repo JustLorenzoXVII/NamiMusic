@@ -43,6 +43,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -306,7 +308,10 @@ private data class MiniGeometry(
 
 /** Mini player: forma, colori, copertina, pulsanti e avanzamento a scelta. Scorri per cambiare brano. */
 @Composable
-fun MiniPlayer(modifier: Modifier = Modifier) {
+fun MiniPlayer(
+    modifier: Modifier = Modifier,
+    interactive: Boolean = true,
+) {
     val actions = LocalActions.current
     val navigator = LocalNavigator.current
     val connection = actions.player
@@ -352,11 +357,10 @@ fun MiniPlayer(modifier: Modifier = Modifier) {
         modifier
             .fillMaxWidth()
             .padding(horizontal = geometry.outerPadding)
-            .shadow(14.dp, geometry.shape)
+            .then(if (interactive) Modifier.shadow(14.dp, geometry.shape) else Modifier)
             .clip(geometry.shape)
             .background(background)
-            .then(swipe.modifier)
-            .clickable { navigator.playerExpanded = true },
+            .then(if (interactive) swipe.modifier.clickable { navigator.playerExpanded = true } else Modifier),
     ) {
         // Avanzamento "riempimento": lo sfondo si colora da sinistra
         if (style.miniProgress == MiniProgress.Fill) {
@@ -625,12 +629,6 @@ fun PlayerScreen() {
         ) { forward -> if (forward) connection.seekToNext() else connection.player.seekToPreviousMediaItem() }
     val swipeX = swipe.offset.value
 
-    // ================= Trascina giù per chiudere =================
-    var dragY by remember { mutableFloatStateOf(0f) }
-    var dragJob by remember { mutableStateOf<Job?>(null) }
-    val closeThreshold = with(density) { 140.dp.toPx() }
-    val dragState = rememberDraggableState { delta -> dragY = (dragY + delta).coerceAtLeast(0f) }
-
     // Prossimi brani per la Pila
     val upcoming =
         remember(windows, currentIndex, repeatMode) {
@@ -653,25 +651,7 @@ fun PlayerScreen() {
     var rootY by remember { mutableFloatStateOf(0f) }
 
     // Surface: blocca i tocchi verso le schermate sotto il player
-    Surface(
-        Modifier
-            .fillMaxSize()
-            .graphicsLayer { translationY = dragY }
-            .draggable(
-                state = dragState,
-                orientation = Orientation.Vertical,
-                onDragStarted = { dragJob?.cancel() },
-                onDragStopped = { velocity ->
-                    if (dragY > closeThreshold || velocity > 1500f) {
-                        close()
-                    } else {
-                        dragJob = scope.launch { animate(dragY, 0f, animationSpec = spring(dampingRatio = 0.8f)) { v, _ -> dragY = v } }
-                    }
-                },
-            ),
-        color = pc.background,
-        shape = RoundedCornerShape(if (dragY > 0f) 28.dp else 0.dp),
-    ) {
+    Surface(Modifier.fillMaxSize(), color = pc.background) {
         BoxWithConstraints(
             Modifier
                 .fillMaxSize()
@@ -1814,6 +1794,93 @@ private fun playerColors(
 // endregion
 
 // endregion
+
+/**
+ * Il player che si apre "gonfiandosi" dal mini player e si richiude dentro di lui (come Fuji).
+ * Si può anche trascinare: il player segue il dito e torna nel mini player.
+ *
+ * [miniBounds] è la posizione del mini player sullo schermo, [miniRadius] il raggio dei suoi angoli.
+ */
+@Composable
+fun PlayerMorph(
+    miniBounds: androidx.compose.ui.geometry.Rect?,
+    miniRadius: Dp,
+    onProgress: (Float) -> Unit,
+) {
+    val navigator = LocalNavigator.current
+    val scope = rememberCoroutineScope()
+    val progress = remember { androidx.compose.animation.core.Animatable(0f) }
+    val openSpring = spring<Float>(dampingRatio = 0.86f, stiffness = Spring.StiffnessMediumLow)
+
+    LaunchedEffect(navigator.playerExpanded) {
+        progress.animateTo(if (navigator.playerExpanded) 1f else 0f, openSpring)
+    }
+    val p = progress.value.coerceIn(0f, 1f)
+    androidx.compose.runtime.SideEffect { onProgress(p) }
+    if (p <= 0f && !navigator.playerExpanded) return
+
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val density = LocalDensity.current
+        val fullW = maxWidth
+        val fullH = maxHeight
+        val heightPx = with(density) { fullH.toPx() }.coerceAtLeast(1f)
+        // Se il mini player non è ancora stato misurato si parte dal fondo dello schermo
+        val start =
+            miniBounds?.let {
+                with(density) { ArtFrame(it.left.toDp(), it.top.toDp(), it.width.toDp(), it.height.toDp(), miniRadius) }
+            } ?: ArtFrame(12.dp, fullH - 150.dp, fullW - 24.dp, 68.dp, miniRadius)
+        val frame = lerpFrame(start, ArtFrame(0.dp, 0.dp, fullW, fullH, 0.dp), p)
+
+        val dragState =
+            rememberDraggableState { delta ->
+                scope.launch { progress.snapTo((progress.value - delta / heightPx).coerceIn(0f, 1f)) }
+            }
+
+        Box(
+            Modifier
+                .offset(frame.x, frame.y)
+                .size(frame.width, frame.height)
+                .shadow(if (p < 1f) 18.dp else 0.dp, RoundedCornerShape(frame.radius))
+                .clip(RoundedCornerShape(frame.radius))
+                .draggable(
+                    state = dragState,
+                    orientation = Orientation.Vertical,
+                    onDragStarted = { progress.stop() },
+                    onDragStopped = { velocity ->
+                        val close = velocity > 900f || (velocity > -900f && progress.value < 0.75f)
+                        if (close) {
+                            navigator.lyricsVisible = false
+                            navigator.playerExpanded = false
+                        }
+                        scope.launch { progress.animateTo(if (close) 0f else 1f, openSpring, initialVelocity = -velocity / heightPx) }
+                    },
+                ),
+        ) {
+            // Il player è sempre disegnato a schermo intero, ancorato in alto: il riquadro lo "scopre"
+            Box(
+                Modifier
+                    .wrapContentSize(Alignment.TopStart, unbounded = true)
+                    .requiredSize(fullW, fullH)
+                    .graphicsLayer {
+                        alpha = ((p - 0.12f) / 0.45f).coerceIn(0f, 1f)
+                        val s = 0.92f + 0.08f * p
+                        scaleX = s
+                        scaleY = s
+                        transformOrigin = TransformOrigin(0.5f, 0f)
+                    },
+            ) { PlayerScreen() }
+            // Il mini player sfuma mentre il riquadro si allarga
+            if (p < 0.45f) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(start.height)
+                        .graphicsLayer { alpha = (1f - p / 0.35f).coerceIn(0f, 1f) },
+                ) { MiniPlayer(Modifier.fillMaxSize(), interactive = false) }
+            }
+        }
+    }
+}
 
 /** Coda di riproduzione: tocca un brano per saltarci. */
 @Composable

@@ -5,6 +5,9 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.spring
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.foundation.layout.width
@@ -71,7 +74,7 @@ import com.justlorenzo.archivetunex.ui.screens.LoginOverlay
 import com.justlorenzo.archivetunex.ui.screens.SettingsOverlay
 import com.justlorenzo.archivetunex.ui.screens.LogsOverlay
 import com.justlorenzo.archivetunex.ui.screens.MiniPlayer
-import com.justlorenzo.archivetunex.ui.screens.PlayerScreen
+import com.justlorenzo.archivetunex.ui.screens.PlayerMorph
 import com.justlorenzo.archivetunex.ui.screens.PlaylistScreen
 import com.justlorenzo.archivetunex.ui.screens.QueueSheet
 import com.justlorenzo.archivetunex.ui.screens.SearchScreen
@@ -169,6 +172,8 @@ fun App() {
 @Composable
 private fun AppContent(navigator: AtxNavigator) {
     val stateHolder = rememberSaveableStateHolder()
+    var miniBounds by remember { mutableStateOf<androidx.compose.ui.geometry.Rect?>(null) }
+    var playerProgress by remember { mutableStateOf(0f) }
 
     // Surface: dà a tutti i testi il colore giusto per il tema (chiaro o scuro)
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -239,7 +244,14 @@ private fun AppContent(navigator: AtxNavigator) {
                     val target =
                         if (tabsWidth > 0.dp) maxOf(tabsWidth + extra, readable).coerceAtMost(limit) else limit
                     val miniWidth by androidx.compose.animation.core.animateDpAsState(target, spring(dampingRatio = 0.8f, stiffness = 400f), label = "miniWidth")
-                    MiniPlayer(Modifier.align(Alignment.Center).width(miniWidth))
+                    MiniPlayer(
+                        Modifier
+                            .align(Alignment.Center)
+                            .width(miniWidth)
+                            .onGloballyPositioned { miniBounds = it.boundsInRoot() }
+                            // Mentre il player è aperto (o si sta aprendo) il mini player vero si nasconde
+                            .graphicsLayer { alpha = if (playerProgress > 0f) 0f else 1f },
+                    )
                 }
                 FloatingTabs(
                     navigator,
@@ -247,13 +259,17 @@ private fun AppContent(navigator: AtxNavigator) {
                 )
             }
 
-            AnimatedVisibility(
-                visible = navigator.playerExpanded,
-                enter = slideInVertically(tween(380)) { it },
-                exit = slideOutVertically(tween(300)) { it },
-            ) {
-                PlayerScreen()
-            }
+            // Il player si apre dal mini player e si richiude dentro di lui
+            PlayerMorph(
+                miniBounds = miniBounds,
+                miniRadius =
+                    when (LocalAtxStyle.current.miniLayout) {
+                        com.justlorenzo.archivetunex.ui.MiniLayout.Pill -> 29.dp
+                        com.justlorenzo.archivetunex.ui.MiniLayout.Floating -> 26.dp
+                        com.justlorenzo.archivetunex.ui.MiniLayout.Large -> 30.dp
+                    },
+                onProgress = { playerProgress = it },
+            )
             AnimatedVisibility(visible = navigator.settingsVisible, enter = fadeIn(), exit = fadeOut()) {
                 SettingsOverlay()
             }
