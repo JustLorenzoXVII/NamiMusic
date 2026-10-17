@@ -61,7 +61,7 @@ import com.justlorenzo.archivetunex.ui.components.subtitle
 import com.justlorenzo.archivetunex.ui.openItem
 import kotlinx.coroutines.delay
 import moe.rukamori.archivetune.db.entities.SearchHistory
-import moe.rukamori.archivetune.innertube.SearchFilter
+import moe.rukamori.archivetune.innertube.YouTube.SearchFilter
 import moe.rukamori.archivetune.innertube.YouTube
 import moe.rukamori.archivetune.innertube.models.ArtistItem
 import moe.rukamori.archivetune.innertube.models.SongItem
