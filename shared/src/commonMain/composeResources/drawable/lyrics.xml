@@ -8,7 +8,7 @@
         android:translateX="-2"
         android:translateY="-2.5">
         <path
-            android:fillColor="@android:color/white"
+            android:fillColor="#FFFFFFFF"
             android:fillType="evenOdd"
             android:pathData="
             M14.4,12.2c0,-1.1 0.8,-1.9 2,-1.9c1.3,0 2.1,1 2.1,2.4c0,2 -1.7,3.2 -2.7,3.2

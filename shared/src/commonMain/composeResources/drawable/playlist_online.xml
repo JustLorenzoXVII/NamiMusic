@@ -7,7 +7,7 @@
 
     <!-- Globe outline -->
     <path
-        android:fillColor="@android:color/transparent"
+        android:fillColor="#00000000"
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="1.8"
         android:strokeLineCap="round"
@@ -22,7 +22,7 @@
 
     <!-- Latitude lines -->
     <path
-        android:fillColor="@android:color/transparent"
+        android:fillColor="#00000000"
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="1.8"
         android:strokeLineCap="round"
@@ -35,7 +35,7 @@
 
     <!-- Longitude lines -->
     <path
-        android:fillColor="@android:color/transparent"
+        android:fillColor="#00000000"
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="1.8"
         android:strokeLineCap="round"
