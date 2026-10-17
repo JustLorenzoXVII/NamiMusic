@@ -1068,6 +1068,4 @@
     <string name="gatekeeper_connection_blocked">Conexión bloqueada por ArchiveTune Remote. Esta aplicación no se ha podido verificar como una compilación oficial de ArchiveTune. Instale una compilación oficial desde https://github.com/rukamori/ArchiveTune o https://t.me/ArchiveTuneGC .</string>
     <string name="enable_megalobiz_lyrics">Activar las letras de Megalobiz</string>
     <string name="enable_betterlyrics_portato">Activar BetterLyrics Portato</string>
-    <string name="system_cancel">Cancelar</string>
-    <string name="system_ok">Aceptar</string>
 </resources>

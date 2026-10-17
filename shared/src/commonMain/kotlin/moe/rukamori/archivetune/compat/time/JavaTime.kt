@@ -243,7 +243,6 @@ class LocalDateTime internal constructor(
     val hour: Int get() = value.hour
     val minute: Int get() = value.minute
     val second: Int get() = value.second
-    val nano: Int get() = value.nanosecond
 
 
 
@@ -534,7 +533,6 @@ class DateTimeFormatter private constructor(
             'h' -> ((dt.hour + 11) % 12 + 1).pad(count)
             'm' -> dt.minute.pad(count)
             's' -> dt.second.pad(count)
-            'S' -> (dt.nano / 1_000_000).pad(3).take(count)
             'a' -> if (dt.hour < 12) "AM" else "PM"
             'E' -> if (count >= 4) DAYS[dt.dayOfWeek.ordinal] else DAYS[dt.dayOfWeek.ordinal].take(3)
             else -> null
@@ -557,31 +555,5 @@ class DateTimeFormatter private constructor(
             pattern: String,
             locale: Any?,
         ): DateTimeFormatter = DateTimeFormatter(pattern)
-
-        fun ofLocalizedDate(style: FormatStyle): DateTimeFormatter =
-            when (style) {
-                FormatStyle.FULL -> DateTimeFormatter("EEEE, MMMM d, yyyy")
-                FormatStyle.LONG -> DateTimeFormatter("MMMM d, yyyy")
-                FormatStyle.MEDIUM -> DateTimeFormatter("MMM d, yyyy")
-                FormatStyle.SHORT -> DateTimeFormatter("M/d/yy")
-            }
-
-        fun ofLocalizedDateTime(style: FormatStyle): DateTimeFormatter =
-            DateTimeFormatter(ofLocalizedDate(style).pattern + ", HH:mm")
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    fun withLocale(locale: Any?): DateTimeFormatter = this
-}
-
-enum class FormatStyle { FULL, LONG, MEDIUM, SHORT }
-
-class Year private constructor(
-    val value: Int,
-) {
-    companion object {
-        fun now(): Year = Year(LocalDate.now().year)
-
-        fun of(year: Int): Year = Year(year)
     }
 }

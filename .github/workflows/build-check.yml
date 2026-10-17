@@ -1,10 +1,11 @@
 # Compila il progetto su GitHub a ogni push, così gli errori si vedono subito
-# senza dover compilare a mano. Il log finisce nel branch "ci-logs".
+# senza dover compilare a mano. I log finiscono nel branch "ci-logs" (master)
+# o "ci-logs-<ramo>" (altri rami).
 name: Controllo compilazione
 
 on:
   push:
-    branches: [master]
+    branches: [master, interfaccia]
     paths-ignore:
       - "**.md"
   workflow_dispatch:
@@ -13,7 +14,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: build-check
+  group: build-check-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -81,7 +82,8 @@ jobs:
           cp /tmp/logs/* .
           git add summary.txt *.log
           git commit -m "Log compilazione $SHA"
-          git push --force origin ci-logs-new:ci-logs
+          if [ "${{ github.ref_name }}" = "master" ]; then TARGET=ci-logs; else TARGET="ci-logs-${{ github.ref_name }}"; fi
+          git push --force origin ci-logs-new:$TARGET
       - name: Esito
         if: steps.android.outcome != 'success' || steps.ios.outcome != 'success'
         run: exit 1

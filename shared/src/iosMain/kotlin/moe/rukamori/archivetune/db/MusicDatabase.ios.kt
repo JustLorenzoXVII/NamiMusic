@@ -12,7 +12,3 @@ internal actual fun platformDatabaseBuilder(name: String): RoomDatabase.Builder<
             ?: error("Cartella Documenti non trovata")
     return Room.databaseBuilder<InternalDatabase>(name = "$documents/$name")
 }
-
-internal actual fun platformDatabasePath(name: String): String =
-    (NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, true).firstOrNull() as? String
-        ?: error("Cartella Documenti non trovata")) + "/" + name

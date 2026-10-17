@@ -598,6 +598,4 @@
     <string name="together_transfer_host_confirm">Yönetici sahipliği %1$s kullanıcısına devredilsin mi?</string>
     <string name="together_requesting_song_change">Yöneticiye şarkıyı değiştirmesi talep ediliyor…</string>
     <string name="together_song_change_failed">Şarkı değişimi uygulanmadı. Lütfen tekrar deneyin</string>
-    <string name="system_cancel">İptal</string>
-    <string name="system_ok">Tamam</string>
 </resources>

@@ -11,6 +11,3 @@ internal actual fun platformDatabaseBuilder(name: String): RoomDatabase.Builder<
         name = context.getDatabasePath(name).absolutePath,
     )
 }
-
-internal actual fun platformDatabasePath(name: String): String =
-    com.justlorenzo.archivetunex.player.AndroidAppContext.context.getDatabasePath(name).absolutePath

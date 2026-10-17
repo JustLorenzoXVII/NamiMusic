@@ -208,31 +208,6 @@ interface Player {
         fun onSkipSilenceEnabledChanged(skipSilenceEnabled: Boolean) {}
     }
 
-    // Annotazioni di tipo come in Media3 (solo documentazione).
-    @Retention(AnnotationRetention.SOURCE)
-    annotation class State
-
-    @Retention(AnnotationRetention.SOURCE)
-    annotation class RepeatMode
-
-    @Retention(AnnotationRetention.SOURCE)
-    annotation class Event
-
-    @Retention(AnnotationRetention.SOURCE)
-    annotation class Command
-
-    @Retention(AnnotationRetention.SOURCE)
-    annotation class DiscontinuityReason
-
-    @Retention(AnnotationRetention.SOURCE)
-    annotation class MediaItemTransitionReason
-
-    @Retention(AnnotationRetention.SOURCE)
-    annotation class PlayWhenReadyChangeReason
-
-    @Retention(AnnotationRetention.SOURCE)
-    annotation class TimelineChangeReason
-
     companion object {
         const val STATE_IDLE = 1
         const val STATE_BUFFERING = 2

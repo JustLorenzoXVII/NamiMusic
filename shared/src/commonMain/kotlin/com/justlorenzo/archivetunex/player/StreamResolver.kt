@@ -1,7 +1,6 @@
 package com.justlorenzo.archivetunex.player
 
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.launch
 import moe.rukamori.archivetune.innertube.YouTube
 import moe.rukamori.archivetune.morideobfuscator.youtubei.YoutubeiAudioQuality
 import moe.rukamori.archivetune.morideobfuscator.youtubei.YoutubeiException
@@ -45,13 +44,6 @@ object StreamResolver {
                 }
             }
         }
-
-    /** Dimentica sessioni e URL in cache (cambio account o errori di autenticazione). */
-    fun invalidate() {
-        invalidationScope.launch { resolver.invalidateSessions() }
-    }
-
-    private val invalidationScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Default)
 
     private suspend fun resolveOnce(videoId: String): YoutubeiResolvedStream {
         val authState = YouTube.currentPlaybackAuthState()

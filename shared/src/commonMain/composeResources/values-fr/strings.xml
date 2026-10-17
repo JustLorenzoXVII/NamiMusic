@@ -1081,6 +1081,4 @@
     <string name="onboarding_login_playback_title">Une meilleure lecture</string>
     <string name="onboarding_login_playback_desc">Utilisez les paramètres de votre compte pour profiter d'une expérience de lecture plus fiable.</string>
     <string name="onboarding_login_skip">Ignorer pour l'instant</string>
-    <string name="system_cancel">Annuler</string>
-    <string name="system_ok">OK</string>
 </resources>

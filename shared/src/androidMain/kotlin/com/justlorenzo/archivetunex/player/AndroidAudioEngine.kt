@@ -11,7 +11,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
@@ -24,15 +23,11 @@ import com.google.common.util.concurrent.ListenableFuture
 @SuppressLint("StaticFieldLeak")
 internal object AndroidAppContext {
     lateinit var context: Context
-
-    /** L'Activity visibile, per vibrazione, schermo acceso e selettori di file. */
-    var activity: java.lang.ref.WeakReference<android.app.Activity>? = null
 }
 
 /** Da chiamare in MainActivity prima di mostrare l'interfaccia. */
 fun initArchiveTuneX(context: Context) {
     AndroidAppContext.context = context.applicationContext
-    if (context is android.app.Activity) AndroidAppContext.activity = java.lang.ref.WeakReference(context)
 }
 
 actual fun createAudioEngine(): AudioEngine = AndroidAudioEngine(AndroidAppContext.context)
@@ -184,8 +179,7 @@ internal class AndroidAudioEngine(
                     headers.entries.firstOrNull { it.key.equals("User-Agent", ignoreCase = true) }?.let { setUserAgent(it.value) }
                     setDefaultRequestProperties(headers.filterKeys { !it.equals("User-Agent", ignoreCase = true) })
                 }
-        // DefaultDataSource legge sia http(s) sia i file scaricati (file://).
-        exoPlayer.setMediaSource(ProgressiveMediaSource.Factory(DefaultDataSource.Factory(context, dataSourceFactory)).createMediaSource(mediaItem))
+        exoPlayer.setMediaSource(ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem))
         exoPlayer.prepare()
         exoPlayer.playWhenReady = playWhenReady
         connectToService()

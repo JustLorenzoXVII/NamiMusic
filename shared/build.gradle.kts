@@ -7,7 +7,6 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
-    alias(libs.plugins.kotlinSerialization)
 }
 
 kotlin {
@@ -44,8 +43,6 @@ kotlin {
     
     sourceSets {
         androidMain.dependencies {
-            implementation(libs.accompanist.lyrics.ui)
-            implementation(libs.kuromoji.ipadic)
             implementation(libs.media3.exoplayer)
             implementation(libs.media3.session)
             implementation(libs.androidx.core.ktx)
@@ -62,31 +59,6 @@ kotlin {
             implementation(libs.room.runtime)
             implementation(libs.material.icons.extended)
             implementation(libs.sqlite.bundled)
-            implementation(libs.coil.compose)
-            implementation(libs.coil.network.ktor)
-            implementation(libs.coil.svg)
-            implementation(libs.navigation.compose)
-            implementation(libs.koin.core)
-            implementation(libs.koin.compose)
-            implementation(libs.koin.compose.viewmodel)
-            implementation(libs.shimmer)
-            implementation(libs.reorderable)
-            implementation(libs.haze)
-            implementation(libs.haze.blur)
-            implementation(libs.squigglyslider)
-            implementation(libs.material3.adaptive)
-            implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.contentNegotiation)
-            implementation(libs.ktor.client.encoding)
-            implementation(libs.ktor.serialization.json)
-            implementation(libs.ktor.client.websockets)
-            implementation(libs.ktor.client.cio)
-            implementation(libs.ktor.server.core)
-            implementation(libs.ktor.server.cio)
-            implementation(libs.ktor.server.websockets)
-            implementation(libs.ktor.server.content.negotiation)
-            implementation(libs.window.core)
-            implementation(libs.accompanist.lyrics.core)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)

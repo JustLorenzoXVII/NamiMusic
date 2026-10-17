@@ -246,6 +246,4 @@
     <string name="skip_duplicates">Duplicaten overslaan</string>
     <string name="add_anyway">Toch toevoegen</string>
     <string name="duplicates_description_single">Dit liedje staat al in je afspeellijst</string>
-    <string name="system_cancel">Annuleren</string>
-    <string name="system_ok">OK</string>
 </resources>

@@ -5,126 +5,72 @@ package moe.rukamori.archivetune.compat
  * scrive sulla console della piattaforma. Supporta i segnaposto %s / %d come String.format.
  */
 object Timber {
-    const val VERBOSE = 2
-    const val DEBUG = 3
-    const val INFO = 4
-    const val WARN = 5
-    const val ERROR = 6
+    class Tree internal constructor(
+        private val tag: String?,
+    ) {
+        fun v(message: String?, vararg args: Any?) = log("V", null, message, args)
 
-    /** Un albero di log (come in Timber): riceve i messaggi con [log]. */
-    abstract class Tree {
-        internal var explicitTag: String? = null
+        fun v(t: Throwable?, message: String?, vararg args: Any?) = log("V", t, message, args)
 
-        open fun log(
-            priority: Int,
-            tag: String?,
-            message: String,
-            t: Throwable?,
-        ) {}
+        fun d(message: String?, vararg args: Any?) = log("D", null, message, args)
 
-        fun v(message: String?, vararg args: Any?) = prepare(VERBOSE, null, message, args)
+        fun d(t: Throwable?, message: String?, vararg args: Any?) = log("D", t, message, args)
 
-        fun v(t: Throwable?, message: String?, vararg args: Any?) = prepare(VERBOSE, t, message, args)
+        fun d(t: Throwable?) = log("D", t, null, emptyArray())
 
-        fun d(message: String?, vararg args: Any?) = prepare(DEBUG, null, message, args)
+        fun i(message: String?, vararg args: Any?) = log("I", null, message, args)
 
-        fun d(t: Throwable?, message: String?, vararg args: Any?) = prepare(DEBUG, t, message, args)
+        fun i(t: Throwable?, message: String?, vararg args: Any?) = log("I", t, message, args)
 
-        fun d(t: Throwable?) = prepare(DEBUG, t, null, emptyArray())
+        fun w(message: String?, vararg args: Any?) = log("W", null, message, args)
 
-        fun i(message: String?, vararg args: Any?) = prepare(INFO, null, message, args)
+        fun w(t: Throwable?, message: String?, vararg args: Any?) = log("W", t, message, args)
 
-        fun i(t: Throwable?, message: String?, vararg args: Any?) = prepare(INFO, t, message, args)
+        fun w(t: Throwable?) = log("W", t, null, emptyArray())
 
-        fun w(message: String?, vararg args: Any?) = prepare(WARN, null, message, args)
+        fun e(message: String?, vararg args: Any?) = log("E", null, message, args)
 
-        fun w(t: Throwable?, message: String?, vararg args: Any?) = prepare(WARN, t, message, args)
+        fun e(t: Throwable?, message: String?, vararg args: Any?) = log("E", t, message, args)
 
-        fun w(t: Throwable?) = prepare(WARN, t, null, emptyArray())
+        fun e(t: Throwable?) = log("E", t, null, emptyArray())
 
-        fun e(message: String?, vararg args: Any?) = prepare(ERROR, null, message, args)
-
-        fun e(t: Throwable?, message: String?, vararg args: Any?) = prepare(ERROR, t, message, args)
-
-        fun e(t: Throwable?) = prepare(ERROR, t, null, emptyArray())
-
-        private fun prepare(
-            priority: Int,
+        private fun log(
+            level: String,
             t: Throwable?,
             message: String?,
             args: Array<out Any?>,
         ) {
-            val tag = explicitTag
-            explicitTag = null
-            val text = message?.let { formatMessage(it, args) }.orEmpty() + t?.let { " | ${it::class.simpleName}: ${it.message}" }.orEmpty()
-            dispatch(priority, tag, text, t)
+            val text = message?.let { formatMessage(it, args) }.orEmpty()
+            val suffix = t?.let { " | ${it::class.simpleName}: ${it.message}" }.orEmpty()
+            platformLog(level, tag ?: "ArchiveTuneX", text + suffix)
         }
     }
 
-    /** Scrive sulla console della piattaforma. */
-    open class DebugTree : Tree() {
-        override fun log(
-            priority: Int,
-            tag: String?,
-            message: String,
-            t: Throwable?,
-        ) {
-            val level =
-                when (priority) {
-                    VERBOSE -> "V"
-                    DEBUG -> "D"
-                    INFO -> "I"
-                    WARN -> "W"
-                    else -> "E"
-                }
-            platformLog(level, tag ?: "ArchiveTuneX", message)
-        }
-    }
+    private val defaultTree = Tree(null)
 
-    private val forest = mutableListOf<Tree>()
-    private val console = DebugTree()
+    fun tag(tag: String): Tree = Tree(tag)
 
-    fun plant(tree: Tree) {
-        forest += tree
-    }
+    fun v(message: String?, vararg args: Any?) = defaultTree.v(message, *args)
 
-    fun uprootAll() = forest.clear()
+    fun d(message: String?, vararg args: Any?) = defaultTree.d(message, *args)
 
-    internal fun dispatch(
-        priority: Int,
-        tag: String?,
-        message: String,
-        t: Throwable?,
-    ) {
-        if (forest.none { it is DebugTree }) console.log(priority, tag, message, t)
-        forest.toList().forEach { it.log(priority, tag, message, t) }
-    }
+    fun i(message: String?, vararg args: Any?) = defaultTree.i(message, *args)
 
-    private val root = object : Tree() {}
+    fun w(message: String?, vararg args: Any?) = defaultTree.w(message, *args)
 
-    fun tag(tag: String): Tree = object : Tree() {}.also { it.explicitTag = tag }
+    fun w(t: Throwable?, message: String?, vararg args: Any?) = defaultTree.w(t, message, *args)
 
-    fun v(message: String?, vararg args: Any?) = root.v(message, *args)
+    fun w(t: Throwable?) = defaultTree.w(t)
 
-    fun d(message: String?, vararg args: Any?) = root.d(message, *args)
+    fun e(message: String?, vararg args: Any?) = defaultTree.e(message, *args)
 
-    fun i(message: String?, vararg args: Any?) = root.i(message, *args)
+    fun e(t: Throwable?, message: String?, vararg args: Any?) = defaultTree.e(t, message, *args)
 
-    fun w(message: String?, vararg args: Any?) = root.w(message, *args)
+    fun e(t: Throwable?) = defaultTree.e(t)
 
-    fun w(t: Throwable?, message: String?, vararg args: Any?) = root.w(t, message, *args)
+    fun d(t: Throwable?, message: String?, vararg args: Any?) = defaultTree.d(t, message, *args)
 
-    fun w(t: Throwable?) = root.w(t)
-
-    fun e(message: String?, vararg args: Any?) = root.e(message, *args)
-
-    fun e(t: Throwable?, message: String?, vararg args: Any?) = root.e(t, message, *args)
-
-    fun e(t: Throwable?) = root.e(t)
-
-    fun d(t: Throwable?, message: String?, vararg args: Any?) = root.d(t, message, *args)
-
-    fun i(t: Throwable?, message: String?, vararg args: Any?) = root.i(t, message, *args)
+    fun i(t: Throwable?, message: String?, vararg args: Any?) = defaultTree.i(t, message, *args)
 }
 
 /** Sostituisce %s, %d, %.Nf e simili con gli argomenti, in ordine. */

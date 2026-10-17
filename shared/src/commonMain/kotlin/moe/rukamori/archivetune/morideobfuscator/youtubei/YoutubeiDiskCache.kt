@@ -8,8 +8,6 @@
  */
 package moe.rukamori.archivetune.morideobfuscator.youtubei
 
-import moe.rukamori.archivetune.compat.getOrDefault
-
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.sync.Mutex

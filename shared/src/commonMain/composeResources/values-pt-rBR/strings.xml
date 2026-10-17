@@ -1069,6 +1069,4 @@
     <string name="scheduled_backup_update_failed">Não foi possível salvar as configurações do backup programado</string>
     <string name="gatekeeper_connection_blocked">Conexão bloqueada pelo ArchiveTune Remote. Não foi possível verificar se este aplicativo é uma versão oficial do ArchiveTune. Instale uma versão oficial em https://github.com/rukamori/ArchiveTune ou https://t.me/ArchiveTuneGC.</string>
     <string name="enable_betterlyrics_portato">Ativar BetterLyrics Portato</string>
-    <string name="system_cancel">Cancelar</string>
-    <string name="system_ok">OK</string>
 </resources>

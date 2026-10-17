@@ -80,17 +80,6 @@ class MusicDatabase(
 
     fun close() = delegate.close()
 
-    /** Scrive il WAL nel file principale (per il backup), come "PRAGMA wal_checkpoint(FULL)". */
-    suspend fun checkpoint() {
-        delegate.useWriterConnection { transactor ->
-            transactor.usePrepared("PRAGMA wal_checkpoint(FULL)") { statement -> statement.step() }
-        }
-    }
-
-    /** Percorso del file del database. */
-    val databasePath: String
-        get() = platformDatabasePath(DB_NAME)
-
     companion object {
         const val DB_NAME = "archivetunex.db"
 
@@ -143,10 +132,6 @@ class MusicDatabase(
 @ConstructedBy(InternalDatabaseConstructor::class)
 abstract class InternalDatabase : RoomDatabase() {
     abstract val dao: DatabaseDao
-
-    companion object {
-        const val DB_NAME = MusicDatabase.DB_NAME
-    }
 }
 
 // Room genera le implementazioni per Android e iOS.
@@ -157,5 +142,3 @@ expect object InternalDatabaseConstructor : RoomDatabaseConstructor<InternalData
 
 /** Percorso del file del database sulla piattaforma. */
 internal expect fun platformDatabaseBuilder(name: String): RoomDatabase.Builder<InternalDatabase>
-
-internal expect fun platformDatabasePath(name: String): String

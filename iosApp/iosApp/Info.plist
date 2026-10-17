@@ -6,10 +6,6 @@
 	<true/>
 	<key>CFBundleDisplayName</key>
 	<string>ArchiveTuneX</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Serve per riconoscere la musica che sta suonando intorno a te.</string>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>Serve per ascoltare musica insieme ad altri dispositivi sulla stessa rete (Music Together).</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<!-- La musica continua con lo schermo bloccato o l'app in background -->
