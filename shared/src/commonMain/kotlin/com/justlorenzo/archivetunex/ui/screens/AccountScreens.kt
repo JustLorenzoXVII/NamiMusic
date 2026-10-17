@@ -1,6 +1,18 @@
 package com.justlorenzo.archivetunex.ui.screens
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.toShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import archivetunex.shared.generated.resources.palette
+import archivetunex.shared.generated.resources.person
+import archivetunex.shared.generated.resources.play
+import com.justlorenzo.archivetunex.ui.SettingsPage
+import com.justlorenzo.archivetunex.ui.components.ConfirmDialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,74 +72,166 @@ import moe.rukamori.archivetune.viewmodels.LoginScreenState
 import moe.rukamori.archivetune.viewmodels.LoginViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
-/** Foglio dell'account: login con Google, logout e registro degli errori. */
+/** Foglio dell'account: profilo in grande e scorciatoie a riquadri. */
 @Composable
 fun AccountSheet() {
     val navigator = LocalNavigator.current
     val account = rememberAccount()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var confirmLogout by remember { mutableStateOf(false) }
 
-    ModalBottomSheet(onDismissRequest = { navigator.accountVisible = false }, sheetState = sheetState) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(
-                account?.name ?: "Non sei collegato",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                account?.email ?: "Collega il tuo account Google per vedere la tua Home, le tue playlist e sincronizzare i \"Mi piace\".",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(12.dp))
-            if (account == null) {
-                Button(
-                    onClick = {
-                        navigator.accountVisible = false
-                        navigator.loginVisible = true
-                    },
-                    modifier = Modifier.fillMaxWidth(),
+    ModalBottomSheet(
+        onDismissRequest = { navigator.accountVisible = false },
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 28.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            // Profilo: avatar a "biscotto" con l'iniziale e il nome in grande
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Box(
+                    Modifier
+                        .size(72.dp)
+                        .clip(MaterialShapes.Cookie9Sided.toShape())
+                        .background(
+                            if (account != null) {
+                                Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)))
+                            } else {
+                                Brush.linearGradient(listOf(MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.colorScheme.surfaceContainerHigh))
+                            },
+                        ),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    AtxIcon(Res.drawable.login, null, size = 20.dp)
-                    Text("Accedi con Google", modifier = Modifier.padding(start = 8.dp))
+                    if (account != null) {
+                        Text(
+                            account.name.first().uppercase(),
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                        )
+                    } else {
+                        AtxIcon(Res.drawable.person, null, size = 34.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
-            } else {
-                OutlinedButton(
-                    onClick = {
-                        App.Companion.forgetAccount(AppContext)
-                        navigator.accountVisible = false
-                    },
-                    modifier = Modifier.fillMaxWidth(),
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        account?.name ?: "Ospite",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Black,
+                        maxLines = 1,
+                    )
+                    Text(
+                        account?.email ?: "Non collegato a YouTube Music",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                    )
+                }
+            }
+
+            if (account == null) {
+                // Invito al login: una card colorata invece di un semplice pulsante
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(28.dp))
+                        .background(MaterialTheme.colorScheme.primaryContainer)
+                        .clickable {
+                            navigator.accountVisible = false
+                            navigator.loginVisible = true
+                        }.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    AtxIcon(Res.drawable.logout, null, size = 20.dp)
-                    Text("Esci dall'account", modifier = Modifier.padding(start = 8.dp))
+                    Text(
+                        "Collega YouTube Music",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                    Text(
+                        "La tua Home, le tue playlist e i \"Mi piace\" sincronizzati.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                    )
+                    Row(
+                        Modifier
+                            .padding(top = 8.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(MaterialTheme.colorScheme.primary)
+                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        AtxIcon(Res.drawable.login, null, size = 18.dp, tint = MaterialTheme.colorScheme.onPrimary)
+                        Text("Accedi con Google", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+
+            // Scorciatoie a riquadri
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                ShortcutTile(Res.drawable.palette, "Personalizza", Color(0xFFFA4058), Modifier.weight(1f)) {
+                    navigator.openSettings(SettingsPage.Appearance)
+                }
+                ShortcutTile(Res.drawable.play, "Player", Color(0xFF8B5CF6), Modifier.weight(1f)) {
+                    navigator.openSettings(SettingsPage.Player)
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                ShortcutTile(Res.drawable.settings, "Impostazioni", Color(0xFF3D7BFF), Modifier.weight(1f)) {
+                    navigator.openSettings()
+                }
+                if (account != null) {
+                    ShortcutTile(Res.drawable.logout, "Esci", Color(0xFF6B7280), Modifier.weight(1f)) { confirmLogout = true }
+                } else {
+                    ShortcutTile(Res.drawable.manage_search, "Registro errori", Color(0xFF6B7280), Modifier.weight(1f)) {
+                        navigator.accountVisible = false
+                        navigator.logsVisible = true
+                    }
                 }
             }
         }
-        HorizontalDivider(Modifier.padding(vertical = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
-        ListItem(
-            headlineContent = { Text("Impostazioni") },
-            supportingContent = { Text("Tema, qualità audio, contenuti, download") },
-            leadingContent = { AtxIcon(Res.drawable.settings, null) },
-            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-            modifier =
-                Modifier.clickable {
-                    navigator.accountVisible = false
-                    navigator.settingsVisible = true
-                },
+    }
+
+    if (confirmLogout) {
+        ConfirmDialog(
+            title = "Uscire dall'account?",
+            text = "La Home e le playlist torneranno quelle senza account. I brani scaricati restano.",
+            confirmLabel = "Esci",
+            onDismiss = { confirmLogout = false },
+            onConfirm = {
+                App.Companion.forgetAccount(AppContext)
+                navigator.accountVisible = false
+            },
         )
-        ListItem(
-            headlineContent = { Text("Registro errori") },
-            supportingContent = { Text("Per capire cosa non funziona") },
-            leadingContent = { AtxIcon(Res.drawable.manage_search, null) },
-            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-            modifier =
-                Modifier.clickable {
-                    navigator.accountVisible = false
-                    navigator.logsVisible = true
-                },
-        )
-        Spacer(Modifier.height(24.dp))
+    }
+}
+
+/** Riquadro tonale con icona a "biscotto" colorato. */
+@Composable
+private fun ShortcutTile(
+    icon: org.jetbrains.compose.resources.DrawableResource,
+    label: String,
+    color: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    Column(
+        modifier
+            .height(112.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .clickable(onClick = onClick)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Box(
+            Modifier.size(40.dp).clip(MaterialShapes.Cookie9Sided.toShape()).background(color),
+            contentAlignment = Alignment.Center,
+        ) { AtxIcon(icon, null, size = 20.dp, tint = Color.White) }
+        Text(label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
     }
 }
 

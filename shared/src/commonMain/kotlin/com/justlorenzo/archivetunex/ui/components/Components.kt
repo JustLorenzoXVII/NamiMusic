@@ -245,7 +245,7 @@ fun ItemCard(
         Artwork(
             item.thumbnail,
             Modifier.size(width - 8.dp),
-            shape = if (item is ArtistItem) ArtistShape else MaterialTheme.shapes.extraLarge,
+            shape = if (item is ArtistItem) ArtistShape else androidx.compose.foundation.shape.RoundedCornerShape(com.justlorenzo.archivetunex.ui.LocalAtxStyle.current.corners.radius),
             sizePx = 400,
         )
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {

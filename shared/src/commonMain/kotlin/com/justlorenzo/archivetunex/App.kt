@@ -73,6 +73,13 @@ import com.justlorenzo.archivetunex.ui.screens.PlaylistScreen
 import com.justlorenzo.archivetunex.ui.screens.QueueSheet
 import com.justlorenzo.archivetunex.ui.screens.SearchScreen
 import com.justlorenzo.archivetunex.ui.theme.ArchiveTuneXTheme
+import com.justlorenzo.archivetunex.ui.theme.AccentRed
+import com.justlorenzo.archivetunex.ui.AccentChoice
+import com.justlorenzo.archivetunex.ui.LocalAtxStyle
+import com.justlorenzo.archivetunex.ui.TabLabels
+import com.justlorenzo.archivetunex.ui.rememberAtxStyle
+import com.justlorenzo.archivetunex.ui.components.rememberArtworkColors
+import androidx.compose.runtime.collectAsState
 import moe.rukamori.archivetune.compat.BackHandler
 import moe.rukamori.archivetune.compat.SystemBars
 import moe.rukamori.archivetune.compat.Timber
@@ -125,8 +132,15 @@ fun App() {
         }
     LaunchedEffect(dark) { SystemBars.setDarkContent(!dark) }
 
-    ArchiveTuneXTheme(darkTheme = dark) {
-        CompositionLocalProvider(LocalNavigator provides navigator, LocalActions provides actions) {
+    val style = rememberAtxStyle()
+    // Accento "Dalla copertina": l'app prende il colore del brano in riproduzione
+    val nowPlaying by actions.player.mediaMetadata.collectAsState()
+    val dynamicColors = rememberArtworkColors(if (style.accent == AccentChoice.Dynamic) nowPlaying?.thumbnailUrl else null)
+    val accentTarget = style.accent.color ?: dynamicColors?.primary ?: AccentRed
+    val accent by animateColorAsState(accentTarget, tween(600), label = "accent")
+
+    ArchiveTuneXTheme(darkTheme = dark, accent = if (style.accent == AccentChoice.Fuji) AccentRed else accent) {
+        CompositionLocalProvider(LocalNavigator provides navigator, LocalActions provides actions, LocalAtxStyle provides style) {
             BackHandler(enabled = navigator.canGoBack) { navigator.back() }
             AppContent(navigator)
         }
@@ -241,6 +255,8 @@ private fun TabPill(
     icon: DrawableResource,
 ) {
     val selected = navigator.tab == tab
+    val labels = LocalAtxStyle.current.tabLabels
+    val showLabel = labels == TabLabels.Always || (labels == TabLabels.Selected && selected)
     val container by animateColorAsState(
         if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh,
         label = "tab",
@@ -259,8 +275,8 @@ private fun TabPill(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        AtxIcon(icon, if (selected) null else label, tint = content)
-        if (selected) {
+        AtxIcon(icon, if (showLabel) null else label, tint = content)
+        if (showLabel) {
             Text(label, color = content, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
         }
     }

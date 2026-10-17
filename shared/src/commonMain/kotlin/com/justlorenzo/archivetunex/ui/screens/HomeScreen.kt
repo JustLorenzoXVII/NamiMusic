@@ -197,8 +197,14 @@ private fun HeroCard(
     song: MediaMetadata,
     onPlay: () -> Unit,
 ) {
-    val accent = animatedArtworkColor(rememberArtworkColors(song.thumbnailUrl))
-    val onAccent = accent.readableOn()
+    val colored = com.justlorenzo.archivetunex.ui.LocalAtxStyle.current.coloredHome
+    val accent =
+        if (colored) {
+            animatedArtworkColor(rememberArtworkColors(song.thumbnailUrl))
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerHigh
+        }
+    val onAccent = if (colored) accent.readableOn() else MaterialTheme.colorScheme.onSurface
     Box(
         Modifier
             .padding(horizontal = 16.dp, vertical = 12.dp)
@@ -326,7 +332,13 @@ private fun RecentSongCard(
     song: MediaMetadata,
     onClick: () -> Unit,
 ) {
-    val accent = animatedArtworkColor(rememberArtworkColors(song.thumbnailUrl), MaterialTheme.colorScheme.surfaceContainerHigh)
+    val colored = com.justlorenzo.archivetunex.ui.LocalAtxStyle.current.coloredHome
+    val accent =
+        if (colored) {
+            animatedArtworkColor(rememberArtworkColors(song.thumbnailUrl), MaterialTheme.colorScheme.surfaceContainerHigh)
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerHigh
+        }
     Column(
         Modifier
             .width(136.dp)

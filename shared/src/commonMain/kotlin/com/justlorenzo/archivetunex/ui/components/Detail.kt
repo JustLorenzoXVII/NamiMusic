@@ -89,7 +89,7 @@ fun DetailHeader(
     subtitle: String?,
     detail: String?,
     modifier: Modifier = Modifier,
-    artworkShape: Shape = MaterialTheme.shapes.extraLarge,
+    artworkShape: Shape = androidx.compose.foundation.shape.RoundedCornerShape(com.justlorenzo.archivetunex.ui.LocalAtxStyle.current.corners.radius),
     buttons: @Composable () -> Unit,
 ) {
     Column(

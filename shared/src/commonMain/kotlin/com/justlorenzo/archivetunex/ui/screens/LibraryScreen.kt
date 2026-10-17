@@ -268,7 +268,7 @@ private fun GridCard(
         verticalArrangement = Arrangement.spacedBy(6.dp),
         horizontalAlignment = if (card.round) Alignment.CenterHorizontally else Alignment.Start,
     ) {
-        val shape: Shape = if (card.round) ArtistShape else RoundedCornerShape(24.dp)
+        val shape: Shape = if (card.round) ArtistShape else RoundedCornerShape(com.justlorenzo.archivetunex.ui.LocalAtxStyle.current.corners.radius)
         Artwork(card.artworkUrl, Modifier.fillMaxWidth().aspectRatio(1f), shape, sizePx = 400)
         Text(
             card.title,

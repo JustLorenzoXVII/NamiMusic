@@ -9,6 +9,8 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.dp
 
 private val LightColors =
@@ -78,10 +80,33 @@ private val AtxShapes =
 @Composable
 fun ArchiveTuneXTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    accent: Color = AccentRed,
     content: @Composable () -> Unit,
 ) {
+    val base = if (darkTheme) DarkColors else LightColors
+    // L'accento scelto (o quello della copertina) sostituisce il rosso di Fuji
+    val scheme =
+        if (accent == AccentRed) {
+            base
+        } else {
+            val onAccent = if (accent.luminance() > 0.55f) Color(0xFF111114) else Color.White
+            val container = accent.copy(alpha = if (darkTheme) 0.28f else 0.18f).compositeOver(base.background)
+            val onContainer = if (darkTheme) accent.copy(alpha = 0.35f).compositeOver(Color.White) else accent.copy(alpha = 0.6f).compositeOver(Color.Black)
+            base.copy(
+                primary = accent,
+                onPrimary = onAccent,
+                primaryContainer = container,
+                onPrimaryContainer = onContainer,
+                secondary = accent,
+                onSecondary = onAccent,
+                secondaryContainer = container,
+                onSecondaryContainer = onContainer,
+                tertiary = accent,
+                onTertiary = onAccent,
+            )
+        }
     MaterialExpressiveTheme(
-        colorScheme = if (darkTheme) DarkColors else LightColors,
+        colorScheme = scheme,
         typography = AtxTypography,
         shapes = AtxShapes,
         motionScheme = MotionScheme.expressive(),

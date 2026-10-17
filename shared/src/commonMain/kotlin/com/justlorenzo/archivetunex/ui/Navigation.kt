@@ -7,6 +7,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 
+/** Le pagine delle Impostazioni. */
+enum class SettingsPage { Appearance, Player, MiniPlayer, Playback, Content, Storage, Privacy, About }
+
 /** Le tre schede in basso. */
 enum class Tab { Home, Search, Library }
 
@@ -44,6 +47,14 @@ class AtxNavigator {
     var logsVisible by mutableStateOf(false)
     var lyricsVisible by mutableStateOf(false)
     var settingsVisible by mutableStateOf(false)
+    var settingsPage by mutableStateOf<SettingsPage?>(null)
+
+    /** Apre le Impostazioni, direttamente su una pagina se indicata. */
+    fun openSettings(page: SettingsPage? = null) {
+        accountVisible = false
+        settingsPage = page
+        settingsVisible = true
+    }
 
     private val stacks: Map<Tab, MutableList<Route>> =
         Tab.entries.associateWith { mutableStateListOf<Route>() }
@@ -72,6 +83,7 @@ class AtxNavigator {
     fun back(): Boolean {
         when {
             logsVisible -> logsVisible = false
+            settingsVisible && settingsPage != null -> settingsPage = null
             settingsVisible -> settingsVisible = false
             lyricsVisible -> lyricsVisible = false
             loginVisible -> loginVisible = false

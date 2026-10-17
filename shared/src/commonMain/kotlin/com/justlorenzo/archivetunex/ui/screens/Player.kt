@@ -32,6 +32,14 @@ import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.ui.draw.blur
+import com.justlorenzo.archivetunex.ui.LocalAtxStyle
+import com.justlorenzo.archivetunex.ui.MiniPlayerStyle
+import com.justlorenzo.archivetunex.ui.PlayButtonShape
+import com.justlorenzo.archivetunex.ui.PlayerBackground
+import com.justlorenzo.archivetunex.ui.SliderStyleChoice
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.toShape
@@ -125,8 +133,16 @@ fun MiniPlayer(modifier: Modifier = Modifier) {
     val isPlaying by connection.isPlaying.collectAsState()
     val song = metadata ?: return
     val (position, duration) = rememberProgress(connection)
+    val style = LocalAtxStyle.current
     val accent = animatedArtworkColor(rememberArtworkColors(song.thumbnailUrl))
-    val container = accent.tint(MaterialTheme.colorScheme.surfaceContainerHigh, 0.28f)
+    val container =
+        when (style.miniPlayer) {
+            MiniPlayerStyle.Tinted -> accent.tint(MaterialTheme.colorScheme.surfaceContainerHigh, 0.28f)
+            MiniPlayerStyle.Accent -> accent
+            MiniPlayerStyle.Neutral -> MaterialTheme.colorScheme.surfaceContainerHigh
+        }
+    val miniContent = if (style.miniPlayer == MiniPlayerStyle.Accent) accent.readableOn() else MaterialTheme.colorScheme.onSurface
+    val progressColor = if (style.miniPlayer == MiniPlayerStyle.Accent) miniContent else accent
 
     Surface(
         modifier =
@@ -138,6 +154,7 @@ fun MiniPlayer(modifier: Modifier = Modifier) {
                 .clickable { navigator.playerExpanded = true },
         color = container,
         shape = RoundedCornerShape(26.dp),
+        contentColor = miniContent,
     ) {
         Box {
             Row(
@@ -151,7 +168,7 @@ fun MiniPlayer(modifier: Modifier = Modifier) {
                     Text(
                         song.artists.joinToString { it.name },
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = miniContent.copy(alpha = 0.7f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -159,19 +176,21 @@ fun MiniPlayer(modifier: Modifier = Modifier) {
                 IconButton(onClick = actions::togglePlayPause) {
                     AtxIcon(if (isPlaying) Res.drawable.pause else Res.drawable.play, if (isPlaying) "Pausa" else "Riproduci", size = 30.dp)
                 }
-                IconButton(onClick = connection::seekToNext) {
-                    AtxIcon(Res.drawable.skip_next, "Brano successivo", size = 28.dp)
+                if (style.miniPlayerNext) {
+                    IconButton(onClick = connection::seekToNext) {
+                        AtxIcon(Res.drawable.skip_next, "Brano successivo", size = 28.dp)
+                    }
                 }
             }
             // Avanzamento: una linea del colore della copertina lungo il bordo inferiore
-            Box(
+            if (style.miniPlayerProgress) Box(
                 Modifier
                     .align(Alignment.BottomStart)
                     .padding(horizontal = 22.dp)
                     .fillMaxWidth(if (duration > 0) (position.toFloat() / duration).coerceIn(0f, 1f) else 0f)
                     .height(3.dp)
                     .clip(RoundedCornerShape(2.dp))
-                    .background(accent),
+                    .background(progressColor),
             )
         }
     }
@@ -197,14 +216,17 @@ fun PlayerScreen() {
     val liked = currentSong?.song?.liked == true
     val download by remember(song.id) { actions.downloads.getDownload(song.id) }.collectAsState(null)
 
+    val style = LocalAtxStyle.current
     val colors = rememberArtworkColors(song.thumbnailUrl)
-    val accent = animatedArtworkColor(colors)
+    val artworkAccent = animatedArtworkColor(colors)
+    val accent = if (style.coloredPlayerControls) artworkAccent else MaterialTheme.colorScheme.onSurface
     val background = MaterialTheme.colorScheme.background
-    val top = accent.tint(background, 0.55f)
-    val middle = (colors?.gradient?.getOrNull(1) ?: accent).tint(background, 0.25f)
+    val top = artworkAccent.tint(background, 0.55f)
+    val middle = (colors?.gradient?.getOrNull(1) ?: artworkAccent).tint(background, 0.25f)
     val onAccent = accent.readableOn()
+    val artworkShape = RoundedCornerShape(style.corners.radius)
 
-    val artworkScale by animateFloatAsState(if (isPlaying) 1f else 0.84f, spring(dampingRatio = 0.55f, stiffness = 300f), label = "artwork")
+    val artworkScale by animateFloatAsState(if (isPlaying || !style.shrinkArtworkOnPause) 1f else 0.84f, spring(dampingRatio = 0.55f, stiffness = 300f), label = "artwork")
     // Il pulsante Play è un "biscotto" Expressive che ruota piano mentre la musica suona
     val rotation by rememberInfiniteTransition(label = "play").animateFloat(
         initialValue = 0f,
@@ -212,15 +234,31 @@ fun PlayerScreen() {
         animationSpec = infiniteRepeatable(tween(12000, easing = LinearEasing), RepeatMode.Restart),
         label = "rotation",
     )
-    val cookie = MaterialShapes.Cookie9Sided.toShape()
+    val playShape =
+        when (style.playButton) {
+            PlayButtonShape.CookieSpin, PlayButtonShape.Cookie -> MaterialShapes.Cookie9Sided.toShape()
+            PlayButtonShape.Circle -> androidx.compose.foundation.shape.CircleShape
+            PlayButtonShape.Squircle -> RoundedCornerShape(30.dp)
+        }
+    val spin = style.playButton == PlayButtonShape.CookieSpin && isPlaying
 
     // Surface: blocca i tocchi verso le schermate sotto il player
     Surface(Modifier.fillMaxSize(), color = background) {
     Box(
         Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(top, middle, background))),
+            .then(
+                when (style.playerBackground) {
+                    PlayerBackground.Gradient -> Modifier.background(Brush.verticalGradient(listOf(top, middle, background)))
+                    PlayerBackground.Solid -> Modifier.background(artworkAccent.tint(background, 0.6f))
+                    PlayerBackground.Blur, PlayerBackground.Plain -> Modifier
+                },
+            ),
     ) {
+        if (style.playerBackground == PlayerBackground.Blur) {
+            Artwork(song.thumbnailUrl, Modifier.fillMaxSize().blur(70.dp), RoundedCornerShape(0.dp), sizePx = 300)
+            Box(Modifier.fillMaxSize().background(background.copy(alpha = 0.55f)))
+        }
         Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 24.dp)) {
             Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { navigator.playerExpanded = false }) {
@@ -248,8 +286,8 @@ fun PlayerScreen() {
                     Modifier
                         .size(side)
                         .scale(artworkScale)
-                        .shadow(32.dp, RoundedCornerShape(36.dp), ambientColor = accent, spotColor = accent),
-                    shape = RoundedCornerShape(36.dp),
+                        .shadow(32.dp, artworkShape, ambientColor = artworkAccent, spotColor = artworkAccent),
+                    shape = artworkShape,
                     sizePx = 1080,
                 )
             }
@@ -287,23 +325,40 @@ fun PlayerScreen() {
             }
 
             Spacer(Modifier.height(12.dp))
-            WavySliderExpressive(
-                value = { if (seeking) seekValue else position.toFloat() },
-                onValueChange = {
-                    seeking = true
-                    seekValue = it
-                },
-                onValueChangeFinished = {
-                    connection.player.seekTo(seekValue.toLong())
-                    seeking = false
-                },
-                valueRange = 0f..(duration.takeIf { it > 0 } ?: 1L).toFloat(),
-                activeTrackColor = accent,
-                thumbColor = accent,
-                inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
-                isPlaying = isPlaying,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            val onSeek: (Float) -> Unit = {
+                seeking = true
+                seekValue = it
+            }
+            val onSeekDone = {
+                connection.player.seekTo(seekValue.toLong())
+                seeking = false
+            }
+            val range = 0f..(duration.takeIf { it > 0 } ?: 1L).toFloat()
+            when (style.slider) {
+                SliderStyleChoice.Classic ->
+                    Slider(
+                        value = if (seeking) seekValue else position.toFloat(),
+                        onValueChange = onSeek,
+                        onValueChangeFinished = onSeekDone,
+                        valueRange = range,
+                        colors = SliderDefaults.colors(thumbColor = accent, activeTrackColor = accent),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                else ->
+                    WavySliderExpressive(
+                        value = { if (seeking) seekValue else position.toFloat() },
+                        onValueChange = onSeek,
+                        onValueChangeFinished = onSeekDone,
+                        valueRange = range,
+                        activeTrackColor = accent,
+                        thumbColor = accent,
+                        inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
+                        isPlaying = isPlaying,
+                        strokeWidth = if (style.slider == SliderStyleChoice.Thick) 10.dp else 5.dp,
+                        waveAmplitudeWhenPlaying = if (style.slider == SliderStyleChoice.Thick) 0.dp else 4.dp,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+            }
             Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
                 Text(
                     formatTime(if (seeking) seekValue.toLong() else position),
@@ -312,7 +367,11 @@ fun PlayerScreen() {
                     modifier = Modifier.weight(1f),
                 )
                 Text(
-                    if (duration > 0) "-" + formatTime(duration - position) else "--:--",
+                    when {
+                        duration <= 0 -> "--:--"
+                        style.showRemainingTime -> "-" + formatTime(duration - position)
+                        else -> formatTime(duration)
+                    },
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -337,8 +396,8 @@ fun PlayerScreen() {
                 Box(
                     Modifier
                         .size(88.dp)
-                        .rotate(if (isPlaying) rotation else 0f)
-                        .clip(cookie)
+                        .rotate(if (spin) rotation else 0f)
+                        .clip(playShape)
                         .background(accent)
                         .clickable(onClick = actions::togglePlayPause),
                     contentAlignment = Alignment.Center,
@@ -348,7 +407,7 @@ fun PlayerScreen() {
                         if (isPlaying) "Pausa" else "Riproduci",
                         size = 40.dp,
                         tint = onAccent,
-                        modifier = Modifier.rotate(if (isPlaying) -rotation else 0f),
+                        modifier = Modifier.rotate(if (spin) -rotation else 0f),
                     )
                 }
                 IconButton(onClick = connection::seekToNext, modifier = Modifier.size(64.dp)) {
