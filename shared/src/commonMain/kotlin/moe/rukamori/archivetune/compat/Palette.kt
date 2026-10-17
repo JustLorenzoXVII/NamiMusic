@@ -188,6 +188,9 @@ class Palette private constructor(
                 pixels to bitmap.width
             }
 
+        /** Come Palette.from(android.graphics.Bitmap). */
+        fun from(bitmap: Bitmap): Builder = from(bitmap.image)
+
         /** Per chi ha già i pixel ARGB (es. da un'immagine scaricata). */
         fun from(
             pixels: IntArray,

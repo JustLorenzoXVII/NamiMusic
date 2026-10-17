@@ -108,3 +108,28 @@ internal actual fun platformSecureRandomBytes(bytes: ByteArray) {
         platform.Security.SecRandomCopyBytes(platform.Security.kSecRandomDefault, bytes.size.toULong(), pinned.addressOf(0))
     }
 }
+
+@OptIn(ExperimentalForeignApi::class)
+internal actual fun platformUsableSpace(path: String): Long {
+    val attributes = NSFileManager.defaultManager.attributesOfFileSystemForPath(path, null) ?: return 0L
+    return (attributes[platform.Foundation.NSFileSystemFreeSize] as? platform.Foundation.NSNumber)?.longLongValue ?: 0L
+}
+
+@OptIn(ExperimentalForeignApi::class)
+internal actual fun platformTotalSpace(path: String): Long {
+    val attributes = NSFileManager.defaultManager.attributesOfFileSystemForPath(path, null) ?: return 0L
+    return (attributes[platform.Foundation.NSFileSystemSize] as? platform.Foundation.NSNumber)?.longLongValue ?: 0L
+}
+
+internal actual fun platformAdjustStreamVolume(
+    streamType: Int,
+    direction: Int,
+    flags: Int,
+) = Unit
+
+internal actual fun platformIs24HourFormat(): Boolean {
+    val format =
+        platform.Foundation.NSDateFormatter.dateFormatFromTemplate("j", 0u, platform.Foundation.NSLocale.currentLocale)
+            ?: return true
+    return !format.contains('a')
+}

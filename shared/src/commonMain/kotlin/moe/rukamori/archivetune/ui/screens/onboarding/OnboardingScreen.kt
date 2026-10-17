@@ -85,6 +85,8 @@ import moe.rukamori.archivetune.onboarding.OnboardingPermissionUiModel
 import moe.rukamori.archivetune.onboarding.OnboardingScreenState
 import moe.rukamori.archivetune.onboarding.OnboardingUiState
 import moe.rukamori.archivetune.onboarding.OnboardingViewModel
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.StringResource
 
 @Composable
 fun OnboardingRoute(
@@ -605,7 +607,7 @@ private fun WelcomePage(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun SunnyIdentityPanel(
-    iconResId: Int,
+    iconResId: DrawableResource,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -812,9 +814,9 @@ private fun CommunitySpotlight(actions: ImmutableList<OnboardingCommunityActionU
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ExpressivePageHeader(
-    iconResId: Int,
-    titleResId: Int,
-    subtitleResId: Int,
+    iconResId: DrawableResource,
+    titleResId: StringResource,
+    subtitleResId: StringResource,
 ) {
     Column(
         modifier =
@@ -844,8 +846,8 @@ private fun ExpressivePageHeader(
 
 @Composable
 private fun LargePageTitle(
-    titleResId: Int,
-    subtitleResId: Int,
+    titleResId: StringResource,
+    subtitleResId: StringResource,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
@@ -1127,7 +1129,7 @@ private fun OnboardingNextButton(
     }
 }
 
-private fun OnboardingPermissionStatus.labelResId(): Int =
+private fun OnboardingPermissionStatus.labelResId(): StringResource =
     when (this) {
         OnboardingPermissionStatus.ALLOWED -> Res.string.permission_status_allowed
         OnboardingPermissionStatus.NEEDS_ACTION -> Res.string.allow

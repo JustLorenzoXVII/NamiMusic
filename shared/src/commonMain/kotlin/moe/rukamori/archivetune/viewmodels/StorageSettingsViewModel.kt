@@ -42,6 +42,8 @@ import moe.rukamori.archivetune.storage.StorageLocationOption
 import moe.rukamori.archivetune.storage.StorageLocationOptions
 import moe.rukamori.archivetune.storage.StorageMigrationPhase
 import moe.rukamori.archivetune.storage.StorageMigrationProgress
+import org.jetbrains.compose.resources.StringResource
+import moe.rukamori.archivetune.compat.synchronized
 
 sealed interface StorageSettingsScreenState {
     data object Loading : StorageSettingsScreenState
@@ -53,7 +55,7 @@ sealed interface StorageSettingsScreenState {
     data object Empty : StorageSettingsScreenState
 
     data class Error(
-        val messageResId: Int,
+        val messageResId: StringResource,
     ) : StorageSettingsScreenState
 }
 
@@ -130,7 +132,7 @@ enum class StorageCacheClearUiKind {
 
 @Immutable
 data class StorageSettingsEffect(
-    val messageResId: Int,
+    val messageResId: StringResource,
     val restartApp: Boolean,
 )
 

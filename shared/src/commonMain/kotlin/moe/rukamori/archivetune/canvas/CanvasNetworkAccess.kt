@@ -14,12 +14,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import moe.rukamori.archivetune.compat.okhttp3.Call
 import moe.rukamori.archivetune.compat.okhttp3.Interceptor
 import moe.rukamori.archivetune.compat.okhttp3.Response
-import moe.rukamori.archivetune.compat.okhttp3.ResponseBody
-import okio.Buffer
-import okio.BufferedSource
-import okio.ForwardingSource
-import okio.buffer
 import kotlinx.io.IOException
+import moe.rukamori.archivetune.compat.synchronized
+import kotlin.jvm.Synchronized
 
 object CanvasNetworkAccess {
     private val mutablePolicy = MutableStateFlow(CanvasPolicy())
@@ -63,34 +60,14 @@ object CanvasNetworkAccess {
                 remove(call)
                 return response
             }
-            val guardedSource = object : ForwardingSource(body.source()) {
-                override fun read(sink: Buffer, byteCount: Long): Long {
-                    return try {
-                        checkTransfer(source)
-                        val count = super.read(sink, byteCount)
-                        checkTransfer(source)
-                        if (count == -1L) remove(call)
-                        count
-                    } catch (error: Exception) {
-                        call.cancel()
-                        remove(call)
-                        throw error
-                    }
-                }
-
-                override fun close() {
-                    try {
-                        super.close()
-                    } finally {
-                        remove(call)
-                    }
-                }
-            }.buffer()
-            return response.newBuilder().body(object : ResponseBody() {
-                override fun contentType() = body.contentType()
-                override fun contentLength(): Long = body.contentLength()
-                override fun source(): BufferedSource = guardedSource
-            }).build()
+            // ArchiveTuneX: il client HTTP comune scarica la risposta intera, quindi il controllo
+            // si fa una volta a fine trasferimento invece che a ogni blocco letto (ForwardingSource di okio).
+            try {
+                checkTransfer(source)
+            } finally {
+                remove(call)
+            }
+            return response
         } catch (error: Exception) {
             remove(call)
             throw error

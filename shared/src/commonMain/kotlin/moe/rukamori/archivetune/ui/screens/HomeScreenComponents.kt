@@ -2206,8 +2206,8 @@ fun AccountPlaylistsTitle(
                     }
                 AsyncImage(
                     model = imageRequest,
-                    placeholder = painterResource(id = Res.drawable.person),
-                    error = painterResource(id = Res.drawable.person),
+                    placeholder = painterResource(Res.drawable.person),
+                    error = painterResource(Res.drawable.person),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier =
@@ -2217,7 +2217,7 @@ fun AccountPlaylistsTitle(
                 )
             } else {
                 Icon(
-                    painter = painterResource(id = Res.drawable.person),
+                    painter = painterResource(Res.drawable.person),
                     contentDescription = null,
                     modifier = Modifier.size(ListThumbnailSize),
                 )

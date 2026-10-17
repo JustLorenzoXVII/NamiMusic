@@ -508,6 +508,26 @@ class AtomicFile(
     }
 
     fun writeText(text: String) = write(text.encodeToByteArray())
+
+    /** Come android.util.AtomicFile: si scrive su un file ".new" che sostituisce l'originale a fine scrittura. */
+    fun startWrite(): FileOutputStream {
+        baseFile.parentFile?.mkdirs()
+        newFile.delete()
+        return FileOutputStream(newFile)
+    }
+
+    fun finishWrite(stream: FileOutputStream) {
+        stream.close()
+        baseFile.delete()
+        newFile.renameTo(baseFile)
+    }
+
+    fun failWrite(stream: FileOutputStream) {
+        runCatching { stream.close() }
+        newFile.delete()
+    }
+
+    fun openRead(): InputStream = ByteArrayInputStream(baseFile.readBytes())
 }
 
 /** android.text.format.Formatter. */
@@ -726,3 +746,10 @@ class HttpURLConnection internal constructor(
         const val HTTP_UNAUTHORIZED = 401
     }
 }
+
+/** Map.toSortedMap() di Kotlin/JVM: qui una LinkedHashMap ordinata per chiave. */
+fun <K : Comparable<K>, V> Map<out K, V>.toSortedMap(): Map<K, V> =
+    entries.sortedBy { it.key }.associateTo(LinkedHashMap()) { it.key to it.value }
+
+fun <K, V> Map<out K, V>.toSortedMap(comparator: Comparator<in K>): Map<K, V> =
+    entries.sortedWith { a, b -> comparator.compare(a.key, b.key) }.associateTo(LinkedHashMap()) { it.key to it.value }

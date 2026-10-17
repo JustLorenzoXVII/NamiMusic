@@ -46,9 +46,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
-import coil3.imageLoader
+import moe.rukamori.archivetune.compat.imageLoader
 import coil3.request.ImageRequest
-import coil3.request.allowHardware
+import moe.rukamori.archivetune.compat.allowHardware
 import moe.rukamori.archivetune.compat.toBitmap
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
@@ -75,6 +75,7 @@ import moe.rukamori.archivetune.utils.makeTimeString
 import moe.rukamori.archivetune.utils.rememberEnumPreference
 import moe.rukamori.archivetune.utils.rememberPreference
 import moe.rukamori.archivetune.compat.Timber
+import org.jetbrains.compose.resources.DrawableResource
 
 enum class ActivitySource { ARTIST, ALBUM, SONG, APP }
 
@@ -1144,7 +1145,7 @@ private fun discordLargeTextSourceLabel(value: String): String =
 @Composable
 fun EditablePreference(
     title: String,
-    iconRes: Int,
+    iconRes: DrawableResource,
     value: String,
     defaultValue: String,
     onValueChange: (String) -> Unit,

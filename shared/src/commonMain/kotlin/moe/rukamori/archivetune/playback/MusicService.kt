@@ -779,6 +779,95 @@ class MusicService(
         }
     }
 
+    // region Funzioni dell'originale non ancora portate
+    //
+    // ArchiveTuneX: queste parti di MusicService (Music Together, Discord, equalizzatore di sistema,
+    // dispositivo audio, cache Media3) hanno qui la stessa firma dell'originale, così l'interfaccia
+    // compila invariata. Per ora non fanno nulla o danno valori neutri; vanno portate una alla volta.
+
+    /** Cache dello streaming: in ArchiveTuneX lo streaming non salva nulla su disco. */
+    val playerCache: moe.rukamori.archivetune.compat.media3.Cache = moe.rukamori.archivetune.compat.media3.EmptyCache
+
+    /** Cache dei download (i file scaricati). */
+    val downloadCache: moe.rukamori.archivetune.compat.media3.Cache by lazy {
+        moe.rukamori.archivetune.playback.DownloadsCache(downloadUtil)
+    }
+
+    private val _activeAudioDevice =
+        MutableStateFlow(
+            moe.rukamori.archivetune.models.ActiveOutputDevice(
+                moe.rukamori.archivetune.models.PlayerOutputDevice.Unknown,
+                moe.rukamori.archivetune.models.PlayerOutputDevice.Unknown.defaultName,
+            ),
+        )
+    val activeAudioDevice: kotlinx.coroutines.flow.StateFlow<moe.rukamori.archivetune.models.ActiveOutputDevice> =
+        _activeAudioDevice
+
+    fun refreshActiveDevice() = Unit
+
+    val eqCapabilities = MutableStateFlow<moe.rukamori.archivetune.playback.EqCapabilities?>(null)
+
+    fun applyEqFlatPreset() = Unit
+
+    fun applySystemEqPreset(presetIndex: Int) = Unit
+
+    fun forceDiscordSync(reason: String) = Unit
+
+    suspend fun refreshDiscordNow(): Boolean = false
+
+    val togetherSessionState =
+        MutableStateFlow<moe.rukamori.archivetune.together.TogetherSessionState>(
+            moe.rukamori.archivetune.together.TogetherSessionState.Idle,
+        )
+
+    fun startTogetherHost(
+        port: Int,
+        displayName: String,
+        settings: moe.rukamori.archivetune.together.TogetherRoomSettings,
+    ) = Unit
+
+    fun startTogetherOnlineHost(
+        displayName: String,
+        settings: moe.rukamori.archivetune.together.TogetherRoomSettings,
+    ) = Unit
+
+    fun joinTogether(
+        rawLink: String,
+        displayName: String,
+    ) = Unit
+
+    fun joinTogetherOnline(
+        code: String,
+        displayName: String,
+    ) = Unit
+
+    fun leaveTogether() {
+        togetherSessionState.value = moe.rukamori.archivetune.together.TogetherSessionState.Idle
+    }
+
+    fun updateTogetherSettings(settings: moe.rukamori.archivetune.together.TogetherRoomSettings) = Unit
+
+    fun approveTogetherParticipant(
+        participantId: String,
+        approved: Boolean,
+    ) = Unit
+
+    fun kickTogetherParticipant(
+        participantId: String,
+        reason: String? = null,
+    ) = Unit
+
+    fun banTogetherParticipant(
+        participantId: String,
+        reason: String? = null,
+    ) = Unit
+
+    fun transferTogetherHostOwnership(participantId: String) = Unit
+
+    fun requestTogetherControl(action: moe.rukamori.archivetune.together.ControlAction) = Unit
+
+    // endregion
+
     // endregion
 
     companion object {

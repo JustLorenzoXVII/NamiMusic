@@ -83,6 +83,11 @@ class OkHttpClient private constructor(
 
         fun proxy(@Suppress("UNUSED_PARAMETER") proxy: Any?) = apply { }
 
+        /** Autenticazione del proxy: il client comune non usa proxy, quindi viene ignorata. */
+        fun proxyAuthenticator(
+            @Suppress("UNUSED_PARAMETER") authenticator: (route: Any?, response: Response) -> Request?,
+        ) = apply { }
+
         internal fun copy(): Builder =
             Builder().also {
                 it.callTimeoutMs = callTimeoutMs
@@ -119,6 +124,12 @@ class HttpUrl internal constructor(
 class MediaType(
     val value: String,
 ) {
+    val type: String
+        get() = value.substringBefore('/').trim().lowercase()
+
+    val subtype: String
+        get() = value.substringAfter('/', "").substringBefore(';').trim().lowercase()
+
     override fun toString(): String = value
 
     companion object {
@@ -238,7 +249,7 @@ class ResponseBody internal constructor(
 
     fun close() = Unit
 
-    fun byteStream(): ByteArray = data
+    fun byteStream(): moe.rukamori.archivetune.compat.InputStream = moe.rukamori.archivetune.compat.ByteArrayInputStream(data)
 }
 
 class Response internal constructor(
@@ -477,3 +488,12 @@ private suspend fun io.ktor.websocket.DefaultWebSocketSession.closeReasonOrNull(
 fun OkHttpClient.newWebSocket(request: Request, listener: WebSocketListener): WebSocket = KtorWebSocket(this, request, listener).also { it.start() }
 
 // endregion
+
+
+/** okhttp3.Credentials. */
+object Credentials {
+    fun basic(
+        username: String,
+        password: String,
+    ): String = "Basic " + kotlin.io.encoding.Base64.Default.encode("$username:$password".encodeToByteArray())
+}

@@ -134,6 +134,7 @@ import moe.rukamori.archivetune.viewmodels.HistoryViewModel
 import moe.rukamori.archivetune.viewmodels.RemoteHistoryUiState
 import moe.rukamori.archivetune.compat.time.DateTimeFormatter
 import moe.rukamori.archivetune.ui.component.IconButton as AppIconButton
+import org.jetbrains.compose.resources.DrawableResource
 
 @Composable
 fun HistoryScreen(
@@ -1169,7 +1170,7 @@ private fun HistoryStateCard(
     actionLabel: String? = null,
     onActionClick: (() -> Unit)? = null,
     loading: Boolean = false,
-    icon: Int? = null,
+    icon: DrawableResource? = null,
 ) {
     Box(
         modifier =
@@ -1285,7 +1286,7 @@ private fun BoxScope.HistorySelectionToolbar(
 
 @Composable
 private fun HistoryToolbarAction(
-    icon: Int,
+    icon: DrawableResource,
     label: String,
     onClick: () -> Unit,
 ) {

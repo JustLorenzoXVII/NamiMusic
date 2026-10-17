@@ -89,6 +89,7 @@ import moe.rukamori.archivetune.utils.rememberLowDataModeActive
 import moe.rukamori.archivetune.utils.rememberPreference
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
+import org.jetbrains.compose.resources.DrawableResource
 
 private val MiniPlayerTransportButtonSpacing = 4.dp
 
@@ -400,7 +401,7 @@ private fun MiniPlayerArtwork(
 
 @Composable
 private fun MiniPlayerTransportButton(
-    iconResId: Int,
+    iconResId: DrawableResource,
     contentDescription: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,

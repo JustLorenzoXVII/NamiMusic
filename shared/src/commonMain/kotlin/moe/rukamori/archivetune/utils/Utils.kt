@@ -12,3 +12,12 @@ fun reportException(throwable: Throwable) {
     throwable.printStackTrace()
 }
 
+
+/**
+ * Cambia la lingua dell'app. ArchiveTuneX usa le risorse Compose, che seguono la lingua del sistema;
+ * la scelta viene salvata nelle impostazioni dall'interfaccia, qui non serve altro.
+ */
+fun setAppLocale(
+    context: moe.rukamori.archivetune.compat.Context,
+    locale: moe.rukamori.archivetune.compat.Locale,
+) = Unit

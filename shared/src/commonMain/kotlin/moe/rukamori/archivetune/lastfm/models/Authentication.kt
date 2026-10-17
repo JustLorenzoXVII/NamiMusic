@@ -8,6 +8,7 @@
 package moe.rukamori.archivetune.lastfm.models
 
 import kotlinx.serialization.Serializable
+import org.jetbrains.compose.resources.DrawableResource
 
 @Serializable
 data class Authentication(

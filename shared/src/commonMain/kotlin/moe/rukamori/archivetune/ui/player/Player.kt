@@ -144,11 +144,11 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import moe.rukamori.archivetune.compat.Palette
 import coil3.compose.AsyncImage
-import coil3.imageLoader
+import moe.rukamori.archivetune.compat.imageLoader
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
-import coil3.request.allowHardware
+import moe.rukamori.archivetune.compat.allowHardware
 import moe.rukamori.archivetune.compat.toBitmap
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers

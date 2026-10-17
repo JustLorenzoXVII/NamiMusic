@@ -7,6 +7,8 @@
 
 package moe.rukamori.archivetune.together
 
+import moe.rukamori.archivetune.compat.isSocketTimeoutError
+import moe.rukamori.archivetune.compat.isConnectionRefusedError
 import moe.rukamori.archivetune.innertube.network.createPlatformHttpClient
 
 import io.ktor.client.HttpClient
@@ -19,6 +21,7 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.jetbrains.compose.resources.DrawableResource
 
 @Serializable
 data class TogetherOnlineCreateSessionRequest(
@@ -98,9 +101,9 @@ class TogetherOnlineApi(
 
     private fun isRetryable(t: Throwable): Boolean {
         val root = generateSequence(t) { it.cause }.lastOrNull() ?: t
-        return root is java.net.SocketTimeoutException ||
-            root is java.net.ConnectException ||
-            root is java.io.IOException
+        return root.isSocketTimeoutError() ||
+            root.isConnectionRefusedError() ||
+            root is kotlinx.io.IOException
     }
 
     @Serializable

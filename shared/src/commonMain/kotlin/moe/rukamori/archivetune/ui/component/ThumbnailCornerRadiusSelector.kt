@@ -54,11 +54,11 @@ fun ThumbnailCornerRadiusSelectorButton(
 
     PreferenceEntry(
         modifier = modifier,
-        title = { Text(text = stringResource(id = Res.string.custom_radius)) },
-        description = stringResource(id = Res.string.corner_radius, thumbnailCornerRadius.roundToInt()),
+        title = { Text(text = stringResource(Res.string.custom_radius)) },
+        description = stringResource(Res.string.corner_radius, thumbnailCornerRadius.roundToInt()),
         icon = {
             Icon(
-                painter = painterResource(id = Res.drawable.image),
+                painter = painterResource(Res.drawable.image),
                 contentDescription = null,
             )
         },
@@ -205,7 +205,7 @@ fun ThumbnailCornerRadiusModal(
                             },
                             label = {
                                 Text(
-                                    text = stringResource(id = Res.string.custom),
+                                    text = stringResource(Res.string.custom),
                                     style = MaterialTheme.typography.bodyMedium,
                                 )
                             },
@@ -237,7 +237,7 @@ fun ThumbnailCornerRadiusModal(
                             enabled = isCustomSelected,
                             label = {
                                 Text(
-                                    text = stringResource(id = Res.string.custom_value),
+                                    text = stringResource(Res.string.custom_value),
                                     style = MaterialTheme.typography.bodyMedium,
                                 )
                             },
@@ -257,7 +257,7 @@ fun ThumbnailCornerRadiusModal(
                     Spacer(modifier = Modifier.height(24.dp))
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            text = stringResource(id = Res.string.adjust_radius),
+                            text = stringResource(Res.string.adjust_radius),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -303,8 +303,7 @@ fun ThumbnailCornerRadiusModal(
 
                         Text(
                             text =
-                                stringResource(
-                                    id = Res.string.corner_radius,
+                                stringResource(Res.string.corner_radius,
                                     thumbnailCornerRadius.roundToInt(),
                                 ),
                             style = MaterialTheme.typography.bodyMedium,
@@ -337,7 +336,7 @@ fun ThumbnailCornerRadiusModal(
                             shapes = ButtonDefaults.shapes(),
                         ) {
                             Text(
-                                text = stringResource(id = Res.string.cancel_button),
+                                text = stringResource(Res.string.cancel_button),
                                 style = MaterialTheme.typography.labelLarge,
                             )
                         }
@@ -364,7 +363,7 @@ fun ThumbnailCornerRadiusModal(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = stringResource(id = Res.string.ok_button),
+                                    text = stringResource(Res.string.ok_button),
                                     style = MaterialTheme.typography.labelLarge,
                                 )
                             }

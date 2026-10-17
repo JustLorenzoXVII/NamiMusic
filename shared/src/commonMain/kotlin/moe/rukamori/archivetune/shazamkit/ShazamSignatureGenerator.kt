@@ -19,6 +19,7 @@ import kotlin.math.cos
 import kotlin.math.ln
 import kotlin.math.max
 import kotlin.math.sin
+import moe.rukamori.archivetune.compat.toSortedMap
 
 data class ShazamSignature(
     val uri: String,

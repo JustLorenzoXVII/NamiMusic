@@ -392,7 +392,7 @@ class TogetherServer(
                                     sessionId = sessionId,
                                     pingId = message.pingId,
                                     clientElapsedRealtimeMs = message.clientElapsedRealtimeMs,
-                                    serverElapsedRealtimeMs = android.os.SystemClock.elapsedRealtime(),
+                                    serverElapsedRealtimeMs = moe.rukamori.archivetune.compat.SystemClock.elapsedRealtime(),
                                 ),
                             ),
                         )

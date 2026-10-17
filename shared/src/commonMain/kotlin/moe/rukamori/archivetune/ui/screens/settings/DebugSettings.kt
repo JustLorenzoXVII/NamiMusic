@@ -89,6 +89,7 @@ import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.utils.makeTimeString
 import moe.rukamori.archivetune.utils.rememberPreference
 import kotlin.math.roundToInt
+import org.jetbrains.compose.resources.DrawableResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -397,7 +398,7 @@ private fun DiscordDebugSection() {
 private fun DebugTimestampItem(
     label: String,
     value: String,
-    icon: Int,
+    icon: DrawableResource,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -739,7 +740,7 @@ private fun NerdStatsSection(playerConnection: moe.rukamori.archivetune.playback
 
 @Composable
 private fun NerdStatCard(
-    icon: Int,
+    icon: DrawableResource,
     label: String,
     value: String,
     accentColor: Color,
@@ -788,7 +789,7 @@ private fun NerdStatCard(
 
 @Composable
 private fun NerdStatChip(
-    icon: Int,
+    icon: DrawableResource,
     label: String,
     value: String,
     modifier: Modifier = Modifier,

@@ -313,7 +313,7 @@ fun OnlineSearchScreen(
                                         }
 
                                         is PodcastItem -> {
-                                            navController.navigate("podcast/${android.net.Uri.encode(item.browseId)}")
+                                            navController.navigate("podcast/${moe.rukamori.archivetune.compat.Uri.encode(item.browseId)}")
                                             onDismiss()
                                         }
 

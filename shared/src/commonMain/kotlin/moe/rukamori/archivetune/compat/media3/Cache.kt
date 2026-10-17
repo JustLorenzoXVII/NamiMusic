@@ -16,7 +16,20 @@ interface Cache {
     fun removeResource(key: String)
 
     fun release() = Unit
+
+    /** Come Cache.getCachedSpans di Media3: qui un unico blocco con i byte salvati. */
+    fun getCachedSpans(key: String): List<CacheSpan> {
+        val bytes = getCachedBytes(key, 0L, Long.MAX_VALUE)
+        return if (bytes > 0L) listOf(CacheSpan(key, 0L, bytes)) else emptyList()
+    }
 }
+
+/** androidx.media3.datasource.cache.CacheSpan. */
+data class CacheSpan(
+    val key: String,
+    val position: Long,
+    val length: Long,
+)
 
 /** Cache vuota (lettore in streaming). */
 object EmptyCache : Cache {

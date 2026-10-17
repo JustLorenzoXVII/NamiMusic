@@ -91,9 +91,9 @@ import moe.rukamori.archivetune.compat.media3.Player.Companion.STATE_READY
 import androidx.navigation.NavController
 import moe.rukamori.archivetune.compat.Palette
 import coil3.compose.AsyncImage
-import coil3.imageLoader
+import moe.rukamori.archivetune.compat.imageLoader
 import coil3.request.ImageRequest
-import coil3.request.allowHardware
+import moe.rukamori.archivetune.compat.allowHardware
 import coil3.size.Size
 import moe.rukamori.archivetune.compat.toBitmap
 import kotlinx.coroutines.Dispatchers
@@ -131,6 +131,7 @@ import moe.rukamori.archivetune.utils.rememberPreference
 import moe.rukamori.archivetune.viewmodels.LyricsRenderScreenState
 import moe.rukamori.archivetune.viewmodels.LyricsRenderViewModel
 import kotlin.coroutines.cancellation.CancellationException
+import org.jetbrains.compose.resources.DrawableResource
 
 private val AppleMusicFallbackGradient =
     listOf(
@@ -742,7 +743,7 @@ private fun AppleMusicTrackHeader(
 
 @Composable
 private fun AppleMusicHeaderIconButton(
-    iconRes: Int,
+    iconRes: DrawableResource,
     contentDescription: String,
     foregroundColor: Color,
     onClick: () -> Unit,
@@ -944,7 +945,7 @@ private fun AppleMusicControls(
 
 @Composable
 private fun AppleMusicTransportButton(
-    iconRes: Int,
+    iconRes: DrawableResource,
     contentDescription: String?,
     iconSize: Dp,
     touchSize: Dp,

@@ -19,6 +19,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.minutes
+import org.jetbrains.compose.resources.PluralStringResource
 
 class SleepTimer(
     private val scope: CoroutineScope,

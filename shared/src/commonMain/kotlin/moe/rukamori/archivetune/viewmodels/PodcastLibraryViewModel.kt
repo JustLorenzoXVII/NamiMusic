@@ -30,6 +30,7 @@ import moe.rukamori.archivetune.podcast.TogglePodcastSaveUseCase
 import moe.rukamori.archivetune.utils.LibraryLoginRequiredException
 import moe.rukamori.archivetune.utils.LibrarySyncDisabledException
 import moe.rukamori.archivetune.utils.reportException
+import org.jetbrains.compose.resources.StringResource
 
 class PodcastLibraryViewModel constructor(
         observeSavedPodcasts: ObserveSavedPodcastsUseCase,
@@ -119,7 +120,7 @@ class PodcastLibraryViewModel constructor(
                 }
         }
 
-        private fun Throwable.messageResId(): Int =
+        private fun Throwable.messageResId(): StringResource =
             when (this) {
                 is LibraryLoginRequiredException -> Res.string.not_logged_in_youtube
                 is LibrarySyncDisabledException -> Res.string.sync_disabled

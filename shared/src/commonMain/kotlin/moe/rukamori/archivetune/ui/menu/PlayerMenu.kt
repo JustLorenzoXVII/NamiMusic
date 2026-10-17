@@ -616,7 +616,7 @@ fun PlayerMenu(
                                         onClick = {
                                             val clipboard =
                                                 context.getSystemService(
-                                                    android.content.Context.CLIPBOARD_SERVICE,
+                                                    moe.rukamori.archivetune.compat.Context.CLIPBOARD_SERVICE,
                                                 ) as moe.rukamori.archivetune.compat.ClipboardManager
                                             val clip =
                                                 moe.rukamori.archivetune.compat.ClipData.newPlainText(
@@ -624,11 +624,11 @@ fun PlayerMenu(
                                                     "https://music.youtube.com/watch?v=${mediaMetadata.id}",
                                                 )
                                             clipboard.setPrimaryClip(clip)
-                                            android.widget.Toast
+                                            moe.rukamori.archivetune.compat.Toast
                                                 .makeText(
                                                     context,
                                                     Res.string.link_copied,
-                                                    android.widget.Toast.LENGTH_SHORT,
+                                                    moe.rukamori.archivetune.compat.Toast.LENGTH_SHORT,
                                                 ).show()
                                             onDismiss()
                                         },

@@ -89,6 +89,7 @@ import moe.rukamori.archivetune.constants.PlayerCustomContrastKey
 import moe.rukamori.archivetune.constants.PlayerCustomImageUriKey
 import moe.rukamori.archivetune.utils.rememberPreference
 import kotlin.math.roundToInt
+import org.jetbrains.compose.resources.DrawableResource
 
 private const val DEFAULT_BLUR = 0f
 private const val DEFAULT_CONTRAST = 1f
@@ -391,7 +392,7 @@ private fun BackgroundPreviewSection(
 @Composable
 private fun BackgroundPreviewPane(
     title: String,
-    previewDrawable: Int,
+    previewDrawable: DrawableResource,
     aspectRatio: Float,
     imageUri: Uri?,
     blur: Float,

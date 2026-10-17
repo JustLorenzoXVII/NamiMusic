@@ -550,9 +550,9 @@ fun AppearanceSettings(navController: NavController) {
                         icon = { Icon(painterResource(Res.drawable.storage), null) },
                         onClick = {
                             val intent =
-                                android.content.Intent(
+                                moe.rukamori.archivetune.compat.Intent(
                                     moe.rukamori.archivetune.compat.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                    android.net.Uri.fromParts("package", context.packageName, null),
+                                    moe.rukamori.archivetune.compat.Uri.fromParts("package", context.packageName, null),
                                 )
                             context.startActivity(intent)
                         },

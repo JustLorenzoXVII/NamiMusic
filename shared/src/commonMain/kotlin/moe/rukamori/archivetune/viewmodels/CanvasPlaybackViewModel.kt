@@ -22,13 +22,14 @@ import moe.rukamori.archivetune.canvas.CanvasPlaybackRequest
 import moe.rukamori.archivetune.canvas.CanvasPlaybackUseCase
 import moe.rukamori.archivetune.canvas.CanvasVideo
 import moe.rukamori.archivetune.compat.Timber
+import org.jetbrains.compose.resources.StringResource
 
 @Immutable
 sealed interface CanvasPlaybackState {
     data object Loading : CanvasPlaybackState
     data class Success(val request: CanvasPlaybackRequest, val video: CanvasVideo) : CanvasPlaybackState
     data object Empty : CanvasPlaybackState
-    data class Error(val messageRes: Int) : CanvasPlaybackState
+    data class Error(val messageRes: StringResource) : CanvasPlaybackState
 }
 
 class CanvasPlaybackViewModel constructor(

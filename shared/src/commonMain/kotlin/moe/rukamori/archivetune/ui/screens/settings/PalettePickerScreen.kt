@@ -133,6 +133,7 @@ import moe.rukamori.archivetune.ui.theme.ThemeSeedPaletteCodec
 import moe.rukamori.archivetune.ui.theme.palette.TonalPalettes
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.utils.rememberPreference
+import org.jetbrains.compose.resources.StringResource
 
 private enum class SeedRole {
     PRIMARY,
@@ -143,7 +144,7 @@ private enum class SeedRole {
 
 data class ThemePalette(
     val id: String,
-    val nameResId: Int,
+    val nameResId: StringResource,
     val primary: Color,
     val secondary: Color,
     val tertiary: Color,

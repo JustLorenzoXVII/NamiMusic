@@ -783,11 +783,11 @@ fun YouTubePlaylistMenu(
                                                         if (snackbarHostState != null) {
                                                             snackbarHostState.showSnackbar(context.getString(Res.string.import_failed))
                                                         } else {
-                                                            android.widget.Toast
+                                                            moe.rukamori.archivetune.compat.Toast
                                                                 .makeText(
                                                                     context,
                                                                     context.getString(Res.string.import_failed),
-                                                                    android.widget.Toast.LENGTH_SHORT,
+                                                                    moe.rukamori.archivetune.compat.Toast.LENGTH_SHORT,
                                                                 ).show()
                                                         }
                                                     }
@@ -828,11 +828,11 @@ fun YouTubePlaylistMenu(
                                                         if (snackbarHostState != null) {
                                                             snackbarHostState.showSnackbar(context.getString(Res.string.playlist_synced))
                                                         } else {
-                                                            android.widget.Toast
+                                                            moe.rukamori.archivetune.compat.Toast
                                                                 .makeText(
                                                                     context,
                                                                     context.getString(Res.string.playlist_synced),
-                                                                    android.widget.Toast.LENGTH_SHORT,
+                                                                    moe.rukamori.archivetune.compat.Toast.LENGTH_SHORT,
                                                                 ).show()
                                                         }
                                                     }
@@ -849,11 +849,11 @@ fun YouTubePlaylistMenu(
                                                         if (snackbarHostState != null) {
                                                             snackbarHostState.showSnackbar(context.getString(Res.string.playlist_synced))
                                                         } else {
-                                                            android.widget.Toast
+                                                            moe.rukamori.archivetune.compat.Toast
                                                                 .makeText(
                                                                     context,
                                                                     context.getString(Res.string.playlist_synced),
-                                                                    android.widget.Toast.LENGTH_SHORT,
+                                                                    moe.rukamori.archivetune.compat.Toast.LENGTH_SHORT,
                                                                 ).show()
                                                         }
                                                     }
@@ -867,11 +867,11 @@ fun YouTubePlaylistMenu(
                                                 if (snackbarHostState != null) {
                                                     snackbarHostState.showSnackbar(errorMsg)
                                                 } else {
-                                                    android.widget.Toast
+                                                    moe.rukamori.archivetune.compat.Toast
                                                         .makeText(
                                                             context,
                                                             errorMsg,
-                                                            android.widget.Toast.LENGTH_SHORT,
+                                                            moe.rukamori.archivetune.compat.Toast.LENGTH_SHORT,
                                                         ).show()
                                                 }
                                             }

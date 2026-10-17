@@ -36,6 +36,11 @@ class PackageManager internal constructor() {
 
     fun hasSystemFeature(name: String): Boolean = false
 
+    fun queryIntentActivities(
+        @Suppress("UNUSED_PARAMETER") intent: Intent,
+        @Suppress("UNUSED_PARAMETER") flags: Int,
+    ): List<ResolveInfo> = emptyList()
+
     class PackageInfoFlags private constructor(val value: Long) {
         companion object {
             fun of(value: Long): PackageInfoFlags = PackageInfoFlags(value)
@@ -45,6 +50,8 @@ class PackageManager internal constructor() {
     companion object {
         const val PERMISSION_GRANTED = 0
         const val PERMISSION_DENIED = -1
+        const val MATCH_DEFAULT_ONLY = 0x00010000
+        const val MATCH_ALL = 0x00020000
     }
 }
 
@@ -78,3 +85,23 @@ object Settings {
 class ActivityNotFoundException(
     message: String? = null,
 ) : RuntimeException(message)
+
+
+/** android.content.pm.ResolveInfo: le app che possono aprire un Intent (non disponibile su iPhone). */
+class ResolveInfo(
+    val activityInfo: ActivityInfo?,
+) {
+    class ActivityInfo(
+        val packageName: String,
+        val name: String,
+        val applicationInfo: ApplicationInfo? = null,
+    )
+
+    class ApplicationInfo(
+        private val label: String,
+    ) {
+        fun loadLabel(
+            @Suppress("UNUSED_PARAMETER") packageManager: PackageManager,
+        ): CharSequence = label
+    }
+}

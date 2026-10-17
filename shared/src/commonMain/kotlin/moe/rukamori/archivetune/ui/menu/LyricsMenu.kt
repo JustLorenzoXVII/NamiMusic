@@ -122,6 +122,8 @@ import moe.rukamori.archivetune.compat.Locale
 import moe.rukamori.archivetune.compat.uppercase
 import moe.rukamori.archivetune.compat.lowercase
 import kotlin.math.roundToInt
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.StringResource
 
 private enum class LyricsTranslationSource {
     AI_TRANSLATION,
@@ -1171,7 +1173,7 @@ private fun LyricsSearchResultSupportingContent(
 
 @Composable
 private fun LyricsSearchMetadataPill(
-    icon: Int,
+    icon: DrawableResource,
     text: String,
     isExpanded: Boolean,
     modifier: Modifier = Modifier,
@@ -1267,7 +1269,7 @@ private fun LyricsSearchEmptyContent() {
 }
 
 @Composable
-private fun LyricsSearchErrorContent(messageResId: Int) {
+private fun LyricsSearchErrorContent(messageResId: StringResource) {
     LyricsSearchMessageContent(
         icon = Res.drawable.error,
         text = stringResource(messageResId),
@@ -1278,7 +1280,7 @@ private fun LyricsSearchErrorContent(messageResId: Int) {
 
 @Composable
 private fun LyricsSearchMessageContent(
-    icon: Int,
+    icon: DrawableResource,
     text: String,
     containerColor: Color,
     contentColor: Color,
@@ -1442,7 +1444,7 @@ private fun LyricsSearchTextField(
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
     label: String,
-    iconResId: Int,
+    iconResId: DrawableResource,
     imeAction: ImeAction,
     onSearch: () -> Unit,
     modifier: Modifier = Modifier,

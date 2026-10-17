@@ -44,9 +44,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import moe.rukamori.archivetune.compat.Palette
-import coil3.imageLoader
+import moe.rukamori.archivetune.compat.imageLoader
 import coil3.request.ImageRequest
-import coil3.request.allowHardware
+import moe.rukamori.archivetune.compat.allowHardware
 import moe.rukamori.archivetune.compat.toBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

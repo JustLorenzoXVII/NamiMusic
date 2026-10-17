@@ -101,9 +101,9 @@ import moe.rukamori.archivetune.compat.media3.Download.Companion.STATE_COMPLETED
 import moe.rukamori.archivetune.compat.media3.Download.Companion.STATE_DOWNLOADING
 import moe.rukamori.archivetune.compat.media3.Download.Companion.STATE_QUEUED
 import coil3.compose.AsyncImage
-import coil3.imageLoader
+import moe.rukamori.archivetune.compat.imageLoader
 import coil3.request.ImageRequest
-import coil3.request.allowHardware
+import moe.rukamori.archivetune.compat.allowHardware
 import moe.rukamori.archivetune.compat.toBitmap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -2191,7 +2191,7 @@ fun SwipeToSongBox(
                 contentAlignment = align,
             ) {
                 Icon(
-                    painter = painterResource(id = iconRes),
+                    painter = painterResource(iconRes),
                     contentDescription = null,
                     modifier =
                         Modifier

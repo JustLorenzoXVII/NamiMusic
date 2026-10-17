@@ -73,6 +73,7 @@ import moe.rukamori.archivetune.models.ImportSource
 import moe.rukamori.archivetune.models.ImportedSongResult
 import moe.rukamori.archivetune.playlistimport.ImportReplacementSearcher
 import moe.rukamori.archivetune.playlistimport.buildImportSongQuery
+import org.jetbrains.compose.resources.StringResource
 
 @Composable
 fun ImportReviewScreen(
@@ -557,7 +558,7 @@ private data class ImportReviewItemState(
 )
 
 private enum class ImportReviewFilter(
-    val labelRes: Int,
+    val labelRes: StringResource,
 ) {
     ALL(Res.string.import_filter_all),
     MATCHED(Res.string.import_filter_matched),

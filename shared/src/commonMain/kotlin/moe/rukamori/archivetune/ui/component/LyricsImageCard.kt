@@ -369,7 +369,7 @@ fun LyricsImageCard(
                             contentAlignment = Alignment.Center,
                         ) {
                             Image(
-                                painter = painterResource(id = Res.drawable.small_icon),
+                                painter = painterResource(Res.drawable.small_icon),
                                 contentDescription = null,
                                 modifier = Modifier.size(15.dp),
                                 colorFilter =

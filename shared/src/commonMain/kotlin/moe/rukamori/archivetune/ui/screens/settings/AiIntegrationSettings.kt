@@ -104,6 +104,7 @@ import moe.rukamori.archivetune.viewmodels.AiIntegrationSettingsUiModel
 import moe.rukamori.archivetune.viewmodels.AiIntegrationSettingsViewModel
 import moe.rukamori.archivetune.viewmodels.AiSettingsEditorField
 import moe.rukamori.archivetune.viewmodels.AiSettingsEditorUiModel
+import org.jetbrains.compose.resources.StringResource
 
 private enum class TestApiVisualState { Idle, Testing, Success, Failed }
 
@@ -531,7 +532,7 @@ private fun AiIntegrationLoadingState() {
 }
 
 @Composable
-private fun AiIntegrationErrorState(messageResId: Int) {
+private fun AiIntegrationErrorState(messageResId: StringResource) {
     Box(
         modifier =
             Modifier

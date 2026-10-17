@@ -27,6 +27,7 @@ import moe.rukamori.archivetune.compat.Timber
 import moe.rukamori.archivetune.compat.time.DayOfWeek
 import moe.rukamori.archivetune.compat.time.LocalDate
 import moe.rukamori.archivetune.compat.time.ChronoUnit
+import moe.rukamori.archivetune.compat.toSortedMap
 
 class HistoryViewModel constructor(
         val database: MusicDatabase,

@@ -34,6 +34,19 @@ class File(
     val canonicalPath: String
         get() = path
 
+    val canonicalFile: File
+        get() = this
+
+    /** Spazio libero utilizzabile sul volume, in byte. */
+    val usableSpace: Long
+        get() = platformUsableSpace(path)
+
+    val freeSpace: Long
+        get() = platformUsableSpace(path)
+
+    val totalSpace: Long
+        get() = platformTotalSpace(path)
+
     val parent: String?
         get() = path.trimEnd('/').substringBeforeLast('/', "").takeIf { it.isNotEmpty() }
 
@@ -138,3 +151,7 @@ class File(
 }
 
 internal expect fun platformLastModified(path: String): Long
+
+internal expect fun platformUsableSpace(path: String): Long
+
+internal expect fun platformTotalSpace(path: String): Long

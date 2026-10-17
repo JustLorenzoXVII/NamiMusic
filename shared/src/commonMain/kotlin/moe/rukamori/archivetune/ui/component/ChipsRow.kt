@@ -143,10 +143,10 @@ fun <Int> ChoiceChipsRow(
                     Text(
                         text =
                             when (selectedOption) {
-                                OptionStats.WEEKS -> stringResource(id = Res.string.weeks)
-                                OptionStats.MONTHS -> stringResource(id = Res.string.months)
-                                OptionStats.YEARS -> stringResource(id = Res.string.years)
-                                OptionStats.CONTINUOUS -> stringResource(id = Res.string.continuous)
+                                OptionStats.WEEKS -> stringResource(Res.string.weeks)
+                                OptionStats.MONTHS -> stringResource(Res.string.months)
+                                OptionStats.YEARS -> stringResource(Res.string.years)
+                                OptionStats.CONTINUOUS -> stringResource(Res.string.continuous)
                             },
                     )
                 },

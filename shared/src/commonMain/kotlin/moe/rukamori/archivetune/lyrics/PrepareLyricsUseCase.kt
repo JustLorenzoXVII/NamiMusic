@@ -24,6 +24,7 @@ import moe.rukamori.archivetune.betterlyrics.TtmlLine
 import moe.rukamori.archivetune.betterlyrics.TtmlTimingMode
 import moe.rukamori.archivetune.betterlyrics.TtmlTrack
 import kotlin.math.roundToLong
+import moe.rukamori.archivetune.compat.Character
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PrepareLyricsUseCase constructor(

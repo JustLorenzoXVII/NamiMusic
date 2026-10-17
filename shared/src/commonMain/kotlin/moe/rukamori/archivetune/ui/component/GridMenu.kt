@@ -200,8 +200,7 @@ fun LazyGridScope.SleepTimerGridMenu(
                     if (enabled) {
                         makeTimeString(sleepTimerTimeLeft)
                     } else {
-                        stringResource(
-                            id = Res.string.sleep_timer,
+                        stringResource(Res.string.sleep_timer,
                         )
                     },
                 style = MaterialTheme.typography.labelLarge,

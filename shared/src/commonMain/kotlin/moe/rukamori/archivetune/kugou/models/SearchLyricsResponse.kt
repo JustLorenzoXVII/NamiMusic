@@ -8,6 +8,7 @@ package moe.rukamori.archivetune.kugou.models
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.jetbrains.compose.resources.DrawableResource
 
 @Serializable
 data class SearchLyricsResponse(

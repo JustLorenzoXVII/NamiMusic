@@ -21,13 +21,14 @@ import androidx.compose.ui.Modifier
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.DrawableResource
 
 @Composable
 fun HeaderDownloadProgressIndicator(
     progress: Float,
     paused: Boolean,
     modifier: Modifier = Modifier,
-    icon: Int = Res.drawable.list,
+    icon: DrawableResource = Res.drawable.list,
 ) {
     val boundedProgress =
         remember(progress) {

@@ -590,7 +590,7 @@ fun LyricsEnhanced(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
-                            painter = painterResource(id = Res.drawable.share),
+                            painter = painterResource(Res.drawable.share),
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
                         )
@@ -613,7 +613,7 @@ fun LyricsEnhanced(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
-                            painter = painterResource(id = Res.drawable.share),
+                            painter = painterResource(Res.drawable.share),
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
                         )
@@ -854,7 +854,7 @@ private fun LyricsSelectionBottomSheet(
                         ),
                 ) {
                     Icon(
-                        painter = painterResource(id = Res.drawable.share),
+                        painter = painterResource(Res.drawable.share),
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
                     )

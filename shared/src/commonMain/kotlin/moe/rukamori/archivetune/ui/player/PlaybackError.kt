@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import moe.rukamori.archivetune.compat.media3.PlaybackException
 import moe.rukamori.archivetune.BuildConfig
+import org.jetbrains.compose.resources.DrawableResource
 
 @Composable
 fun PlaybackErrorDialog(
@@ -501,7 +502,7 @@ private fun PlaybackErrorActions(
 
 @Composable
 private fun PlaybackErrorActionContent(
-    icon: Int,
+    icon: DrawableResource,
     label: String,
 ) {
     Icon(
@@ -538,7 +539,7 @@ private fun buildPlaybackErrorDetails(
         var throwable: Throwable? = error.cause
         var depth = 0
         while (throwable != null && depth < PlaybackErrorMaxCauseDepth) {
-            val name = throwable.javaClass.simpleName.ifBlank { throwable.javaClass.name }
+            val name = (throwable::class.simpleName ?: "").ifBlank { throwable::class.qualifiedName.orEmpty() }
             val message = throwable.message?.trim().orEmpty()
             appendLine()
             appendLine("$causeLabel: $name${if (message.isNotBlank()) ": $message" else ""}")

@@ -75,7 +75,7 @@ fun StarDialog(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Icon(
-                    painter = painterResource(id = Res.drawable.coffee),
+                    painter = painterResource(Res.drawable.coffee),
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
                 )
@@ -92,7 +92,7 @@ fun StarDialog(
                 shapes = ButtonDefaults.shapes(),
             ) {
                 Icon(
-                    painter = painterResource(id = Res.drawable.star),
+                    painter = painterResource(Res.drawable.star),
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
                 )

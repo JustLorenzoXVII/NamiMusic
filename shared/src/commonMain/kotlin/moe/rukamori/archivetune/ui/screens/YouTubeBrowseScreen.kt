@@ -227,7 +227,7 @@ fun YouTubeBrowseScreen(
                                                             is AlbumItem -> navController.navigate("album/${item.id}")
                                                             is ArtistItem -> navController.navigate("artist/${item.id}")
                                                             is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
-                                                            is PodcastItem -> navController.navigate("podcast/${android.net.Uri.encode(item.browseId)}")
+                                                            is PodcastItem -> navController.navigate("podcast/${moe.rukamori.archivetune.compat.Uri.encode(item.browseId)}")
                                                             is EpisodeItem -> {
                                                                 playerConnection.playQueue(
                                                                     ListQueue(

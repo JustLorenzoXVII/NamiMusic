@@ -39,6 +39,7 @@ import moe.rukamori.archivetune.equalizer.UpdateEqualizerUseCase
 import moe.rukamori.archivetune.equalizer.equalizerToneIndices
 import moe.rukamori.archivetune.equalizer.resampleLevels
 import moe.rukamori.archivetune.playback.EqProfile
+import org.jetbrains.compose.resources.StringResource
 
 sealed interface EqualizerScreenState {
     data object Loading : EqualizerScreenState
@@ -50,7 +51,7 @@ sealed interface EqualizerScreenState {
     data object Empty : EqualizerScreenState
 
     data class Error(
-        val messageResId: Int,
+        val messageResId: StringResource,
     ) : EqualizerScreenState
 }
 
@@ -147,7 +148,7 @@ data class SaveEqualizerProfileUiModel(
 
 sealed interface EqualizerEffect {
     data class ShowMessage(
-        val messageResId: Int,
+        val messageResId: StringResource,
         val quantity: Int? = null,
     ) : EqualizerEffect
 
@@ -399,7 +400,7 @@ class EqualizerViewModel constructor(
         private fun findProfile(profileId: String): EqProfile? = configuration?.profiles?.firstOrNull { it.id == profileId }
 
         private fun launchUpdate(
-            errorMessageResId: Int = Res.string.error_unknown,
+            errorMessageResId: StringResource = Res.string.error_unknown,
             block: suspend () -> Unit,
         ): Job =
             viewModelScope.launch(Dispatchers.IO) {

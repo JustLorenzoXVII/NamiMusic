@@ -123,3 +123,20 @@ actual val Context.platformContext: coil3.PlatformContext
 internal actual fun platformSecureRandomBytes(bytes: ByteArray) {
     java.security.SecureRandom().nextBytes(bytes)
 }
+
+internal actual fun platformUsableSpace(path: String): Long = java.io.File(path).usableSpace
+
+internal actual fun platformTotalSpace(path: String): Long = java.io.File(path).totalSpace
+
+internal actual fun platformAdjustStreamVolume(
+    streamType: Int,
+    direction: Int,
+    flags: Int,
+) {
+    val context = com.justlorenzo.archivetunex.player.AndroidAppContext.context
+    val audioManager = context.getSystemService(android.content.Context.AUDIO_SERVICE) as? android.media.AudioManager ?: return
+    audioManager.adjustStreamVolume(streamType, direction, flags)
+}
+
+internal actual fun platformIs24HourFormat(): Boolean =
+    android.text.format.DateFormat.is24HourFormat(com.justlorenzo.archivetunex.player.AndroidAppContext.context)

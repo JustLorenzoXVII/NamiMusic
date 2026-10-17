@@ -92,6 +92,7 @@ import moe.rukamori.archivetune.compat.uppercase
 import moe.rukamori.archivetune.compat.lowercase
 import kotlin.math.roundToInt
 import kotlin.system.exitProcess
+import moe.rukamori.archivetune.compat.outputStream
 
 data class BackupRestoreProgressUi(
     val title: String,

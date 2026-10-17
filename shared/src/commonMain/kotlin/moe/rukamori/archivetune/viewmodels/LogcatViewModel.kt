@@ -36,6 +36,7 @@ import moe.rukamori.archivetune.compat.Date
 import moe.rukamori.archivetune.compat.Locale
 import moe.rukamori.archivetune.compat.uppercase
 import moe.rukamori.archivetune.compat.lowercase
+import org.jetbrains.compose.resources.StringResource
 
 sealed interface LogcatScreenState {
     data object Loading : LogcatScreenState
@@ -49,7 +50,7 @@ sealed interface LogcatScreenState {
     ) : LogcatScreenState
 
     data class Error(
-        val messageResId: Int,
+        val messageResId: StringResource,
     ) : LogcatScreenState
 }
 
@@ -87,7 +88,7 @@ data class LogcatUiEntry(
 sealed interface LogcatEffect {
     data class Copy(
         val text: String,
-        val confirmationResId: Int,
+        val confirmationResId: StringResource,
     ) : LogcatEffect
 
     data class Share(
@@ -99,7 +100,7 @@ sealed interface LogcatEffect {
     ) : LogcatEffect
 
     data class Message(
-        val messageResId: Int,
+        val messageResId: StringResource,
     ) : LogcatEffect
 }
 
@@ -346,7 +347,7 @@ class LogcatViewModel constructor(
             data object Ready : LoadState
 
             data class Error(
-                val messageResId: Int,
+                val messageResId: StringResource,
             ) : LoadState
         }
 

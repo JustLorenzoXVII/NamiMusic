@@ -100,6 +100,7 @@ import moe.rukamori.archivetune.viewmodels.LibraryTopMixUiModel
 import moe.rukamori.archivetune.viewmodels.LibraryTopMixesUiState
 import moe.rukamori.archivetune.viewmodels.MostPlayedAlbumUiModel
 import moe.rukamori.archivetune.viewmodels.MostPlayedAlbumUiState
+import org.jetbrains.compose.resources.DrawableResource
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -367,7 +368,7 @@ fun LibraryMixScreen(
                                                 contentAlignment = Alignment.Center,
                                             ) {
                                                 Icon(
-                                                    painter = painterResource(id = Res.drawable.play),
+                                                    painter = painterResource(Res.drawable.play),
                                                     contentDescription = null,
                                                     tint = MaterialTheme.colorScheme.onPrimary,
                                                     modifier = Modifier.size(14.dp),
@@ -539,7 +540,7 @@ fun LibraryMixScreen(
                                                 contentAlignment = Alignment.Center,
                                             ) {
                                                 Icon(
-                                                    painter = painterResource(id = Res.drawable.play),
+                                                    painter = painterResource(Res.drawable.play),
                                                     contentDescription = null,
                                                     tint = MaterialTheme.colorScheme.onPrimary,
                                                     modifier = Modifier.size(14.dp),
@@ -601,7 +602,7 @@ fun LibraryMixScreen(
                                             contentAlignment = Alignment.Center,
                                         ) {
                                             Icon(
-                                                painter = painterResource(id = Res.drawable.expand_more),
+                                                painter = painterResource(Res.drawable.expand_more),
                                                 contentDescription = stringResource(Res.string.more_playlists_desc),
                                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 modifier = Modifier.size(24.dp),
@@ -709,7 +710,7 @@ fun LibraryMixScreen(
                                             contentAlignment = Alignment.Center,
                                         ) {
                                             Icon(
-                                                painter = painterResource(id = Res.drawable.add),
+                                                painter = painterResource(Res.drawable.add),
                                                 contentDescription = stringResource(Res.string.more_label),
                                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 modifier = Modifier.size(24.dp),
@@ -798,7 +799,7 @@ private fun SpotifyPlaylistCompactCard(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    painter = painterResource(id = Res.drawable.spotify_icon),
+                    painter = painterResource(Res.drawable.spotify_icon),
                     contentDescription = stringResource(Res.string.spotify_account),
                     tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(14.dp),
@@ -1027,7 +1028,7 @@ private fun TopMixesHeader(
                     )
                 } else {
                     Icon(
-                        painter = painterResource(id = Res.drawable.sync),
+                        painter = painterResource(Res.drawable.sync),
                         contentDescription = stringResource(Res.string.library_top_mixes_refresh),
                         modifier = Modifier.size(20.dp),
                     )
@@ -1137,7 +1138,7 @@ private fun LibraryTopMixCard(
                     modifier = Modifier.size(48.dp),
                 ) {
                     Icon(
-                        painter = painterResource(id = Res.drawable.play),
+                        painter = painterResource(Res.drawable.play),
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
                     )
@@ -1214,7 +1215,7 @@ private fun MostPlayedAlbumSpotlightCard(
                         )
                     } else {
                         Icon(
-                            painter = painterResource(id = Res.drawable.album),
+                            painter = painterResource(Res.drawable.album),
                             contentDescription = null,
                             tint = primaryColor,
                             modifier = Modifier.size(28.dp),
@@ -1234,7 +1235,7 @@ private fun MostPlayedAlbumSpotlightCard(
                                 .padding(horizontal = 8.dp, vertical = 2.dp),
                     ) {
                         Icon(
-                            painter = painterResource(id = Res.drawable.star),
+                            painter = painterResource(Res.drawable.star),
                             contentDescription = null,
                             tint = primaryColor,
                             modifier = Modifier.size(10.dp),
@@ -1290,7 +1291,7 @@ private fun MostPlayedAlbumSpotlightCard(
                     modifier = Modifier.height(36.dp),
                 ) {
                     Icon(
-                        painter = painterResource(id = Res.drawable.play),
+                        painter = painterResource(Res.drawable.play),
                         contentDescription = null,
                         modifier = Modifier.size(14.dp),
                     )
@@ -1311,7 +1312,7 @@ private fun MostPlayedAlbumSpotlightCard(
                     modifier = Modifier.size(36.dp),
                 ) {
                     Icon(
-                        painter = painterResource(id = Res.drawable.shuffle),
+                        painter = painterResource(Res.drawable.shuffle),
                         contentDescription = stringResource(Res.string.shuffle),
                         modifier = Modifier.size(16.dp),
                     )
@@ -1325,7 +1326,7 @@ private fun MostPlayedAlbumSpotlightCard(
 fun ShortcutCard(
     title: String,
     countText: String,
-    iconRes: Int,
+    iconRes: DrawableResource,
     containerColor: Color,
     iconColor: Color,
     modifier: Modifier = Modifier,
@@ -1388,7 +1389,7 @@ fun ShortcutCard(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    painter = painterResource(id = iconRes),
+                    painter = painterResource(iconRes),
                     contentDescription = null,
                     tint = iconColor,
                     modifier = Modifier.size(16.dp),

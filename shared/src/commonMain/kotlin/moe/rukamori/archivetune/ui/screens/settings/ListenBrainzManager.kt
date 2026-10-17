@@ -43,30 +43,15 @@ object ListenBrainzManager {
 
     private fun extractArtistName(artist: Any): String {
         try {
-            val getterNames = listOf("getName", "getArtistName", "name")
-            for (methodName in getterNames) {
-                try {
-                    val method = artist.javaClass.getMethod(methodName)
-                    val result = method.invoke(artist)
-                    if (result is String && result.isNotBlank()) {
-                        return result
-                    }
-                } catch (e: Exception) {
+            // ArchiveTuneX: niente reflection Java (non esiste su iPhone); si riconoscono i tipi noti.
+            val knownName =
+                when (artist) {
+                    is moe.rukamori.archivetune.db.entities.ArtistEntity -> artist.name
+                    is moe.rukamori.archivetune.innertube.models.Artist -> artist.name
+                    is String -> artist
+                    else -> null
                 }
-            }
-
-            val fieldNames = listOf("name", "artistName")
-            for (fieldName in fieldNames) {
-                try {
-                    val field = artist.javaClass.getDeclaredField(fieldName)
-                    field.isAccessible = true
-                    val result = field.get(artist)
-                    if (result is String && result.isNotBlank()) {
-                        return result
-                    }
-                } catch (e: Exception) {
-                }
-            }
+            if (!knownName.isNullOrBlank()) return knownName
 
             val str = artist.toString()
             val namePattern = Regex("""name\s*=\s*([^,)\]]+)""")

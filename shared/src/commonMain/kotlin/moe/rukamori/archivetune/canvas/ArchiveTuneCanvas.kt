@@ -95,9 +95,9 @@ object ArchiveTuneCanvas {
             fetch(mapOf("url" to url))?.let { return it }
         }
         if (!source.accepts(CanvasSource.APPLE_MUSIC)) return null
-        val parsed = runCatching { java.net.URI(url) }.getOrNull() ?: return null
+        val parsed = runCatching { moe.rukamori.archivetune.compat.Uri.parse(url) }.getOrNull() ?: return null
         if (parsed.host != "music.apple.com") return null
-        val parts = parsed.path.trim('/').split('/')
+        val parts = parsed.path.orEmpty().trim('/').split('/')
         val albumId = parts.lastOrNull()?.takeIf { it.isNotEmpty() && it.all(Char::isDigit) } ?: return null
         val storefront = parts.firstOrNull()?.takeIf { it.length == 2 } ?: return null
         return AppleMusicProvider.getByAlbumId(albumId, storefront)?.copy(source = CanvasSource.APPLE_MUSIC)
@@ -125,7 +125,7 @@ object ArchiveTuneCanvas {
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
-            System.err.println("BetterLyrics canvas request failed: ${error.javaClass.simpleName}")
+            System.err.println("BetterLyrics canvas request failed: ${error::class.simpleName}")
             null
         }
     }
@@ -139,7 +139,7 @@ object ArchiveTuneCanvas {
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
-            System.err.println("BetterLyrics canvas health failed: ${error.javaClass.simpleName}")
+            System.err.println("BetterLyrics canvas health failed: ${error::class.simpleName}")
             false
         }
     }

@@ -53,6 +53,7 @@ import moe.rukamori.archivetune.utils.GlobalLog
 import moe.rukamori.archivetune.utils.NetworkConnectivityObserver
 import moe.rukamori.archivetune.utils.dataStore
 import moe.rukamori.archivetune.utils.reportException
+import moe.rukamori.archivetune.compat.synchronized
 
 class LyricsHelper constructor(
         private val context: Context,

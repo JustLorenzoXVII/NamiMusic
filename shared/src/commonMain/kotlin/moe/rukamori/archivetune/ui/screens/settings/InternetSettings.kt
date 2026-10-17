@@ -328,7 +328,7 @@ fun InternetSettings(navController: NavController) {
 
                                         if (proxyUsername.isNotBlank() && proxyPassword.isNotBlank()) {
                                             clientBuilder.proxyAuthenticator { _, response ->
-                                                val credential = okhttp3.Credentials.basic(proxyUsername, proxyPassword)
+                                                val credential = moe.rukamori.archivetune.compat.okhttp3.Credentials.basic(proxyUsername, proxyPassword)
                                                 response.request
                                                     .newBuilder()
                                                     .header("Proxy-Authorization", credential)

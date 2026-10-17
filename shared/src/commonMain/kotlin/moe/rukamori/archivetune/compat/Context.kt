@@ -37,7 +37,8 @@ import org.jetbrains.compose.resources.getPluralString
  * stringhe, cartelle dell'app, nome del pacchetto. C'è un solo contesto, [AppContext].
  */
 abstract class Context {
-    abstract val applicationContext: Context
+    open val applicationContext: Context
+        get() = AppContext
 
     val packageName: String
         get() = PACKAGE_NAME
@@ -66,6 +67,7 @@ abstract class Context {
     companion object {
         const val PACKAGE_NAME = "com.justlorenzo.archivetunex"
         const val CLIPBOARD_SERVICE = "clipboard"
+        const val AUDIO_SERVICE = "audio"
         const val MODE_PRIVATE = 0
     }
 }

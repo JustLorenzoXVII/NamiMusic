@@ -85,11 +85,11 @@ import moe.rukamori.archivetune.compat.media3.MediaItem
 import moe.rukamori.archivetune.compat.media3.Player
 import moe.rukamori.archivetune.compat.AspectRatioFrameLayout
 import coil3.compose.AsyncImage
-import coil3.imageLoader
+import moe.rukamori.archivetune.compat.imageLoader
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
-import coil3.request.allowHardware
+import moe.rukamori.archivetune.compat.allowHardware
 import moe.rukamori.archivetune.compat.toBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

@@ -53,6 +53,8 @@ import moe.rukamori.archivetune.compat.Locale
 import moe.rukamori.archivetune.compat.uppercase
 import moe.rukamori.archivetune.compat.lowercase
 import moe.rukamori.archivetune.compat.TimeUnit
+import moe.rukamori.archivetune.compat.synchronized
+import kotlin.jvm.Synchronized
 
 object CanvasArtworkPlaybackCache {
     private const val DEFAULT_MAX_SIZE_MEGABYTES = 256
@@ -768,7 +770,7 @@ object CanvasArtworkPlaybackCache {
     }
 }
 
-private fun okhttp3.HttpUrl.isYouTubeMediaHost(): Boolean {
+private fun moe.rukamori.archivetune.compat.okhttp3.HttpUrl.isYouTubeMediaHost(): Boolean {
     val normalizedHost = host.lowercase(Locale.ROOT)
     return normalizedHost.endsWith("googlevideo.com") ||
         normalizedHost.endsWith("googleusercontent.com") ||

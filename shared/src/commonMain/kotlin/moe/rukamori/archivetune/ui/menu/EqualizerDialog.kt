@@ -101,6 +101,7 @@ import moe.rukamori.archivetune.viewmodels.EqualizerToneUiModel
 import moe.rukamori.archivetune.viewmodels.EqualizerUiModel
 import moe.rukamori.archivetune.viewmodels.EqualizerViewModel
 import kotlin.math.roundToInt
+import org.jetbrains.compose.resources.StringResource
 
 @Composable
 fun EqualizerDialog(
@@ -943,7 +944,7 @@ private fun EqualizerUnavailable(
 @Composable
 private fun EqualizerError(
     contentPadding: PaddingValues,
-    messageResId: Int,
+    messageResId: StringResource,
     onOpenSystemEqualizer: () -> Unit,
 ) {
     EqualizerMessage(contentPadding, stringResource(messageResId), onOpenSystemEqualizer)

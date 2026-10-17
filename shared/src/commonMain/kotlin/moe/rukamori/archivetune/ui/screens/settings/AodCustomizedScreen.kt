@@ -130,6 +130,7 @@ import moe.rukamori.archivetune.ui.utils.supportsArtworkGlowShadow
 import moe.rukamori.archivetune.ui.utils.toComposeShape
 import moe.rukamori.archivetune.utils.rememberEnumPreference
 import moe.rukamori.archivetune.utils.rememberPreference
+import org.jetbrains.compose.resources.DrawableResource
 
 @Immutable
 private data class AodPreviewSettings(
@@ -1064,7 +1065,7 @@ private fun PreviewControls(
 
 @Composable
 private fun PreviewControlIcon(
-    iconRes: Int,
+    iconRes: DrawableResource,
     size: androidx.compose.ui.unit.Dp,
     containerColor: Color,
     contentColor: Color,

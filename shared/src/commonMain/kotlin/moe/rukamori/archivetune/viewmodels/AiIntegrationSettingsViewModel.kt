@@ -402,7 +402,7 @@ class AiIntegrationSettingsViewModel constructor(
                 .take(10)
                 .distinct()
                 .joinToString(separator = "\n\n") { throwable ->
-                    val name = throwable.javaClass.simpleName.ifBlank { throwable.javaClass.name }
+                    val name = (throwable::class.simpleName ?: "").ifBlank { throwable::class.qualifiedName.orEmpty() }
                     val message = throwable.localizedMessage?.takeIf { it.isNotBlank() }
                         ?: context.getString(Res.string.ai_api_test_failed)
                     "$name: $message"

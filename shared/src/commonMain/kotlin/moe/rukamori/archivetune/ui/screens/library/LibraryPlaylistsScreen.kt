@@ -84,9 +84,9 @@ import org.koin.compose.viewmodel.koinViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import moe.rukamori.archivetune.compat.Palette
-import coil3.imageLoader
+import moe.rukamori.archivetune.compat.imageLoader
 import coil3.request.ImageRequest
-import coil3.request.allowHardware
+import moe.rukamori.archivetune.compat.allowHardware
 import moe.rukamori.archivetune.compat.toBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
@@ -288,7 +288,7 @@ fun LibraryPlaylistsScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Icon(
-                                painter = painterResource(id = Res.drawable.expand_more),
+                                painter = painterResource(Res.drawable.expand_more),
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(16.dp),
@@ -355,7 +355,7 @@ fun LibraryPlaylistsScreen(
                             modifier = Modifier.size(40.dp),
                         ) {
                             Icon(
-                                painter = painterResource(id = Res.drawable.arrow_downward),
+                                painter = painterResource(Res.drawable.arrow_downward),
                                 contentDescription =
                                     stringResource(
                                         if (sortDescending) {
@@ -408,7 +408,7 @@ fun LibraryPlaylistsScreen(
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(
-                                painter = painterResource(id = Res.drawable.queue_music),
+                                painter = painterResource(Res.drawable.queue_music),
                                 contentDescription = stringResource(Res.string.list_view),
                                 tint = if (!isGridView) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(16.dp),
@@ -424,7 +424,7 @@ fun LibraryPlaylistsScreen(
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(
-                                painter = painterResource(id = Res.drawable.album),
+                                painter = painterResource(Res.drawable.album),
                                 contentDescription = stringResource(Res.string.grid_view),
                                 tint = if (isGridView) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(16.dp),
@@ -444,7 +444,7 @@ fun LibraryPlaylistsScreen(
                         modifier = Modifier.size(40.dp),
                     ) {
                         Icon(
-                            painter = painterResource(id = Res.drawable.add),
+                            painter = painterResource(Res.drawable.add),
                             contentDescription = stringResource(Res.string.create_playlist),
                             modifier = Modifier.size(18.dp),
                         )
@@ -912,7 +912,7 @@ fun PlaylistGridCard(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    painter = painterResource(id = Res.drawable.play),
+                    painter = painterResource(Res.drawable.play),
                     contentDescription = stringResource(Res.string.play),
                     tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(16.dp),
@@ -921,7 +921,7 @@ fun PlaylistGridCard(
 
             if (playlist.playlist.isHidden) {
                 Icon(
-                    painter = painterResource(id = Res.drawable.visibility_off),
+                    painter = painterResource(Res.drawable.visibility_off),
                     contentDescription = stringResource(Res.string.hide_playlist),
                     modifier =
                         Modifier

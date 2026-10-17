@@ -74,6 +74,9 @@ object HapticFeedbackConstants {
     const val DRAG_START = 25
     const val SEGMENT_TICK = 26
     const val SEGMENT_FREQUENT_TICK = 27
+
+    /** Flag di View.performHapticFeedback (ignorato fuori da Android). */
+    const val FLAG_IGNORE_GLOBAL_SETTING = 2
 }
 
 /** android.view.View, per quanto serve all'interfaccia: vibrazione e post. */
@@ -112,6 +115,11 @@ class View internal constructor() {
 
     val context: Context
         get() = AppContext
+
+    /** View.setRequestedFrameRate (Android 15): ignorato fuori da Android. */
+    fun setRequestedFrameRate(
+        @Suppress("UNUSED_PARAMETER") frameRate: Float,
+    ) = Unit
 }
 
 private val sharedView = View()
@@ -138,6 +146,13 @@ object WindowManager {
 
 /** La finestra dell'app (android.view.Window). */
 class Window internal constructor() {
+    /** android.view.WindowManager.LayoutParams: solo la frequenza di aggiornamento preferita. */
+    class Attributes {
+        var preferredRefreshRate: Float = 0f
+    }
+
+    var attributes: Attributes = Attributes()
+
     fun addFlags(flags: Int) {
         if (flags and WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON != 0) platformSetKeepScreenOn(true)
     }
@@ -152,6 +167,18 @@ abstract class Activity : Context() {
     val window: Window = Window()
 
     fun runOnUiThread(action: () -> Unit) = platformRunOnMain(action)
+
+    /** L'unica attività è l'app: chiuderla non ha senso, quindi non fa nulla. */
+    fun finish() = Unit
+
+    /** Ricrea l'interfaccia (es. cambio lingua): sulle piattaforme comuni non serve. */
+    fun recreate() = Unit
+
+    var intent: Intent? = null
+
+    open fun onCreate(savedInstanceState: Bundle?) = Unit
+
+    open fun onNewIntent(intent: Intent) = Unit
 }
 
 /** java.text.BreakIterator.getCharacterInstance: divide il testo in caratteri visibili (grafemi). */

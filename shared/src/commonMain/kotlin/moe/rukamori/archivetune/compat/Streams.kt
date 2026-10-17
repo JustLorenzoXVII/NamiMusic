@@ -419,3 +419,8 @@ class ByteBuffer private constructor(
         fun wrap(array: ByteArray): ByteBuffer = ByteBuffer(array)
     }
 }
+
+/** File.inputStream() / File.outputStream() di Kotlin per la File comune. */
+fun File.inputStream(): InputStream = FileInputStream(this)
+
+fun File.outputStream(): OutputStream = FileOutputStream(this)

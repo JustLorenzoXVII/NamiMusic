@@ -90,9 +90,9 @@ import androidx.compose.ui.zIndex
 import moe.rukamori.archivetune.compat.media3.C
 import moe.rukamori.archivetune.compat.Palette
 import coil3.compose.AsyncImage
-import coil3.imageLoader
+import moe.rukamori.archivetune.compat.imageLoader
 import coil3.request.ImageRequest
-import coil3.request.allowHardware
+import moe.rukamori.archivetune.compat.allowHardware
 import moe.rukamori.archivetune.compat.toBitmap
 import kotlin.math.abs
 import kotlinx.coroutines.Dispatchers
@@ -484,9 +484,9 @@ fun AodPlayerScreen(
                                 resetInteraction()
                                 accumVerticalDrag += dragAmount
                                 if (kotlin.math.abs(accumVerticalDrag) > 40f) {
-                                    val audioManager = context.getSystemService(android.content.Context.AUDIO_SERVICE) as? android.media.AudioManager
-                                    val direction = if (accumVerticalDrag < 0) android.media.AudioManager.ADJUST_RAISE else android.media.AudioManager.ADJUST_LOWER
-                                    audioManager?.adjustStreamVolume(android.media.AudioManager.STREAM_MUSIC, direction, android.media.AudioManager.FLAG_SHOW_UI)
+                                    val audioManager = context.getSystemService(moe.rukamori.archivetune.compat.Context.AUDIO_SERVICE) as? moe.rukamori.archivetune.compat.AudioManager
+                                    val direction = if (accumVerticalDrag < 0) moe.rukamori.archivetune.compat.AudioManager.ADJUST_RAISE else moe.rukamori.archivetune.compat.AudioManager.ADJUST_LOWER
+                                    audioManager?.adjustStreamVolume(moe.rukamori.archivetune.compat.AudioManager.STREAM_MUSIC, direction, moe.rukamori.archivetune.compat.AudioManager.FLAG_SHOW_UI)
                                     accumVerticalDrag = 0f
                                 }
                             },

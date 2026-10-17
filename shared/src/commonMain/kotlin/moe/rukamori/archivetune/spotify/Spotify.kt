@@ -1341,9 +1341,7 @@ object Spotify {
     suspend fun home(
         sectionItemsLimit: Int = 10,
         timeZone: String =
-            java.util.TimeZone
-                .getDefault()
-                .id,
+            moe.rukamori.archivetune.compat.TimeZone.getDefault().id,
     ): Result<moe.rukamori.archivetune.spotify.models.SpotifyHomeFeed> =
         runCatching {
             log("D", "spotifyHome: GQL home() request — timeZone=$timeZone limit=$sectionItemsLimit")

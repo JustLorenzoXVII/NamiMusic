@@ -50,6 +50,7 @@ import moe.rukamori.archivetune.compat.uppercase
 import moe.rukamori.archivetune.compat.lowercase
 import moe.rukamori.archivetune.compat.TimeUnit
 import kotlin.coroutines.resume
+import moe.rukamori.archivetune.compat.synchronized
 
 class DownloadedArtworkRepository constructor(
         private val context: Context,

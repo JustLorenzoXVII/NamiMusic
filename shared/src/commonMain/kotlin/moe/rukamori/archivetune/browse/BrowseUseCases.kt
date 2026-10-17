@@ -75,7 +75,7 @@ private fun List<YTItem>.toImmutableBrowseItems(): ImmutableList<YTItem> =
             .toList(),
     )
 
-private fun String.fallbackTitleResId(): Int? =
+private fun String.fallbackTitleResId(): StringResource? =
     when (this) {
         PODCAST_LIBRARY_BROWSE_ID -> Res.string.your_shows
         else -> null

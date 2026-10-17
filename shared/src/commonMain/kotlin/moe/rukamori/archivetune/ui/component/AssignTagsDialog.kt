@@ -66,6 +66,7 @@ import moe.rukamori.archivetune.viewmodels.PlaylistTagPlaylistUiModel
 import moe.rukamori.archivetune.viewmodels.PlaylistTagUiModel
 import moe.rukamori.archivetune.viewmodels.PlaylistTagsScreenState
 import moe.rukamori.archivetune.viewmodels.PlaylistTagsViewModel
+import org.jetbrains.compose.resources.StringResource
 
 @Composable
 fun AssignTagsDialog(
@@ -592,7 +593,7 @@ private fun AssignTagsEmptyContent(onManageTags: () -> Unit) {
 }
 
 @Composable
-private fun AssignTagsErrorContent(messageResId: Int) {
+private fun AssignTagsErrorContent(messageResId: StringResource) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.extraLarge,

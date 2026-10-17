@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import moe.rukamori.archivetune.BuildConfig
+import org.jetbrains.compose.resources.StringResource
 
 class ObserveOnboardingDataUseCase constructor(
         private val repository: OnboardingRepository,
@@ -48,7 +49,7 @@ class BuildOnboardingUiStateUseCase constructor() {
                 communityActions = communityActions,
             )
 
-        private fun variantLabelResId(): Int =
+        private fun variantLabelResId(): StringResource =
             if (BuildConfig.DISTRIBUTION == DISTRIBUTION_GMS) {
                 Res.string.onboarding_gms_variant
             } else {
@@ -65,7 +66,7 @@ class BuildOnboardingUiStateUseCase constructor() {
                 action = action,
             )
 
-        private fun OnboardingPermissionId.titleResId(): Int =
+        private fun OnboardingPermissionId.titleResId(): StringResource =
             when (this) {
                 OnboardingPermissionId.NOTIFICATIONS -> {
                     Res.string.onboarding_permission_notifications_title

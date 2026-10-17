@@ -36,6 +36,7 @@ import moe.rukamori.archivetune.scrobbling.ObserveLastFmSettingsUseCase
 import moe.rukamori.archivetune.scrobbling.SaveLastFmServiceConfigUseCase
 import moe.rukamori.archivetune.scrobbling.UpdateLastFmScrobblingOptionsUseCase
 import moe.rukamori.archivetune.compat.Timber
+import org.jetbrains.compose.resources.StringResource
 
 sealed interface LastFmSettingsScreenState {
     data object Loading : LastFmSettingsScreenState
@@ -47,7 +48,7 @@ sealed interface LastFmSettingsScreenState {
     data object Empty : LastFmSettingsScreenState
 
     data class Error(
-        val messageResId: Int,
+        val messageResId: StringResource,
     ) : LastFmSettingsScreenState
 }
 
@@ -84,7 +85,7 @@ data class LastFmLoginDialogUiModel(
     val username: String = "",
     val password: String = "",
     val isLoggingIn: Boolean = false,
-    val errorMessageResId: Int? = null,
+    val errorMessageResId: StringResource? = null,
 )
 
 @Immutable
@@ -95,7 +96,7 @@ data class LastFmServiceEditorUiModel(
     val apiKeyOverride: String = "",
     val secretOverride: String = "",
     val isSaving: Boolean = false,
-    val errorMessageResId: Int? = null,
+    val errorMessageResId: StringResource? = null,
 ) {
     val showCustomEndpoint: Boolean
         get() = provider == LastFmProvider.CUSTOM
@@ -396,7 +397,7 @@ class LastFmSettingsViewModel constructor(
                 timingEditor = this.timingEditor,
             )
 
-        private fun Throwable.loginErrorResId(): Int =
+        private fun Throwable.loginErrorResId(): StringResource =
             when (this) {
                 is LastFM.LastFmException -> {
                     when (code) {

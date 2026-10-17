@@ -130,6 +130,7 @@ import moe.rukamori.archivetune.utils.rememberPreference
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import moe.rukamori.archivetune.compat.time.LocalDateTime
+import org.jetbrains.compose.resources.DrawableResource
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -1336,7 +1337,7 @@ private fun QueueSelectionFloatingToolbar(
 
 @Composable
 private fun QueueSelectionToolbarAction(
-    icon: Int,
+    icon: DrawableResource,
     contentDescription: String?,
     onClick: () -> Unit,
     tint: Color = MaterialTheme.colorScheme.onSurface,

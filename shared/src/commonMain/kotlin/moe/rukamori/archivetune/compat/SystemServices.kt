@@ -41,6 +41,7 @@ private val clipboardManager = ClipboardManager()
 fun Context.getSystemService(name: String): Any? =
     when (name) {
         Context.CLIPBOARD_SERVICE -> clipboardManager
+        Context.AUDIO_SERVICE -> AudioManager
         else -> null
     }
 
@@ -48,7 +49,38 @@ fun Context.getSystemService(name: String): Any? =
 fun <T : Any> Context.getSystemService(serviceClass: KClass<T>): T? =
     when (serviceClass) {
         ClipboardManager::class -> clipboardManager as T
+        AudioManager::class -> AudioManager as T
         else -> null
     }
 
 inline fun <reified T : Any> Context.getSystemService(): T? = getSystemService(T::class)
+
+
+/** android.media.AudioManager: solo il volume, usato dai gesti dello schermo AOD. */
+object AudioManager {
+    const val STREAM_MUSIC = 3
+    const val ADJUST_LOWER = -1
+    const val ADJUST_SAME = 0
+    const val ADJUST_RAISE = 1
+    const val FLAG_SHOW_UI = 1
+
+    fun adjustStreamVolume(
+        streamType: Int,
+        direction: Int,
+        flags: Int,
+    ) = platformAdjustStreamVolume(streamType, direction, flags)
+}
+
+/** Su iPhone le app non possono cambiare il volume di sistema: non fa nulla. */
+internal expect fun platformAdjustStreamVolume(
+    streamType: Int,
+    direction: Int,
+    flags: Int,
+)
+
+/** android.text.format.DateFormat: solo is24HourFormat. */
+object DateFormat {
+    fun is24HourFormat(context: Context): Boolean = platformIs24HourFormat()
+}
+
+internal expect fun platformIs24HourFormat(): Boolean

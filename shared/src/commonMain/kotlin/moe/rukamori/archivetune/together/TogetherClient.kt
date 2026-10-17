@@ -7,6 +7,10 @@
 
 package moe.rukamori.archivetune.together
 
+import moe.rukamori.archivetune.compat.isSslHandshakeError
+import moe.rukamori.archivetune.compat.isSocketTimeoutError
+import moe.rukamori.archivetune.compat.isConnectionRefusedError
+import moe.rukamori.archivetune.compat.isUnknownHostError
 import moe.rukamori.archivetune.innertube.network.createPlatformHttpClient
 
 import androidx.compose.runtime.Immutable
@@ -230,24 +234,24 @@ class TogetherClient(
         val root = generateSequence(t) { it.cause }.lastOrNull()
         val raw = root?.message?.trim().orEmpty()
         val reason =
-            when (root) {
-                is java.net.UnknownHostException -> {
+            when {
+                root?.isUnknownHostError() == true -> {
                     "Server not found"
                 }
 
-                is java.net.ConnectException -> {
+                root?.isConnectionRefusedError() == true -> {
                     "Connection refused"
                 }
 
-                is java.net.SocketTimeoutException -> {
+                root?.isSocketTimeoutError() == true -> {
                     "Connection timed out"
                 }
 
-                is javax.net.ssl.SSLHandshakeException -> {
+                root?.isSslHandshakeError() == true -> {
                     "Secure connection failed"
                 }
 
-                is IllegalArgumentException -> {
+                root is IllegalArgumentException -> {
                     if (raw.contains("ws", ignoreCase = true) &&
                         raw.contains("scheme", ignoreCase = true)
                     ) {
@@ -429,7 +433,7 @@ class TogetherClient(
                                     _events.tryEmit(
                                         TogetherClientEvent.HeartbeatPong(
                                             pong = message,
-                                            receivedAtElapsedRealtimeMs = android.os.SystemClock.elapsedRealtime(),
+                                            receivedAtElapsedRealtimeMs = moe.rukamori.archivetune.compat.SystemClock.elapsedRealtime(),
                                         ),
                                     )
                                 }

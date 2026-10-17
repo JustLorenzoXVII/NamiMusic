@@ -125,6 +125,7 @@ import moe.rukamori.archivetune.compat.Locale
 import moe.rukamori.archivetune.compat.uppercase
 import moe.rukamori.archivetune.compat.lowercase
 import kotlin.math.roundToInt
+import org.jetbrains.compose.resources.DrawableResource
 
 @OptIn(
     ExperimentalFoundationApi::class,
@@ -554,7 +555,7 @@ fun LocalSongScreen(
 
 @Composable
 private fun LocalSongBadge(
-    iconRes: Int,
+    iconRes: DrawableResource,
     text: String,
 ) {
     Surface(
@@ -1208,7 +1209,7 @@ private fun LocalSongScanSheet(
 
 @Composable
 private fun LocalSongScanSettingCard(
-    iconRes: Int,
+    iconRes: DrawableResource,
     title: String,
     description: String,
     actionLabel: String? = null,
@@ -1349,7 +1350,7 @@ private fun LocalSongFolderChip(
 
 @Composable
 private fun ScanSheetInfoRow(
-    iconRes: Int,
+    iconRes: DrawableResource,
     title: String,
     description: String,
     trailing: (@Composable () -> Unit)?,

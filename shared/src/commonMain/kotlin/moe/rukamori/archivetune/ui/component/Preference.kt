@@ -819,7 +819,7 @@ private fun preferenceOptionKey(
             null -> "null"
             else -> value.hashCode().toString()
         }
-    return "${value?.javaClass?.name.orEmpty()}:$valueKey:$index"
+    return "${value?.let { it::class.qualifiedName }.orEmpty()}:$valueKey:$index"
 }
 
 @Composable
@@ -852,8 +852,7 @@ fun SwitchPreference(
                     ) { isChecked ->
                         Icon(
                             painter =
-                                painterResource(
-                                    id = if (isChecked) Res.drawable.check else Res.drawable.close,
+                                painterResource(if (isChecked) Res.drawable.check else Res.drawable.close,
                                 ),
                             contentDescription = null,
                             modifier = Modifier.size(SwitchDefaults.IconSize),

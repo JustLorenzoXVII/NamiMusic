@@ -79,6 +79,8 @@ import moe.rukamori.archivetune.viewmodels.PlaylistTagEditorState
 import moe.rukamori.archivetune.viewmodels.PlaylistTagUiModel
 import moe.rukamori.archivetune.viewmodels.PlaylistTagsScreenState
 import moe.rukamori.archivetune.viewmodels.PlaylistTagsViewModel
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.StringResource
 
 @Composable
 fun TagsManagementDialog(
@@ -186,7 +188,7 @@ private fun TagsManagementContent(
 
 @Composable
 private fun PlaylistTagsDialogLayout(
-    icon: Int,
+    icon: DrawableResource,
     title: String,
     subtitle: String? = null,
     body: @Composable (Modifier) -> Unit,
@@ -476,7 +478,7 @@ private fun PlaylistTagColorPickerDialog(
 
 @Composable
 private fun PlaylistTagsHeader(
-    icon: Int,
+    icon: DrawableResource,
     title: String,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
@@ -577,7 +579,7 @@ private fun PlaylistTagsEmptyContent(modifier: Modifier = Modifier) {
 
 @Composable
 private fun PlaylistTagsErrorContent(
-    messageResId: Int,
+    messageResId: StringResource,
     modifier: Modifier = Modifier,
 ) {
     Surface(

@@ -631,7 +631,7 @@ fun QueueCollapsedContentV2(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    painter = painterResource(id = Res.drawable.queue_music),
+                    painter = painterResource(Res.drawable.queue_music),
                     contentDescription = null,
                     modifier = Modifier.size(iconSize),
                     tint = textBackgroundColor,
@@ -667,7 +667,7 @@ fun QueueCollapsedContentV2(
                         )
                     } else {
                         Icon(
-                            painter = painterResource(id = Res.drawable.bedtime),
+                            painter = painterResource(Res.drawable.bedtime),
                             contentDescription = null,
                             modifier = Modifier.size(iconSize),
                             tint = textBackgroundColor,
@@ -687,7 +687,7 @@ fun QueueCollapsedContentV2(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    painter = painterResource(id = Res.drawable.lyrics),
+                    painter = painterResource(Res.drawable.lyrics),
                     contentDescription = null,
                     modifier = Modifier.size(iconSize),
                     tint = textBackgroundColor,
@@ -728,9 +728,7 @@ fun QueueCollapsedContentV2(
             ) {
                 Icon(
                     painter =
-                        painterResource(
-                            id =
-                                when (repeatMode) {
+                        painterResource(when (repeatMode) {
                                     Player.REPEAT_MODE_OFF, Player.REPEAT_MODE_ALL -> Res.drawable.repeat
                                     Player.REPEAT_MODE_ONE -> Res.drawable.repeat_one
                                     else -> Res.drawable.repeat
@@ -758,7 +756,7 @@ fun QueueCollapsedContentV2(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    painter = painterResource(id = Res.drawable.more_vert),
+                    painter = painterResource(Res.drawable.more_vert),
                     contentDescription = null,
                     modifier = Modifier.size(iconSize),
                     tint = iconButtonColor,
@@ -827,13 +825,13 @@ fun QueueCollapsedContentV3(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     Icon(
-                        painter = painterResource(id = Res.drawable.queue_music),
+                        painter = painterResource(Res.drawable.queue_music),
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
                         tint = textBackgroundColor.copy(alpha = 0.7f),
                     )
                     Text(
-                        text = stringResource(id = Res.string.queue),
+                        text = stringResource(Res.string.queue),
                         color = textBackgroundColor.copy(alpha = 0.7f),
                         style = MaterialTheme.typography.labelMedium,
                         maxLines = 1,
@@ -863,7 +861,7 @@ fun QueueCollapsedContentV3(
                         )
                     } else {
                         Icon(
-                            painter = painterResource(id = Res.drawable.bedtime),
+                            painter = painterResource(Res.drawable.bedtime),
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
                             tint = textBackgroundColor.copy(alpha = 0.7f),
@@ -886,13 +884,13 @@ fun QueueCollapsedContentV3(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     Icon(
-                        painter = painterResource(id = Res.drawable.lyrics),
+                        painter = painterResource(Res.drawable.lyrics),
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
                         tint = textBackgroundColor.copy(alpha = 0.7f),
                     )
                     Text(
-                        text = stringResource(id = Res.string.lyrics),
+                        text = stringResource(Res.string.lyrics),
                         color = textBackgroundColor.copy(alpha = 0.7f),
                         style = MaterialTheme.typography.labelMedium,
                         maxLines = 1,
@@ -910,7 +908,7 @@ fun QueueCollapsedContentV3(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    painter = painterResource(id = Res.drawable.more_vert),
+                    painter = painterResource(Res.drawable.more_vert),
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
                     tint = textBackgroundColor.copy(alpha = 0.7f),
@@ -972,14 +970,14 @@ fun QueueCollapsedContentV1(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Icon(
-                        painter = painterResource(id = Res.drawable.queue_music),
+                        painter = painterResource(Res.drawable.queue_music),
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
                         tint = textBackgroundColor,
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = stringResource(id = Res.string.queue),
+                        text = stringResource(Res.string.queue),
                         color = textBackgroundColor,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -1000,7 +998,7 @@ fun QueueCollapsedContentV1(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Icon(
-                        painter = painterResource(id = Res.drawable.bedtime),
+                        painter = painterResource(Res.drawable.bedtime),
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
                         tint = textBackgroundColor,
@@ -1021,7 +1019,7 @@ fun QueueCollapsedContentV1(
                             )
                         } else {
                             Text(
-                                text = stringResource(id = Res.string.sleep_timer),
+                                text = stringResource(Res.string.sleep_timer),
                                 color = textBackgroundColor,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -1044,14 +1042,14 @@ fun QueueCollapsedContentV1(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Icon(
-                        painter = painterResource(id = Res.drawable.lyrics),
+                        painter = painterResource(Res.drawable.lyrics),
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
                         tint = textBackgroundColor,
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = stringResource(id = Res.string.lyrics),
+                        text = stringResource(Res.string.lyrics),
                         color = textBackgroundColor,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -1129,14 +1127,14 @@ fun QueueCollapsedContentV4(
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     Icon(
-                        painter = painterResource(id = Res.drawable.queue_music),
+                        painter = painterResource(Res.drawable.queue_music),
                         contentDescription = null,
                         modifier = Modifier.size(iconSize),
                         tint = textBackgroundColor,
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = stringResource(id = Res.string.queue),
+                        text = stringResource(Res.string.queue),
                         color = textBackgroundColor,
                         style = MaterialTheme.typography.labelLarge,
                         maxLines = 1,
@@ -1180,7 +1178,7 @@ fun QueueCollapsedContentV4(
                         )
                     } else {
                         Icon(
-                            painter = painterResource(id = Res.drawable.bedtime),
+                            painter = painterResource(Res.drawable.bedtime),
                             contentDescription = null,
                             modifier = Modifier.size(iconSize),
                             tint = textBackgroundColor,
@@ -1208,14 +1206,14 @@ fun QueueCollapsedContentV4(
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     Icon(
-                        painter = painterResource(id = Res.drawable.lyrics),
+                        painter = painterResource(Res.drawable.lyrics),
                         contentDescription = null,
                         modifier = Modifier.size(iconSize),
                         tint = textBackgroundColor,
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = stringResource(id = Res.string.lyrics),
+                        text = stringResource(Res.string.lyrics),
                         color = textBackgroundColor,
                         style = MaterialTheme.typography.labelLarge,
                         maxLines = 1,
@@ -1368,7 +1366,7 @@ fun QueueCollapsedContentV8(
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
-                            painter = painterResource(id = Res.drawable.queue_music),
+                            painter = painterResource(Res.drawable.queue_music),
                             contentDescription = null,
                             modifier = Modifier.size(iconSize),
                             tint = textBackgroundColor,
@@ -1387,7 +1385,7 @@ fun QueueCollapsedContentV8(
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
-                            painter = painterResource(id = Res.drawable.lyrics),
+                            painter = painterResource(Res.drawable.lyrics),
                             contentDescription = null,
                             modifier = Modifier.size(iconSize),
                             tint = textBackgroundColor,
@@ -1420,8 +1418,8 @@ fun QueueCollapsedContentV8(
                                 ),
                         ) {
                             Icon(
-                                painter = painterResource(id = Res.drawable.bedtime),
-                                contentDescription = stringResource(id = Res.string.sleep_timer),
+                                painter = painterResource(Res.drawable.bedtime),
+                                contentDescription = stringResource(Res.string.sleep_timer),
                                 modifier = Modifier.size(iconSize),
                                 tint = textBackgroundColor,
                             )

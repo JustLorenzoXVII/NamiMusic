@@ -172,6 +172,7 @@ import moe.rukamori.archivetune.ui.utils.highRes
 import moe.rukamori.archivetune.utils.makeTimeString
 import moe.rukamori.archivetune.utils.rememberLowDataModeActive
 import moe.rukamori.archivetune.utils.rememberPreference
+import org.jetbrains.compose.resources.DrawableResource
 
 private const val PlayerBackgroundMaxBlurRadius = 64f
 private const val ExplicitBadgeInlineId = "explicitBadge"
@@ -2724,7 +2725,7 @@ private fun V8MetadataActions(
 
 @Composable
 private fun V8ActionButton(
-    iconRes: Int,
+    iconRes: DrawableResource,
     contentDescription: String,
     foreground: Color,
     containerColor: Color,
@@ -2944,7 +2945,7 @@ private fun V8TransportControls(
 
 @Composable
 private fun V8TransportButton(
-    iconRes: Int,
+    iconRes: DrawableResource,
     contentDescription: String,
     foreground: Color,
     enabled: Boolean,
@@ -3636,7 +3637,7 @@ private fun V9Header(
 
 @Composable
 private fun V9HeaderButton(
-    iconRes: Int,
+    iconRes: DrawableResource,
     contentDescription: String?,
     containerColor: Color,
     iconColor: Color,
@@ -5034,7 +5035,7 @@ private fun V10ToggleButton(
     onClick: () -> Unit,
     accent: Color,
     field: Color,
-    iconResId: Int,
+    iconResId: DrawableResource,
     contentDescription: String?,
 ) {
     val containerColor by animateColorAsState(

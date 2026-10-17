@@ -36,6 +36,7 @@ import moe.rukamori.archivetune.db.MusicDatabase
 import moe.rukamori.archivetune.lyrics.LyricsHelper
 import moe.rukamori.archivetune.paxsenix.PaxsenixLyrics
 import moe.rukamori.archivetune.paxsenix.models.PaxsenixStats
+import org.jetbrains.compose.resources.StringResource
 
 sealed interface PaxsenixStatsState {
     data object Loading : PaxsenixStatsState
@@ -57,7 +58,7 @@ sealed interface AiContentFilterSettingsState {
     data object Empty : AiContentFilterSettingsState
 
     data class Error(
-        val messageResId: Int,
+        val messageResId: StringResource,
     ) : AiContentFilterSettingsState
 }
 
@@ -73,7 +74,7 @@ data class AiContentFilterSettingsUiModel(
 @Immutable
 sealed interface AiContentFilterSettingsEffect {
     data class ShowMessage(
-        val messageResId: Int,
+        val messageResId: StringResource,
     ) : AiContentFilterSettingsEffect
 
     data class OpenUrl(

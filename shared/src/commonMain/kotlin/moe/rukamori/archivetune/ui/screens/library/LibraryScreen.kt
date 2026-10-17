@@ -93,6 +93,7 @@ import moe.rukamori.archivetune.ui.component.TagsManagementDialog
 import moe.rukamori.archivetune.ui.utils.resetHeightOffset
 import moe.rukamori.archivetune.utils.rememberEnumPreference
 import moe.rukamori.archivetune.utils.rememberPreference
+import org.jetbrains.compose.resources.DrawableResource
 
 internal val LibraryHeaderContentPadding = 64.dp
 internal val LibraryPullToRefreshIndicatorOffset = 0.dp
@@ -452,7 +453,7 @@ private fun PlaylistTagFilterChip(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    iconRes: Int? = null,
+    iconRes: DrawableResource? = null,
     accentColor: Color = MaterialTheme.colorScheme.primary,
 ) {
     val resolvedAccentColor =
@@ -515,7 +516,7 @@ private fun PlaylistTagFilterChip(
     ) {
         if (iconRes != null) {
             Icon(
-                painter = painterResource(id = iconRes),
+                painter = painterResource(iconRes),
                 contentDescription = null,
                 tint = contentColor,
                 modifier = Modifier.size(18.dp),
@@ -543,7 +544,7 @@ private fun PlaylistTagFilterChip(
 @Composable
 fun ExpressiveTabChip(
     label: String,
-    iconRes: Int,
+    iconRes: DrawableResource,
     selected: Boolean,
     onClick: () -> Unit,
 ) {
@@ -602,7 +603,7 @@ fun ExpressiveTabChip(
         horizontalArrangement = Arrangement.Center,
     ) {
         Icon(
-            painter = painterResource(id = iconRes),
+            painter = painterResource(iconRes),
             contentDescription = label,
             tint = contentColor,
             modifier = Modifier.size(20.dp),

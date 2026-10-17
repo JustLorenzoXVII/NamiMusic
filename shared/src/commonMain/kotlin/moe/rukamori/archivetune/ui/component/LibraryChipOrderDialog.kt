@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import moe.rukamori.archivetune.constants.LibraryFilter
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
+import org.jetbrains.compose.resources.StringResource
 
 @Composable
 fun LibraryChipOrderDialog(
@@ -138,7 +139,7 @@ fun LibraryChipOrderDialog(
     }
 }
 
-private fun LibraryFilter.labelResId(): Int =
+private fun LibraryFilter.labelResId(): StringResource =
     when (this) {
         LibraryFilter.LIBRARY -> Res.string.filter_library
         LibraryFilter.PLAYLISTS -> Res.string.playlists

@@ -71,6 +71,7 @@ import moe.rukamori.archivetune.ui.component.shimmer.ShimmerHost
 import moe.rukamori.archivetune.ui.component.shimmer.TextPlaceholder
 import moe.rukamori.archivetune.viewmodels.MoodAndGenresViewModel
 import moe.rukamori.archivetune.compat.ConcurrentHashMap
+import moe.rukamori.archivetune.compat.getSharedPreferences
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

@@ -255,7 +255,7 @@ fun LibrarySongsScreen(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Icon(
-                            painter = painterResource(id = Res.drawable.expand_more),
+                            painter = painterResource(Res.drawable.expand_more),
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(16.dp),
@@ -303,8 +303,7 @@ fun LibrarySongsScreen(
                 ) {
                     Icon(
                         painter =
-                            painterResource(
-                                id = if (sortDescending) Res.drawable.arrow_downward else Res.drawable.arrow_upward,
+                            painterResource(if (sortDescending) Res.drawable.arrow_downward else Res.drawable.arrow_upward,
                             ),
                         contentDescription =
                             if (sortDescending) {
@@ -400,7 +399,7 @@ fun LibrarySongsScreen(
                                     contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
                                 ) {
                                     Icon(
-                                        painter = painterResource(id = Res.drawable.play),
+                                        painter = painterResource(Res.drawable.play),
                                         contentDescription = null,
                                         modifier = Modifier.size(16.dp),
                                     )
@@ -542,7 +541,7 @@ fun LibrarySongsScreen(
                         ) {
                             if (isActive && isPlaying) {
                                 Icon(
-                                    painter = painterResource(id = Res.drawable.graphic_eq),
+                                    painter = painterResource(Res.drawable.graphic_eq),
                                     contentDescription = stringResource(Res.string.playing_desc),
                                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                     modifier = Modifier.size(16.dp),
@@ -588,7 +587,7 @@ fun LibrarySongsScreen(
                                 modifier = Modifier.size(24.dp),
                             ) {
                                 Icon(
-                                    painter = painterResource(id = Res.drawable.more_vert),
+                                    painter = painterResource(Res.drawable.more_vert),
                                     contentDescription = null,
                                     modifier = Modifier.size(16.dp),
                                 )

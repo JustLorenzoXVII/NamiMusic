@@ -60,6 +60,7 @@ import moe.rukamori.archivetune.viewmodels.CanvasSettingsDialog
 import moe.rukamori.archivetune.viewmodels.CanvasSettingsState
 import moe.rukamori.archivetune.viewmodels.CanvasSettingsUiModel
 import moe.rukamori.archivetune.viewmodels.CanvasSettingsViewModel
+import org.jetbrains.compose.resources.DrawableResource
 
 @Composable
 fun CanvasSettings(
@@ -303,7 +304,7 @@ private fun CanvasHealthPreferences(
 private fun PreferenceGroupScope.canvasHealthPreference(
     titleRes: StringResource,
     health: CanvasHealth,
-    iconRes: Int,
+    iconRes: DrawableResource,
 ) {
     item {
         PreferenceEntry(
@@ -402,7 +403,7 @@ private fun CanvasSettingsFailure(
     }
 }
 
-private fun CanvasSource.labelResource(): Int = when (this) {
+private fun CanvasSource.labelResource(): StringResource = when (this) {
     CanvasSource.BETTER_LYRICS -> Res.string.canvas_better_lyrics
     CanvasSource.APPLE_MUSIC -> Res.string.canvas_apple_music
     CanvasSource.TIDAL -> Res.string.canvas_tidal
@@ -410,7 +411,7 @@ private fun CanvasSource.labelResource(): Int = when (this) {
     CanvasSource.ALL -> Res.string.canvas_source_all
 }
 
-private fun CanvasHealth.labelResource(): Int = when (this) {
+private fun CanvasHealth.labelResource(): StringResource = when (this) {
     CanvasHealth.NOT_CHECKED -> Res.string.canvas_health_not_checked
     CanvasHealth.CHECKING -> Res.string.canvas_health_checking
     CanvasHealth.AVAILABLE -> Res.string.canvas_health_available

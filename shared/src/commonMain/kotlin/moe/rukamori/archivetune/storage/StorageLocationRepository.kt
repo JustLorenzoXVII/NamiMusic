@@ -25,7 +25,7 @@ import moe.rukamori.archivetune.compat.toUri
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import moe.rukamori.archivetune.compat.media3.Cache
-import coil3.imageLoader
+import moe.rukamori.archivetune.compat.imageLoader
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -57,6 +57,10 @@ import moe.rukamori.archivetune.utils.ArtworkStorage
 import moe.rukamori.archivetune.utils.PreferenceStore
 import moe.rukamori.archivetune.utils.dataStore
 import moe.rukamori.archivetune.compat.File
+import moe.rukamori.archivetune.compat.getSharedPreferences
+import moe.rukamori.archivetune.compat.getExternalFilesDirs
+import moe.rukamori.archivetune.compat.inputStream
+import moe.rukamori.archivetune.compat.outputStream
 
 enum class StorageFolderKind(
     val defaultDirectoryName: String,

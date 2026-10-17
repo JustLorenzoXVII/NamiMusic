@@ -170,6 +170,7 @@ import moe.rukamori.archivetune.utils.reportException
 import kotlin.math.abs
 import kotlin.math.sin
 import kotlin.time.Duration.Companion.seconds
+import moe.rukamori.archivetune.compat.Character
 
 private val AppleMusicEasing = CubicBezierEasing(0.25f, 0.1f, 0.25f, 1.0f)
 private val SmoothDecelerateEasing = CubicBezierEasing(0.0f, 0.0f, 0.2f, 1.0f)
@@ -1571,7 +1572,7 @@ fun Lyrics(
 
                                                         val floatOffset =
                                                             if (isWordActive && fillProgress > 0.1f) {
-                                                                val floatAmount = sin(fillProgress * Math.PI).toFloat() * 0.5f
+                                                                val floatAmount = sin(fillProgress * kotlin.math.PI).toFloat() * 0.5f
                                                                 Offset(0f, -floatAmount)
                                                             } else {
                                                                 Offset.Zero
@@ -1664,7 +1665,7 @@ fun Lyrics(
                                             val fillProgress = linearProgress
 
                                             val breatheValue = (timeElapsed % 3000) / 3000f
-                                            val breatheEffect = (sin(breatheValue * Math.PI.toFloat() * 2f) * 0.03f).coerceIn(0f, 0.03f)
+                                            val breatheEffect = (sin(breatheValue * kotlin.math.PI.toFloat() * 2f) * 0.03f).coerceIn(0f, 0.03f)
                                             val glowIntensity = (0.3f + fillProgress * 0.7f + breatheEffect).coerceIn(0f, 1.1f)
 
                                             val slideBrush =
@@ -1749,7 +1750,7 @@ fun Lyrics(
                                                         val breatheEffect =
                                                             (
                                                                 sin(
-                                                                    breathePhase * Math.PI.toFloat(),
+                                                                    breathePhase * kotlin.math.PI.toFloat(),
                                                                 ) * 0.05f
                                                             ).coerceIn(0f, 0.05f)
 
@@ -1974,7 +1975,7 @@ fun Lyrics(
 
                                         val bounceScale =
                                             if (fill < 0.3f) {
-                                                1f + (sin(fill * 3.33f * Math.PI.toFloat()) * 0.03f)
+                                                1f + (sin(fill * 3.33f * kotlin.math.PI.toFloat()) * 0.03f)
                                             } else {
                                                 1f
                                             }
@@ -2447,7 +2448,7 @@ fun Lyrics(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Icon(
-                        painter = painterResource(id = Res.drawable.play),
+                        painter = painterResource(Res.drawable.play),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.size(18.dp),
@@ -2488,7 +2489,7 @@ fun Lyrics(
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Icon(
-                                    painter = painterResource(id = Res.drawable.close),
+                                    painter = painterResource(Res.drawable.close),
                                     contentDescription = stringResource(Res.string.cancel),
                                     tint = Color.White,
                                     modifier = Modifier.size(20.dp),
@@ -2531,7 +2532,7 @@ fun Lyrics(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
                                 Icon(
-                                    painter = painterResource(id = Res.drawable.share),
+                                    painter = painterResource(Res.drawable.share),
                                     contentDescription = stringResource(Res.string.share_selected),
                                     tint = Color.Black,
                                     modifier = Modifier.size(20.dp),
@@ -2588,7 +2589,7 @@ fun Lyrics(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(
-                                painter = painterResource(id = Res.drawable.share),
+                                painter = painterResource(Res.drawable.share),
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary,
                             )
@@ -2612,7 +2613,7 @@ fun Lyrics(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(
-                                painter = painterResource(id = Res.drawable.share),
+                                painter = painterResource(Res.drawable.share),
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary,
                             )

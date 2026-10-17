@@ -2,6 +2,7 @@ package moe.rukamori.archivetune.compat
 
 import moe.rukamori.archivetune.compat.time.DateTimeFormatter
 import moe.rukamori.archivetune.compat.time.Instant
+import moe.rukamori.archivetune.compat.time.LocalDate
 import moe.rukamori.archivetune.compat.time.LocalDateTime
 import moe.rukamori.archivetune.compat.time.ZoneId
 import kotlin.math.abs
@@ -31,7 +32,7 @@ class TimeZone private constructor(
 
 /** java.text.SimpleDateFormat per formattare date con un modello (yyyy-MM-dd HH:mm:ss...). */
 class SimpleDateFormat(
-    pattern: String,
+    private val pattern: String,
     @Suppress("UNUSED_PARAMETER") locale: Locale? = null,
 ) {
     private val formatter = DateTimeFormatter.ofPattern(pattern)
@@ -40,6 +41,22 @@ class SimpleDateFormat(
     fun format(date: Date): String = formatter.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(date.time), timeZone.zone))
 
     fun format(millis: Long): String = format(Date(millis))
+
+    /**
+     * Lettura di una data: supporta "yyyy-MM-dd" e le date/ore ISO, i formati che ArchiveTune legge
+     * (date di pubblicazione di GitHub). Restituisce null se il testo non è valido.
+     */
+    fun parse(text: String): Date? =
+        runCatching {
+            val trimmed = text.trim()
+            val dateTime =
+                if (pattern == "yyyy-MM-dd" || trimmed.length == 10) {
+                    LocalDate.parse(trimmed).atStartOfDay()
+                } else {
+                    LocalDateTime.parse(trimmed.removeSuffix("Z").substringBefore('+'))
+                }
+            Date(dateTime.toInstant(timeZone.zone).toEpochMilli())
+        }.getOrNull()
 }
 
 /**

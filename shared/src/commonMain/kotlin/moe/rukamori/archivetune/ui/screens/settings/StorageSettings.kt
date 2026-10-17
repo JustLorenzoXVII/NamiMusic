@@ -70,7 +70,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.annotation.ExperimentalCoilApi
-import coil3.imageLoader
+import moe.rukamori.archivetune.compat.imageLoader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive

@@ -244,7 +244,7 @@ fun LibraryAlbumsScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Icon(
-                                painter = painterResource(id = Res.drawable.expand_more),
+                                painter = painterResource(Res.drawable.expand_more),
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(16.dp),
@@ -305,8 +305,7 @@ fun LibraryAlbumsScreen(
                     ) {
                         Icon(
                             painter =
-                                painterResource(
-                                    id = if (sortDescending) Res.drawable.arrow_downward else Res.drawable.arrow_upward,
+                                painterResource(if (sortDescending) Res.drawable.arrow_downward else Res.drawable.arrow_upward,
                                 ),
                             contentDescription =
                                 if (sortDescending) {
@@ -341,7 +340,7 @@ fun LibraryAlbumsScreen(
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
-                            painter = painterResource(id = Res.drawable.queue_music),
+                            painter = painterResource(Res.drawable.queue_music),
                             contentDescription = stringResource(Res.string.list_view),
                             tint = if (!isGridView) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(16.dp),
@@ -357,7 +356,7 @@ fun LibraryAlbumsScreen(
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
-                            painter = painterResource(id = Res.drawable.album),
+                            painter = painterResource(Res.drawable.album),
                             contentDescription = stringResource(Res.string.grid_view),
                             tint = if (isGridView) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(16.dp),
@@ -460,7 +459,7 @@ fun LibraryAlbumsScreen(
                                             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
                                         ) {
                                             Icon(
-                                                painter = painterResource(id = Res.drawable.play),
+                                                painter = painterResource(Res.drawable.play),
                                                 contentDescription = null,
                                                 modifier = Modifier.size(16.dp),
                                             )
@@ -483,7 +482,7 @@ fun LibraryAlbumsScreen(
                                             },
                                         ) {
                                             Icon(
-                                                painter = painterResource(id = Res.drawable.more_vert),
+                                                painter = painterResource(Res.drawable.more_vert),
                                                 contentDescription = null,
                                                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                             )
@@ -562,7 +561,7 @@ fun LibraryAlbumsScreen(
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Icon(
-                                        painter = painterResource(id = Res.drawable.play),
+                                        painter = painterResource(Res.drawable.play),
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.onPrimary,
                                         modifier = Modifier.size(12.dp),
@@ -670,7 +669,7 @@ fun LibraryAlbumsScreen(
                                 modifier = Modifier.size(36.dp),
                             ) {
                                 Icon(
-                                    painter = painterResource(id = Res.drawable.play),
+                                    painter = painterResource(Res.drawable.play),
                                     contentDescription = stringResource(Res.string.play),
                                     modifier = Modifier.size(16.dp),
                                 )

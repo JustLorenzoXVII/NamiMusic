@@ -97,7 +97,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-import coil3.request.allowHardware
+import moe.rukamori.archivetune.compat.allowHardware
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
@@ -117,6 +117,7 @@ import moe.rukamori.archivetune.viewmodels.YearInMusicUiState
 import moe.rukamori.archivetune.viewmodels.YearInMusicViewModel
 import moe.rukamori.archivetune.compat.NumberFormat
 import kotlin.coroutines.resume
+import org.jetbrains.compose.resources.DrawableResource
 
 private val RecapBlack = Color(0xFF070707)
 private val RecapSurfaceHigh = Color(0xFF1D1D1D)
@@ -1471,7 +1472,7 @@ private fun RankNumber(
 
 @Composable
 private fun SummaryHighlightRow(
-    icon: Int,
+    icon: DrawableResource,
     label: String,
     value: String,
     color: Color,
@@ -1486,7 +1487,7 @@ private fun SummaryHighlightRow(
 
 @Composable
 private fun RecapStatRow(
-    icon: Int,
+    icon: DrawableResource,
     label: String,
     value: String,
     color: Color,
@@ -1532,7 +1533,7 @@ private fun RecapStatRow(
 
 @Composable
 private fun RecapChip(
-    icon: Int,
+    icon: DrawableResource,
     text: String,
     color: Color,
 ) {
@@ -1600,7 +1601,7 @@ private fun RecapBadge(text: String) {
 
 @Composable
 private fun IconBadge(
-    icon: Int,
+    icon: DrawableResource,
     background: Color,
     tint: Color,
     modifier: Modifier = Modifier,

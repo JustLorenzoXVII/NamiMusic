@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import org.jetbrains.compose.resources.DrawableResource
 
 @Composable
 fun ToggleSegmentButton(
@@ -52,7 +53,7 @@ fun ToggleSegmentButton(
     inactiveContentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     activeCornerRadius: Dp = 8.dp,
     onClick: () -> Unit,
-    iconId: Int,
+    iconId: DrawableResource,
     contentDesc: String
 ) {
     ToggleSegmentButtonContainer(

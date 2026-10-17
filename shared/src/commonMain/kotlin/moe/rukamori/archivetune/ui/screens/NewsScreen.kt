@@ -113,6 +113,7 @@ import moe.rukamori.archivetune.compat.time.LocalDateTime
 import moe.rukamori.archivetune.compat.time.ZoneId
 import moe.rukamori.archivetune.compat.time.DateTimeFormatter
 import moe.rukamori.archivetune.ui.component.IconButton as AppIconButton
+import org.jetbrains.compose.resources.DrawableResource
 
 @Composable
 fun NewsScreen(
@@ -850,7 +851,7 @@ private fun NewsErrorState(
 
 @Composable
 private fun NewsStatePanel(
-    icon: Int,
+    icon: DrawableResource,
     title: String,
     description: String,
     iconColor: Color,

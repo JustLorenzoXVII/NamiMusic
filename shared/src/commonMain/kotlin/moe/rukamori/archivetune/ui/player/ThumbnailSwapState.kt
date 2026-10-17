@@ -19,11 +19,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import moe.rukamori.archivetune.compat.LocalContext
-import coil3.imageLoader
+import moe.rukamori.archivetune.compat.imageLoader
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
-import coil3.request.allowHardware
+import moe.rukamori.archivetune.compat.allowHardware
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

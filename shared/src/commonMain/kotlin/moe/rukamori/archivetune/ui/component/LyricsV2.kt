@@ -123,6 +123,7 @@ import moe.rukamori.archivetune.utils.rememberEnumPreference
 import moe.rukamori.archivetune.viewmodels.LyricsRenderScreenState
 import kotlin.math.abs
 import kotlin.math.roundToLong
+import moe.rukamori.archivetune.compat.Character
 
 // ──────────────────────────────────────────────────────────────────────
 // Constants
@@ -878,7 +879,7 @@ fun LyricsV2(
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(
-                                painter = painterResource(id = Res.drawable.close),
+                                painter = painterResource(Res.drawable.close),
                                 contentDescription = stringResource(Res.string.cancel),
                                 tint = Color.White,
                                 modifier = Modifier.size(20.dp),
@@ -921,7 +922,7 @@ fun LyricsV2(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             Icon(
-                                painter = painterResource(id = Res.drawable.share),
+                                painter = painterResource(Res.drawable.share),
                                 contentDescription = stringResource(Res.string.share_selected),
                                 tint = Color.Black,
                                 modifier = Modifier.size(20.dp),
@@ -978,7 +979,7 @@ fun LyricsV2(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
-                            painter = painterResource(id = Res.drawable.share),
+                            painter = painterResource(Res.drawable.share),
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
                         )
@@ -1002,7 +1003,7 @@ fun LyricsV2(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
-                            painter = painterResource(id = Res.drawable.share),
+                            painter = painterResource(Res.drawable.share),
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
                         )

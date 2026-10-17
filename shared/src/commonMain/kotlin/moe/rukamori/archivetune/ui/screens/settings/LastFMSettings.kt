@@ -656,14 +656,14 @@ private fun LastFmTimingEditorDialog(
     )
 }
 
-private fun LastFmProvider.titleResId(): Int =
+private fun LastFmProvider.titleResId(): StringResource =
     when (this) {
         LastFmProvider.LASTFM -> Res.string.lastfm_provider_lastfm
         LastFmProvider.LIBREFM -> Res.string.lastfm_provider_librefm
         LastFmProvider.CUSTOM -> Res.string.lastfm_provider_custom
     }
 
-private fun LastFmTimingSetting.titleResId(): Int =
+private fun LastFmTimingSetting.titleResId(): StringResource =
     when (this) {
         LastFmTimingSetting.MIN_TRACK_DURATION -> Res.string.scrobble_min_track_duration
         LastFmTimingSetting.DELAY_PERCENT -> Res.string.scrobble_delay_percent

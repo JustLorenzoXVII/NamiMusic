@@ -75,7 +75,7 @@ fun AodClockWidget(
 
     fun updateClock() {
         val now = Date()
-        val is24Hour = android.text.format.DateFormat.is24HourFormat(context)
+        val is24Hour = moe.rukamori.archivetune.compat.DateFormat.is24HourFormat(context)
         val timePattern = when (clockStyle) {
             AodClockStyle.BOLD_DIGITAL -> if (is24Hour) "HH:mm" else "h:mm a"
             AodClockStyle.MINIMAL -> if (is24Hour) "HH:mm" else "h:mm a"

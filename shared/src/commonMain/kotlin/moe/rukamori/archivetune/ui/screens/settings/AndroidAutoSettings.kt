@@ -356,7 +356,7 @@ private fun AndroidAutoSettingsFailure(
     }
 }
 
-private fun AndroidAutoCustomAction.labelResource(): Int = when (this) {
+private fun AndroidAutoCustomAction.labelResource(): StringResource = when (this) {
     AndroidAutoCustomAction.LIKE -> Res.string.android_auto_action_like
     AndroidAutoCustomAction.START_RADIO -> Res.string.android_auto_action_radio
     AndroidAutoCustomAction.SHUFFLE -> Res.string.android_auto_action_shuffle
@@ -364,7 +364,7 @@ private fun AndroidAutoCustomAction.labelResource(): Int = when (this) {
     AndroidAutoCustomAction.NONE -> Res.string.android_auto_action_none
 }
 
-private fun AndroidAutoCustomAction.iconResource(): Int = when (this) {
+private fun AndroidAutoCustomAction.iconResource(): DrawableResource = when (this) {
     AndroidAutoCustomAction.LIKE -> Res.drawable.favorite
     AndroidAutoCustomAction.START_RADIO -> Res.drawable.radio
     AndroidAutoCustomAction.SHUFFLE -> Res.drawable.shuffle

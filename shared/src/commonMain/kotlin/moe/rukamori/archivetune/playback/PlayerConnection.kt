@@ -29,6 +29,12 @@ import moe.rukamori.archivetune.extensions.getQueueWindows
 import moe.rukamori.archivetune.playback.queues.Queue
 import moe.rukamori.archivetune.utils.reportException
 
+internal enum class CanvasArtworkRefetchResult {
+    Success,
+    Failure,
+    AlreadyRunning,
+}
+
 /**
  * Il collegamento tra le schermate e il lettore, come nell'originale.
  * Su Android l'originale si collegava al MusicService con un Binder; qui il servizio è comune.
@@ -82,6 +88,12 @@ class PlayerConnection(
     internal val canvasNetworkAllowed: StateFlow<Boolean> = MutableStateFlow(false)
     private val _isCanvasArtworkRefetching = MutableStateFlow(false)
     internal val isCanvasArtworkRefetching = _isCanvasArtworkRefetching.asStateFlow()
+
+    /** Ricarica la copertina animata: non ancora portato, risponde sempre Failure. */
+    internal suspend fun refetchCanvasArtwork(
+        metadata: moe.rukamori.archivetune.models.MediaMetadata,
+        requireVertical: Boolean,
+    ): CanvasArtworkRefetchResult = CanvasArtworkRefetchResult.Failure
 
     init {
         player.addListener(this)

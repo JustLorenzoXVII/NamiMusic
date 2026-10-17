@@ -109,6 +109,8 @@ import moe.rukamori.archivetune.viewmodels.DownloadRemovalConfirmation
 import moe.rukamori.archivetune.viewmodels.DownloadLibraryScreenState
 import moe.rukamori.archivetune.viewmodels.DownloadLibraryTab
 import moe.rukamori.archivetune.viewmodels.DownloadLibraryViewModel
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.StringResource
 
 @Composable
 fun DownloadLibraryScreen(
@@ -883,7 +885,7 @@ private fun DownloadEntry(
 
 @Composable
 private fun PrimaryFilledIconButton(
-    icon: Int,
+    icon: DrawableResource,
     contentDescription: String,
     onClick: () -> Unit,
 ) {
@@ -912,21 +914,21 @@ private fun DownloadSectionUiModel.countText(): String =
         DownloadMediaType.SONG -> pluralStringResource(Res.plurals.n_song, entries.size, entries.size)
     }
 
-private fun DownloadMediaType.titleRes(): Int =
+private fun DownloadMediaType.titleRes(): StringResource =
     when (this) {
         DownloadMediaType.PLAYLIST -> Res.string.playlists
         DownloadMediaType.ALBUM -> Res.string.albums
         DownloadMediaType.SONG -> Res.string.songs
     }
 
-private fun DownloadMediaType.iconRes(): Int =
+private fun DownloadMediaType.iconRes(): DrawableResource =
     when (this) {
         DownloadMediaType.PLAYLIST -> Res.drawable.queue_music
         DownloadMediaType.ALBUM -> Res.drawable.album
         DownloadMediaType.SONG -> Res.drawable.music_note
     }
 
-private fun DownloadEntryUiModel.placeholderIcon(): Int =
+private fun DownloadEntryUiModel.placeholderIcon(): DrawableResource =
     when {
         destinationRoute?.startsWith("album/") == true -> Res.drawable.album
         destinationRoute != null -> Res.drawable.queue_music
@@ -957,7 +959,7 @@ private fun DownloadLibraryScreenState.isSearchActive(): Boolean =
         is DownloadLibraryScreenState.Error -> isSearchActive
     }
 
-private fun DownloadRemovalConfirmation.confirmationMessageRes(): Int =
+private fun DownloadRemovalConfirmation.confirmationMessageRes(): StringResource =
     when (this) {
         is DownloadRemovalConfirmation.Entry -> Res.string.remove_download_confirm
         is DownloadRemovalConfirmation.Section -> Res.string.remove_download_section_confirm

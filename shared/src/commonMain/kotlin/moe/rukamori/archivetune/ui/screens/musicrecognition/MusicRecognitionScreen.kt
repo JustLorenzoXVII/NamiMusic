@@ -107,7 +107,7 @@ import androidx.navigation.NavHostController
 import androidx.window.core.layout.WindowSizeClass
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-import coil3.request.allowHardware
+import moe.rukamori.archivetune.compat.allowHardware
 import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
 import moe.rukamori.archivetune.ui.component.SwitchPreference
 import moe.rukamori.archivetune.ui.screens.search.onlineSearchResultRoute
@@ -123,6 +123,7 @@ import moe.rukamori.archivetune.viewmodels.RecognitionHistoryUiModel
 import moe.rukamori.archivetune.viewmodels.RecognitionPhaseUi
 import moe.rukamori.archivetune.viewmodels.RecognizedTrackUiModel
 import moe.rukamori.archivetune.musicrecognition.navigateToMusicRecognitionDetails
+import org.jetbrains.compose.resources.DrawableResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -807,7 +808,7 @@ fun ResultSupportingContent(
 
 @Composable
 fun ResultInformationBlock(
-    iconRes: Int,
+    iconRes: DrawableResource,
     title: String,
     body: String?,
 ) {
@@ -914,7 +915,7 @@ fun ResultActions(
 
 @Composable
 fun MetadataPill(
-    iconRes: Int,
+    iconRes: DrawableResource,
     text: String,
 ) {
     Surface(
@@ -1259,7 +1260,7 @@ private fun RecognitionHistoryListItem(
 
 @Composable
 private fun RecognitionHistoryEmptyState(
-    iconRes: Int,
+    iconRes: DrawableResource,
     title: String,
     body: String,
 ) {

@@ -103,6 +103,8 @@ class Uri private constructor(private val value: String) {
 
         fun parse(uriString: String): Uri = Uri(uriString)
 
+        fun fromFile(file: File): Uri = Uri("file://" + file.absolutePath)
+
         fun encode(s: String?): String {
             if (s == null) return ""
             val sb = StringBuilder()

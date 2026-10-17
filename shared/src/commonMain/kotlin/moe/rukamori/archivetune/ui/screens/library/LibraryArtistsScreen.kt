@@ -192,7 +192,7 @@ fun LibraryArtistsScreen(
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Icon(
-                                        painter = painterResource(id = Res.drawable.person),
+                                        painter = painterResource(Res.drawable.person),
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.onPrimary,
                                         modifier = Modifier.size(16.dp),
@@ -278,7 +278,7 @@ fun LibraryArtistsScreen(
                                     modifier = Modifier.size(32.dp),
                                 ) {
                                     Icon(
-                                        painter = painterResource(id = Res.drawable.more_vert),
+                                        painter = painterResource(Res.drawable.more_vert),
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                         modifier = Modifier.size(16.dp),
@@ -317,7 +317,7 @@ fun LibraryArtistsScreen(
                                     color = MaterialTheme.colorScheme.onSecondaryContainer,
                                 )
                                 Icon(
-                                    painter = painterResource(id = Res.drawable.arrow_forward),
+                                    painter = painterResource(Res.drawable.arrow_forward),
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(16.dp),
@@ -409,7 +409,7 @@ fun LibraryArtistsScreen(
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Icon(
-                                    painter = painterResource(id = Res.drawable.expand_more),
+                                    painter = painterResource(Res.drawable.expand_more),
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(16.dp),
@@ -452,8 +452,7 @@ fun LibraryArtistsScreen(
                         ) {
                             Icon(
                                 painter =
-                                    painterResource(
-                                        id = if (sortDescending) Res.drawable.arrow_downward else Res.drawable.arrow_upward,
+                                    painterResource(if (sortDescending) Res.drawable.arrow_downward else Res.drawable.arrow_upward,
                                     ),
                                 contentDescription =
                                     if (sortDescending) {
@@ -593,7 +592,7 @@ fun LibraryArtistsScreen(
                             ),
                     ) {
                         Icon(
-                            painter = painterResource(id = Res.drawable.play),
+                            painter = painterResource(Res.drawable.play),
                             contentDescription = null,
                             modifier = Modifier.size(12.dp),
                         )

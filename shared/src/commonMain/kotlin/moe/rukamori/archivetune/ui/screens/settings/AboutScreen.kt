@@ -97,6 +97,7 @@ import moe.rukamori.archivetune.viewmodels.AboutUiModel
 import moe.rukamori.archivetune.viewmodels.AboutViewModel
 import moe.rukamori.archivetune.viewmodels.TeamMember
 import moe.rukamori.archivetune.viewmodels.TeamMemberCollection
+import org.jetbrains.compose.resources.DrawableResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -977,7 +978,7 @@ private fun AboutProjectInformationSection(
 @Composable
 private fun AboutActionListItem(
     title: String,
-    iconResId: Int,
+    iconResId: DrawableResource,
     index: Int,
     itemCount: Int,
     onClick: () -> Unit,
@@ -1364,7 +1365,7 @@ private fun ContributorReadMoreListItem(
 
 @Composable
 private fun AboutLeadingIcon(
-    iconResId: Int,
+    iconResId: DrawableResource,
     modifier: Modifier = Modifier,
 ) {
     androidx.compose.material3.Surface(

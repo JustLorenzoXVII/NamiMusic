@@ -10,4 +10,15 @@ object System {
     fun currentTimeMillis(): Long = Clock.System.now().toEpochMilliseconds()
 
     fun nanoTime(): Long = start.elapsedNow().inWholeNanoseconds
+
+    /** System.out / System.err: scrivono nel log della console. */
+    object out {
+        fun println(message: Any?) = kotlin.io.println(message)
+    }
+
+    object err {
+        fun println(message: Any?) = kotlin.io.println(message)
+    }
+
+    fun lineSeparator(): String = "\n"
 }

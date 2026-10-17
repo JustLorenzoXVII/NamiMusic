@@ -48,6 +48,11 @@ class Intent() {
 
     fun addCategory(category: String): Intent = apply { categories += category }
 
+    /** Su iPhone non si può sapere in anticipo quali app aprono un link: si considera sempre apribile. */
+    fun resolveActivity(
+        @Suppress("UNUSED_PARAMETER") packageManager: PackageManager,
+    ): ComponentName? = ComponentName(Context.PACKAGE_NAME, "external")
+
     fun putExtra(name: String, value: String?): Intent = apply { extras.putString(name, value) }
 
     fun putExtra(name: String, value: CharSequence?): Intent = apply { extras.putString(name, value?.toString()) }
@@ -75,6 +80,9 @@ class Intent() {
         const val EXTRA_STREAM = "android.intent.extra.STREAM"
         const val EXTRA_TITLE = "android.intent.extra.TITLE"
         const val CATEGORY_BROWSABLE = "android.intent.category.BROWSABLE"
+        const val CATEGORY_LAUNCHER = "android.intent.category.LAUNCHER"
+        const val CATEGORY_DEFAULT = "android.intent.category.DEFAULT"
+        const val ACTION_MAIN = "android.intent.action.MAIN"
         const val FLAG_ACTIVITY_NEW_TASK = 0x10000000
         const val FLAG_ACTIVITY_CLEAR_TASK = 0x00008000
         const val FLAG_ACTIVITY_CLEAR_TOP = 0x04000000
@@ -149,3 +157,10 @@ object SystemClock {
 
     fun elapsedRealtimeNanos(): Long = start.elapsedNow().inWholeNanoseconds
 }
+
+
+/** android.content.ComponentName. */
+data class ComponentName(
+    val packageName: String,
+    val className: String,
+)

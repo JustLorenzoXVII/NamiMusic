@@ -156,6 +156,7 @@ import moe.rukamori.archivetune.viewmodels.ArtistViewModel
 import moe.rukamori.archivetune.compat.Locale
 import moe.rukamori.archivetune.compat.uppercase
 import moe.rukamori.archivetune.compat.lowercase
+import org.jetbrains.compose.resources.DrawableResource
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -1122,7 +1123,7 @@ private fun ArtistOverflowMenu(
 @Composable
 private fun ArtistOverflowMenuItem(
     text: String,
-    iconRes: Int,
+    iconRes: DrawableResource,
     index: Int,
     count: Int,
     onClick: () -> Unit,

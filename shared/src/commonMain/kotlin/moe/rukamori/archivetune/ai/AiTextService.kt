@@ -20,6 +20,7 @@ import io.ktor.http.contentType
 import moe.rukamori.archivetune.constants.AiProvider
 import moe.rukamori.archivetune.compat.JSONArray
 import moe.rukamori.archivetune.compat.JSONObject
+import org.jetbrains.compose.resources.DrawableResource
 
 class AiServiceException(
     message: String,
