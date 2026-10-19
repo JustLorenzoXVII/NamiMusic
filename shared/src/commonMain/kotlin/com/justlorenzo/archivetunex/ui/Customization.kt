@@ -221,6 +221,7 @@ val PureBlackKey = booleanPreferencesKey("atx_pure_black")
 val ArtworkCornersKey = stringPreferencesKey("atx_artwork_corners")
 val TabLabelsKey = stringPreferencesKey("atx_tab_labels")
 val ColoredHomeKey = booleanPreferencesKey("atx_colored_home")
+val LibraryListViewKey = booleanPreferencesKey("atx_library_list_view")
 
 val PlayerLayoutKey = stringPreferencesKey("atx_player_layout")
 val PlayerBackgroundKey = stringPreferencesKey("atx_player_background")

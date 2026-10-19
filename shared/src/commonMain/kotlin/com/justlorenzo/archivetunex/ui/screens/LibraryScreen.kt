@@ -1,5 +1,10 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.justlorenzo.archivetunex.ui.screens
 
+import androidx.compose.material3.toShape
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.foundation.border
 import com.justlorenzo.archivetunex.ui.tr
 import com.justlorenzo.archivetunex.ui.trf
 import androidx.compose.foundation.background
@@ -49,9 +54,15 @@ import archivetunex.shared.generated.resources.album
 import archivetunex.shared.generated.resources.artist
 import archivetunex.shared.generated.resources.download
 import archivetunex.shared.generated.resources.favorite
+import archivetunex.shared.generated.resources.grid_view
+import archivetunex.shared.generated.resources.list
 import archivetunex.shared.generated.resources.queue_music
 import com.justlorenzo.archivetunex.ui.LocalActions
 import com.justlorenzo.archivetunex.ui.LocalNavigator
+import com.justlorenzo.archivetunex.ui.LibraryListViewKey
+import moe.rukamori.archivetune.utils.rememberPreference
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import com.justlorenzo.archivetunex.ui.Route
 import com.justlorenzo.archivetunex.ui.components.AccountButton
 import com.justlorenzo.archivetunex.ui.components.ArtistShape
@@ -89,6 +100,7 @@ private data class LibraryCard(
     val subtitle: String,
     val artworkUrl: String?,
     val round: Boolean = false,
+    val isCreate: Boolean = false,
     val onClick: () -> Unit,
 )
 
@@ -99,6 +111,7 @@ fun LibraryScreen() {
     val account = rememberAccount()
     var section by rememberSaveable { mutableStateOf(LibrarySection.Playlists) }
     var creating by remember { mutableStateOf(false) }
+    var listView by rememberPreference(LibraryListViewKey, false)
 
     val downloadCount by remember {
         actions.downloads.downloads.map { map -> map.count { it.value.state == Download.STATE_COMPLETED } }.distinctUntilChanged()
@@ -190,8 +203,10 @@ fun LibraryScreen() {
             }
         }
         item(key = "sections") {
+            Row(verticalAlignment = Alignment.CenterVertically) {
             LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(LibrarySection.entries) { entry ->
@@ -207,20 +222,27 @@ fun LibraryScreen() {
                             ),
                     )
                 }
-                if (section == LibrarySection.Playlists) {
-                    item {
-                        FilterChip(
-                            selected = false,
-                            onClick = { creating = true },
-                            label = { Text(tr("Nuova"), fontWeight = FontWeight.SemiBold) },
-                            leadingIcon = { AtxIcon(Res.drawable.add, null, size = 18.dp) },
-                            shape = RoundedCornerShape(20.dp),
-                        )
-                    }
-                }
+            }
+            // Griglia o elenco: la scelta resta salvata
+            Box(
+                Modifier
+                    .padding(end = 16.dp)
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                    .clickable { listView = !listView },
+                contentAlignment = Alignment.Center,
+            ) {
+                AtxIcon(
+                    if (listView) Res.drawable.grid_view else Res.drawable.list,
+                    if (listView) tr("Mostra a griglia") else tr("Mostra a elenco"),
+                    size = 22.dp,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                )
+            }
             }
         }
-        if (cards.isEmpty()) {
+        if (cards.isEmpty() && section != LibrarySection.Playlists) {
             item(key = "empty-$section") {
                 EmptyState(
                     when (section) {
@@ -242,7 +264,14 @@ fun LibraryScreen() {
                 )
             }
         }
-        cardGrid(cards)
+        // Nelle playlist la prima card è sempre "Nuova playlist", ben visibile
+        val shown =
+            if (section == LibrarySection.Playlists) {
+                listOf(LibraryCard(key = "new-playlist", title = tr("Nuova playlist"), subtitle = tr("Crea"), artworkUrl = null, isCreate = true) { creating = true }) + cards
+            } else {
+                cards
+            }
+        if (listView) cardList(shown) else cardGrid(shown)
     }
 
     if (creating) CreatePlaylistDialog(onDismiss = { creating = false })
@@ -262,6 +291,55 @@ private fun LazyListScope.cardGrid(cards: List<LibraryCard>) {
     }
 }
 
+/** Elenco: una riga per elemento, copertina piccola a sinistra. */
+private fun LazyListScope.cardList(cards: List<LibraryCard>) {
+    items(cards, key = { "list-" + it.key }) { card -> ListCard(card) }
+}
+
+@Composable
+private fun ListCard(card: LibraryCard) {
+    val shape: Shape = if (card.round) ArtistShape else RoundedCornerShape(12.dp)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = card.onClick)
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (card.isCreate) {
+            Box(
+                Modifier.size(64.dp).clip(shape).background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center,
+            ) {
+                Box(
+                    Modifier.size(40.dp).clip(MaterialShapes.Cookie9Sided.toShape()).background(MaterialTheme.colorScheme.primary),
+                    contentAlignment = Alignment.Center,
+                ) { AtxIcon(Res.drawable.add, null, size = 22.dp, tint = MaterialTheme.colorScheme.onPrimary) }
+            }
+        } else {
+            Artwork(card.artworkUrl, Modifier.size(64.dp), shape, sizePx = 200)
+        }
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Text(
+                card.title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = if (card.isCreate) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                card.subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
 @Composable
 private fun GridCard(
     card: LibraryCard,
@@ -273,7 +351,25 @@ private fun GridCard(
         horizontalAlignment = if (card.round) Alignment.CenterHorizontally else Alignment.Start,
     ) {
         val shape: Shape = if (card.round) ArtistShape else RoundedCornerShape(com.justlorenzo.archivetunex.ui.LocalAtxStyle.current.corners.radius)
-        Artwork(card.artworkUrl, Modifier.fillMaxWidth().aspectRatio(1f), shape, sizePx = 400)
+        if (card.isCreate) {
+            // Riquadro per creare una playlist: tinta del colore principale e un grande "+" a biscotto
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .clip(shape)
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .border(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f), shape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Box(
+                    Modifier.size(64.dp).clip(MaterialShapes.Cookie9Sided.toShape()).background(MaterialTheme.colorScheme.primary),
+                    contentAlignment = Alignment.Center,
+                ) { AtxIcon(Res.drawable.add, null, size = 32.dp, tint = MaterialTheme.colorScheme.onPrimary) }
+            }
+        } else {
+            Artwork(card.artworkUrl, Modifier.fillMaxWidth().aspectRatio(1f), shape, sizePx = 400)
+        }
         Text(
             card.title,
             style = MaterialTheme.typography.titleSmall,

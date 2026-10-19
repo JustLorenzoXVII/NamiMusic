@@ -170,8 +170,40 @@ class AtxActions(
         if (browseId != null && playlist.isEditable) YouTube.renamePlaylist(browseId, name)
     }
 
-    /** Toglie la playlist dalla libreria del telefono (su YouTube Music resta). */
-    fun deletePlaylist(playlist: PlaylistEntity) = launchSafely(tr("Eliminazione playlist non riuscita")) { database.delete(playlist) }
+    /**
+     * Elimina la playlist. Se è tua e collegata a YouTube Music, viene eliminata anche lì;
+     * se è una playlist di altri salvata in libreria, viene solo tolta dalla libreria.
+     */
+    fun deletePlaylist(playlist: PlaylistEntity) =
+        launchSafely(tr("Eliminazione playlist non riuscita")) {
+            val browseId = playlist.browseId
+            if (browseId != null && playlist.isEditable) YouTube.deletePlaylist(browseId).getOrThrow()
+            database.delete(playlist)
+        }
+
+    /**
+     * Sposta un brano nella playlist (posizioni dell'elenco ordinato). Se la playlist è su YouTube Music,
+     * lo sposta anche lì: [movedSetVideoId] è il brano spostato, [successorSetVideoId] quello che gli starà dopo.
+     */
+    fun moveInPlaylist(
+        playlist: PlaylistEntity,
+        from: Int,
+        to: Int,
+        movedSetVideoId: String?,
+        successorSetVideoId: String?,
+    ) = launchSafely(tr("Spostamento non riuscito")) {
+        database.withTransaction {
+            // Dopo le rimozioni le posizioni possono avere dei buchi: prima le rinumera 0, 1, 2…
+            getPlaylistSongs(playlist.id).forEachIndexed { index, entry ->
+                if (entry.map.position != index) update(entry.map.copy(position = index))
+            }
+            move(playlist.id, from, to)
+        }
+        val browseId = playlist.browseId
+        if (browseId != null && playlist.isEditable && movedSetVideoId != null) {
+            YouTube.moveSongPlaylist(browseId, movedSetVideoId, successorSetVideoId).getOrThrow()
+        }
+    }
 
     /** Salva in libreria una playlist di YouTube Music, con i suoi brani. */
     fun saveYouTubePlaylist(

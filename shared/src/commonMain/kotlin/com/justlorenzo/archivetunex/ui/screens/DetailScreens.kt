@@ -74,14 +74,14 @@ private const val MAX_PLAYLIST_PAGES = 20
 
 /** Spazio sopra (barra di stato + freccia indietro) e sotto (mini player + schede). */
 @Composable
-private fun detailPadding(): PaddingValues {
+internal fun detailPadding(): PaddingValues {
     val top = androidx.compose.foundation.layout.WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     return PaddingValues(top = top + 56.dp, bottom = BottomContentPadding.calculateBottomPadding())
 }
 
 /** Pagina con freccia indietro sopra il contenuto. */
 @Composable
-private fun DetailScaffold(
+internal fun DetailScaffold(
     accentUrl: String?,
     content: @Composable () -> Unit,
 ) {
@@ -259,90 +259,6 @@ fun PlaylistScreen(playlistId: String) {
 }
 
 /** Playlist creata nell'app (solo nel database del telefono). */
-@Composable
-fun LocalPlaylistScreen(
-    playlistId: String,
-    title: String,
-) {
-    val actions = LocalActions.current
-    val navigator = LocalNavigator.current
-    var menuEntryIndex by remember { mutableStateOf<Int?>(null) }
-    var renaming by remember { mutableStateOf(false) }
-    var deleting by remember { mutableStateOf(false) }
-    val playlist by remember(playlistId) { actions.database.playlist(playlistId) }.collectAsState(null)
-    val entries by remember(playlistId) { actions.database.playlistSongs(playlistId) }.collectAsState(emptyList())
-    val songs = remember(entries) { entries.map { it.song.toMediaMetadata() } }
-    val name = playlist?.playlist?.name ?: title
-    // Stessa copertina della Libreria: quella impostata, poi quella del primo brano
-    val cover = playlist?.playlist?.thumbnailUrl ?: playlist?.thumbnails?.firstOrNull() ?: songs.firstOrNull()?.thumbnailUrl
-
-    DetailScaffold(cover) {
-        LazyColumn(Modifier.fillMaxSize(), contentPadding = detailPadding()) {
-            item(key = "header") {
-                DetailHeader(
-                    artworkUrl = cover,
-                    title = name,
-                    subtitle = null,
-                    detail = trf("{0} brani", songs.size),
-                ) {
-                    PlayShuffleButtons(
-                        onPlay = { actions.playList(songs, title = name) },
-                        onShuffle = { actions.playList(songs, title = name, shuffle = true) },
-                        onDownload = { actions.downloadAll(songs) },
-                        menu =
-                            listOf(
-                                DetailMenuItem(tr("Rinomina"), Res.drawable.edit) { renaming = true },
-                                DetailMenuItem(tr("Elimina"), Res.drawable.delete, danger = true) { deleting = true },
-                            ),
-                    )
-                }
-            }
-            if (songs.isEmpty()) item(key = "empty") { EmptyState(tr("Questa playlist è vuota. Aggiungi brani dal menu ⋮ di un brano.")) }
-            itemsIndexed(songs) { index, song ->
-                SongRow(
-                    songId = song.id,
-                    title = song.title,
-                    subtitle = song.artists.joinToString { it.name },
-                    artworkUrl = song.thumbnailUrl,
-                    explicit = song.explicit,
-                    onClick = { actions.playList(songs, startIndex = index, title = name) },
-                    onMore = { menuEntryIndex = index },
-                )
-            }
-        }
-    }
-    menuEntryIndex?.let { index ->
-        val entry = entries.getOrNull(index)
-        val song = songs.getOrNull(index)
-        if (entry != null && song != null) {
-            SongMenuSheet(
-                song,
-                onDismiss = { menuEntryIndex = null },
-                onRemoveFromPlaylist = { playlist?.playlist?.let { actions.removeFromPlaylist(it, entry.map) } },
-            )
-        }
-    }
-    if (renaming) {
-        RenamePlaylistDialog(
-            currentName = name,
-            onDismiss = { renaming = false },
-            onRename = { newName -> playlist?.playlist?.let { actions.renamePlaylist(it, newName) } },
-        )
-    }
-    if (deleting) {
-        ConfirmDialog(
-            title = trf("Eliminare “{0}”?", name),
-            text = tr("La playlist viene tolta dalla libreria del telefono. I brani scaricati restano."),
-            confirmLabel = tr("Elimina"),
-            onDismiss = { deleting = false },
-            onConfirm = {
-                playlist?.playlist?.let(actions::deletePlaylist)
-                navigator.back()
-            },
-        )
-    }
-}
-
 @Composable
 fun ArtistScreen(browseId: String) {
     val actions = LocalActions.current
