@@ -6,7 +6,9 @@ import io.ktor.client.request.parameter
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.isSuccess
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
@@ -94,6 +96,7 @@ object GenreService {
                 }.take(limit)
         for (name in missing) {
             val tags = kotlinx.coroutines.withTimeoutOrNull(20_000) { runCatching { lookup(name) }.getOrNull() } ?: continue
+            currentCoroutineContext().ensureActive()
             cache.update { it + (name.lowercase() to ArtistGenres(tags, nowMs())) }
         }
     }

@@ -14,6 +14,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         initArchiveTuneX(this)
+        MainThreadWatchdog.start()
         SystemBars.attach(this)
 
         setContent {
@@ -34,5 +35,32 @@ class MainActivity : ComponentActivity() {
                     }
             },
         )
+    }
+}
+
+/**
+ * Sentinella: se il thread dello schermo resta bloccato più di 2 secondi, scrive nel Logcat
+ * (filtro "NamiBlocco") il punto esatto del codice in cui è fermo. Serve a trovare i blocchi "non risponde".
+ */
+private object MainThreadWatchdog {
+    @Volatile private var started = false
+
+    fun start() {
+        if (started) return
+        started = true
+        val main = android.os.Handler(android.os.Looper.getMainLooper())
+        Thread({
+            while (true) {
+                val answered = java.util.concurrent.atomic.AtomicBoolean(false)
+                main.post { answered.set(true) }
+                Thread.sleep(2_000)
+                if (!answered.get()) {
+                    val stack = android.os.Looper.getMainLooper().thread.stackTrace.joinToString("\n") { "    at $it" }
+                    android.util.Log.e("NamiBlocco", "Schermo bloccato da più di 2 secondi. Punto in cui è fermo:\n$stack")
+                    // Aspetta che si sblocchi prima di controllare di nuovo (un solo messaggio per blocco)
+                    while (!answered.get()) Thread.sleep(500)
+                }
+            }
+        }, "NamiWatchdog").apply { isDaemon = true }.start()
     }
 }

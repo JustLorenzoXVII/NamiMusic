@@ -1,5 +1,7 @@
 package com.justlorenzo.archivetunex.insights
 
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
@@ -62,6 +64,8 @@ object ArtistResolver {
                         }
                     }.getOrNull()
                     } ?: ResolvedArtist(null, null, now)
+                // Ricerca interrotta (si è usciti dalla pagina): non si salva niente, si riprova la prossima volta
+                currentCoroutineContext().ensureActive()
                 store.update { it + (name.lowercase() to found) }
             }
         }
