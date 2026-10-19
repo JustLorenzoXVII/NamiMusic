@@ -15,7 +15,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.Composable
 import archivetunex.shared.generated.resources.Res
 import archivetunex.shared.generated.resources.poppins
-import archivetunex.shared.generated.resources.sfprodisplaybold
 import org.jetbrains.compose.resources.Font
 
 private fun buildTypography(fontFamily: FontFamily) =
@@ -146,8 +145,10 @@ private fun buildTypography(fontFamily: FontFamily) =
 // quindi AppFontFamily / LyricsFontFamily / AppTypography non sono più costanti.
 val AppFontFamily: FontFamily
     @Composable get() = FontFamily(Font(Res.font.poppins))
+// Testi delle canzoni: font di sistema (su iPhone è già SF Pro). Apple non accetta più app che
+// includono i suoi font (avviso ITMS-91182), quindi il file sfprodisplaybold.ttf è stato tolto.
 val LyricsFontFamily: FontFamily
-    @Composable get() = FontFamily(Font(Res.font.sfprodisplaybold))
+    @Composable get() = FontFamily.Default
 val AppTypography: androidx.compose.material3.Typography
     @Composable get() = buildTypography(AppFontFamily)
 val SystemTypography = buildTypography(FontFamily.Default)
