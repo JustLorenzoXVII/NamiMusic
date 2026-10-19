@@ -105,6 +105,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -344,9 +345,13 @@ fun MiniPlayer(
         }
     val progressColor = if (style.miniPlayer == MiniPlayerStyle.Accent || style.miniPlayer == MiniPlayerStyle.Gradient) content else accent
 
+    if (style.miniLayout == MiniLayout.Joined) {
+        JoinedMini(modifier, interactive)
+        return
+    }
     val geometry =
         when (style.miniLayout) {
-            MiniLayout.Floating -> MiniGeometry(RoundedCornerShape(26.dp), 0.dp, 68.dp, 48.dp)
+            MiniLayout.Joined, MiniLayout.Floating -> MiniGeometry(RoundedCornerShape(26.dp), 0.dp, 68.dp, 48.dp)
             MiniLayout.Pill -> MiniGeometry(RoundedCornerShape(50), 0.dp, 58.dp, 42.dp)
             MiniLayout.Large -> MiniGeometry(RoundedCornerShape(30.dp), 0.dp, 92.dp, 72.dp)
         }
@@ -1795,6 +1800,244 @@ private fun playerColors(
 
 // endregion
 
+// region Barra unita (stile Fuji)
+
+/** Una scheda della barra di navigazione. */
+class BarTab(
+    val tab: com.justlorenzo.archivetunex.ui.Tab,
+    val label: String,
+    val icon: DrawableResource,
+)
+
+/** Colori della barra unita: le stesse sfumature del player, prese dalla copertina. */
+@Composable
+private fun rememberBarColors(): PlayerColors {
+    val connection = LocalActions.current.player
+    val metadata by connection.mediaMetadata.collectAsState()
+    val style = LocalAtxStyle.current
+    val artColors = rememberArtworkColors(metadata?.thumbnailUrl)
+    val accent = animatedArtworkColor(artColors)
+    val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val seed = if (style.coloredPlayerControls && metadata != null) accent else MaterialTheme.colorScheme.primary
+    return remember(seed, dark) { playerColors(seed, dark, poster = false) }
+}
+
+/**
+ * Mini player e barra di navigazione in un unico blocco (come Fuji Music):
+ * angoli grandi in alto, stesso colore, schede con l'indicatore a pillola.
+ */
+@Composable
+fun JoinedBottomBar(
+    tabs: List<BarTab>,
+    hideMini: Boolean,
+    onMiniBounds: (androidx.compose.ui.geometry.Rect) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val navigator = LocalNavigator.current
+    val connection = LocalActions.current.player
+    val metadata by connection.mediaMetadata.collectAsState()
+    val pc = rememberBarColors()
+    val background by animateColorAsState(pc.background, tween(600), label = "barBackground")
+    Column(
+        modifier
+            .fillMaxWidth()
+            .shadow(18.dp, RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+            .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+            .background(background),
+    ) {
+        if (metadata != null) {
+            Box(
+                Modifier
+                    .onGloballyPositioned { onMiniBounds(it.boundsInRoot()) }
+                    .graphicsLayer { alpha = if (hideMini) 0f else 1f },
+            ) { JoinedMini(Modifier, interactive = true) }
+        }
+        androidx.compose.material3.NavigationBar(
+            containerColor = Color.Transparent,
+            tonalElevation = 0.dp,
+        ) {
+            tabs.forEach { item ->
+                val selected = navigator.tab == item.tab
+                androidx.compose.material3.NavigationBarItem(
+                    selected = selected,
+                    onClick = { navigator.selectTab(item.tab) },
+                    icon = { AtxIcon(item.icon, item.label, size = 24.dp) },
+                    label = { Text(item.label, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium) },
+                    colors =
+                        androidx.compose.material3.NavigationBarItemDefaults.colors(
+                            selectedIconColor = pc.accent,
+                            selectedTextColor = pc.text,
+                            indicatorColor = pc.accent.copy(alpha = 0.2f),
+                            unselectedIconColor = pc.text.copy(alpha = 0.7f),
+                            unselectedTextColor = pc.text.copy(alpha = 0.7f),
+                        ),
+                )
+            }
+        }
+    }
+}
+
+/** Il mini player della barra unita: copertina, titolo, artista con il tempo, Play quadrato e avanti. */
+@Composable
+private fun JoinedMini(
+    modifier: Modifier,
+    interactive: Boolean,
+) {
+    val actions = LocalActions.current
+    val navigator = LocalNavigator.current
+    val connection = actions.player
+    val metadata by connection.mediaMetadata.collectAsState()
+    val isPlaying by connection.isPlaying.collectAsState()
+    val song = metadata ?: return
+    val style = LocalAtxStyle.current
+    val progress = rememberProgressState(connection)
+    val pc = rememberBarColors()
+    val swipe =
+        rememberTrackSwipe { forward ->
+            if (forward) connection.seekToNext() else connection.player.seekToPreviousMediaItem()
+        }
+    val spin = rememberSpin(8000)
+
+    Column(
+        modifier
+            .fillMaxWidth()
+            .then(if (interactive) Modifier else Modifier.background(pc.background))
+            .drawBehind {
+                // Riempimento: un colore appena più chiaro avanza da sinistra a destra
+                if (style.miniProgress == MiniProgress.Fill) {
+                    drawRect(lerpColor(pc.background, pc.text, 0.09f), size = Size(size.width * progress.fraction(), size.height))
+                }
+            }.then(if (interactive) swipe.modifier.clickable { navigator.playerExpanded = true } else Modifier),
+    ) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .height(72.dp)
+                .graphicsLayer {
+                    translationX = swipe.offset.value
+                    alpha = 1f - (abs(swipe.offset.value) / 600f).coerceAtMost(0.6f)
+                }.padding(start = 8.dp, end = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(Modifier.size(56.dp), contentAlignment = Alignment.Center) {
+                if (style.miniArtwork == MiniArtwork.Vinyl) {
+                    VinylDisc(song.thumbnailUrl, if (isPlaying) spin else 0f, Modifier.size(48.dp))
+                } else {
+                    val shape: Shape =
+                        when (style.miniArtwork) {
+                            MiniArtwork.Circle -> CircleShape
+                            MiniArtwork.Cookie -> MaterialShapes.Cookie9Sided.toShape()
+                            else -> RoundedCornerShape(12.dp)
+                        }
+                    Artwork(song.thumbnailUrl, Modifier.size(48.dp), shape, sizePx = 226)
+                }
+                when (style.miniProgress) {
+                    MiniProgress.Frame -> ProgressFrame({ progress.fraction() }, pc.accent, pc.text.copy(alpha = 0.15f), 15.dp, Modifier.size(56.dp))
+                    MiniProgress.Ring ->
+                        CircularProgressIndicator(
+                            progress = { progress.fraction() },
+                            modifier = Modifier.size(56.dp),
+                            color = pc.accent,
+                            strokeWidth = 3.dp,
+                            trackColor = Color.Transparent,
+                        )
+                    else -> Unit
+                }
+            }
+            Spacer(Modifier.width(10.dp))
+            Column(Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        song.title,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = pc.text,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    if (song.explicit) {
+                        Spacer(Modifier.width(6.dp))
+                        ExplicitBadge(14.dp, pc.text.copy(alpha = 0.7f), pc.background)
+                    }
+                }
+                if (style.miniShowArtist) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            song.artists.joinToString { it.name },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = pc.text.copy(alpha = 0.7f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false),
+                        )
+                        MiniTime(progress, pc.text.copy(alpha = 0.55f))
+                    }
+                }
+            }
+            if (style.miniButtons == MiniButtons.All) {
+                IconButton(onClick = connection::seekToPrevious) {
+                    AtxIcon(Res.drawable.skip_previous, "Brano precedente", tint = pc.accent)
+                }
+            }
+            Box(
+                Modifier
+                    .size(46.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(pc.accent)
+                    .clickable(onClick = actions::togglePlayPause),
+                contentAlignment = Alignment.Center,
+            ) {
+                AtxIcon(if (isPlaying) Res.drawable.pause else Res.drawable.play, if (isPlaying) "Pausa" else "Riproduci", tint = pc.onAccent)
+            }
+            if (style.miniButtons != MiniButtons.PlayOnly) {
+                IconButton(onClick = connection::seekToNext) {
+                    AtxIcon(Res.drawable.skip_next, "Brano successivo", tint = pc.accent)
+                }
+            }
+        }
+        when (style.miniProgress) {
+            // Onda: piccola onda tra le informazioni del brano e la barra
+            MiniProgress.Wave ->
+                LinearWavyProgressIndicator(
+                    progress = { progress.fraction() },
+                    color = pc.accent,
+                    trackColor = pc.text.copy(alpha = 0.15f),
+                    amplitude = { if (isPlaying) 1f else 0f },
+                    modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 6.dp).fillMaxWidth().height(8.dp),
+                )
+            MiniProgress.Line ->
+                Box(
+                    Modifier.padding(horizontal = 16.dp).padding(bottom = 6.dp).fillMaxWidth().height(3.dp).drawBehind {
+                        drawRoundRect(pc.text.copy(alpha = 0.15f), cornerRadius = CornerRadius(4f, 4f))
+                        drawRoundRect(pc.accent, size = Size(size.width * progress.fraction(), size.height), cornerRadius = CornerRadius(4f, 4f))
+                    },
+                )
+            else -> Unit
+        }
+    }
+}
+
+/** " · 1:00 / 3:41" accanto all'artista: si aggiorna da solo senza ridisegnare il resto. */
+@Composable
+private fun MiniTime(
+    progress: ProgressState,
+    color: Color,
+) {
+    val duration = progress.duration.longValue
+    if (duration <= 0) return
+    Text(
+        "  ·  ${formatTime(progress.position.longValue)} / ${formatTime(duration)}",
+        style = MaterialTheme.typography.bodySmall,
+        fontWeight = FontWeight.Medium,
+        color = color,
+        maxLines = 1,
+        softWrap = false,
+    )
+}
+
+// endregion
+
 /**
  * Il player che si apre "gonfiandosi" dal mini player e si richiude dentro di lui (come Fuji).
  * Si può anche trascinare: il player segue il dito e torna nel mini player.
@@ -1806,6 +2049,7 @@ fun PlayerMorph(
     miniBounds: androidx.compose.ui.geometry.Rect?,
     miniRadius: Dp,
     onProgress: (Float) -> Unit,
+    topCornersOnly: Boolean = false,
 ) {
     val navigator = LocalNavigator.current
     val scope = rememberCoroutineScope()
@@ -1840,8 +2084,8 @@ fun PlayerMorph(
             Modifier
                 .offset(frame.x, frame.y)
                 .size(frame.width, frame.height)
-                .shadow(if (p < 1f) 18.dp else 0.dp, RoundedCornerShape(frame.radius))
-                .clip(RoundedCornerShape(frame.radius))
+                .shadow(if (p < 1f) 18.dp else 0.dp, morphShape(frame.radius, topCornersOnly, p))
+                .clip(morphShape(frame.radius, topCornersOnly, p))
                 .draggable(
                     state = dragState,
                     orientation = Orientation.Vertical,
@@ -1880,6 +2124,16 @@ fun PlayerMorph(
             }
         }
     }
+}
+
+private fun morphShape(
+    radius: Dp,
+    topOnly: Boolean,
+    p: Float,
+) = if (topOnly) {
+    RoundedCornerShape(topStart = radius, topEnd = radius)
+} else {
+    RoundedCornerShape(radius)
 }
 
 /** Coda di riproduzione: tocca un brano per saltarci. */

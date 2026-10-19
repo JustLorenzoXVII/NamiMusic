@@ -136,6 +136,7 @@ enum class PlayButtonShape(
 enum class MiniLayout(
     val label: String,
 ) {
+    Joined("Unito alla barra"),
     Floating("Fluttuante"),
     Pill("Pillola"),
     Large("Grande"),
@@ -228,9 +229,9 @@ data class AtxStyle(
     val shrinkArtworkOnPause: Boolean = true,
     val showRemainingTime: Boolean = true,
     val coloredPlayerControls: Boolean = true,
-    val miniLayout: MiniLayout = MiniLayout.Floating,
+    val miniLayout: MiniLayout = MiniLayout.Joined,
     val miniPlayer: MiniPlayerStyle = MiniPlayerStyle.Tinted,
-    val miniProgress: MiniProgress = MiniProgress.Line,
+    val miniProgress: MiniProgress = MiniProgress.Wave,
     val miniArtwork: MiniArtwork = MiniArtwork.Rounded,
     val miniButtons: MiniButtons = MiniButtons.PlayNext,
     val miniShowArtist: Boolean = true,

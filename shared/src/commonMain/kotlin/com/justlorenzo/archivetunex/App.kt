@@ -75,6 +75,8 @@ import com.justlorenzo.archivetunex.ui.screens.SettingsOverlay
 import com.justlorenzo.archivetunex.ui.screens.LogsOverlay
 import com.justlorenzo.archivetunex.ui.screens.MiniPlayer
 import com.justlorenzo.archivetunex.ui.screens.PlayerMorph
+import com.justlorenzo.archivetunex.ui.screens.JoinedBottomBar
+import com.justlorenzo.archivetunex.ui.screens.BarTab
 import com.justlorenzo.archivetunex.ui.screens.PlaylistScreen
 import com.justlorenzo.archivetunex.ui.screens.QueueSheet
 import com.justlorenzo.archivetunex.ui.screens.SearchScreen
@@ -210,6 +212,21 @@ private fun AppContent(navigator: AtxNavigator) {
                 }
             }
 
+            val bottomStyle = LocalAtxStyle.current.miniLayout
+            if (bottomStyle == com.justlorenzo.archivetunex.ui.MiniLayout.Joined) {
+                // Stile Fuji: mini player e barra di navigazione uniti
+                JoinedBottomBar(
+                    tabs =
+                        listOf(
+                            BarTab(Tab.Home, "Home", Res.drawable.atx_home),
+                            BarTab(Tab.Search, "Cerca", Res.drawable.search),
+                            BarTab(Tab.Library, "Libreria", Res.drawable.library_filled),
+                        ),
+                    hideMini = playerProgress > 0f,
+                    onMiniBounds = { miniBounds = it },
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
+            } else {
             // Barra fluttuante in basso: mini player e schede a pillola
             Column(
                 Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding().padding(bottom = 8.dp),
@@ -222,14 +239,14 @@ private fun AppContent(navigator: AtxNavigator) {
                     val miniStyle = LocalAtxStyle.current
                     val extra =
                         when (miniStyle.miniLayout) {
-                            com.justlorenzo.archivetunex.ui.MiniLayout.Pill -> 24.dp
+                            com.justlorenzo.archivetunex.ui.MiniLayout.Joined, com.justlorenzo.archivetunex.ui.MiniLayout.Pill -> 24.dp
                             com.justlorenzo.archivetunex.ui.MiniLayout.Floating -> 64.dp
                             com.justlorenzo.archivetunex.ui.MiniLayout.Large -> 110.dp
                         }
                     // Spazio minimo per leggere il titolo: copertina + almeno 150 dp di testo + i pulsanti scelti
                     val art =
                         when (miniStyle.miniLayout) {
-                            com.justlorenzo.archivetunex.ui.MiniLayout.Pill -> 50.dp
+                            com.justlorenzo.archivetunex.ui.MiniLayout.Joined, com.justlorenzo.archivetunex.ui.MiniLayout.Pill -> 50.dp
                             com.justlorenzo.archivetunex.ui.MiniLayout.Floating -> 56.dp
                             com.justlorenzo.archivetunex.ui.MiniLayout.Large -> 80.dp
                         }
@@ -258,17 +275,20 @@ private fun AppContent(navigator: AtxNavigator) {
                     Modifier.align(Alignment.CenterHorizontally).onSizeChanged { tabsWidth = with(density) { it.width.toDp() } },
                 )
             }
+            }
 
             // Il player si apre dal mini player e si richiude dentro di lui
             PlayerMorph(
                 miniBounds = miniBounds,
                 miniRadius =
                     when (LocalAtxStyle.current.miniLayout) {
+                        com.justlorenzo.archivetunex.ui.MiniLayout.Joined -> 28.dp
                         com.justlorenzo.archivetunex.ui.MiniLayout.Pill -> 29.dp
                         com.justlorenzo.archivetunex.ui.MiniLayout.Floating -> 26.dp
                         com.justlorenzo.archivetunex.ui.MiniLayout.Large -> 30.dp
                     },
                 onProgress = { playerProgress = it },
+                topCornersOnly = bottomStyle == com.justlorenzo.archivetunex.ui.MiniLayout.Joined,
             )
             AnimatedVisibility(visible = navigator.settingsVisible, enter = fadeIn(), exit = fadeOut()) {
                 SettingsOverlay()

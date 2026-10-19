@@ -970,6 +970,7 @@ private fun miniBrush(mini: MiniPlayerStyle): Brush {
 private fun MiniShapePreview(layout: MiniLayout) {
     val shape: Shape =
         when (layout) {
+            MiniLayout.Joined -> RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
             MiniLayout.Floating -> RoundedCornerShape(12.dp)
             MiniLayout.Pill -> RoundedCornerShape(50)
             MiniLayout.Large -> RoundedCornerShape(14.dp)
@@ -977,11 +978,22 @@ private fun MiniShapePreview(layout: MiniLayout) {
     // Sotto: la barra delle schede, per far vedere quanto si allarga il mini player
     val width =
         when (layout) {
+            MiniLayout.Joined -> 1f
             MiniLayout.Pill -> 0.62f
             MiniLayout.Floating -> 0.8f
             MiniLayout.Large -> 0.98f
         }
     val height = if (layout == MiniLayout.Large) 36.dp else 24.dp
+    if (layout == MiniLayout.Joined) {
+        // Un solo blocco: mini player sopra, schede sotto
+        Column(Modifier.fillMaxWidth().clip(shape).background(MaterialTheme.colorScheme.primary).padding(horizontal = 8.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Box(Modifier.fillMaxWidth().height(18.dp).clip(RoundedCornerShape(6.dp)).background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.35f)))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                repeat(3) { Box(Modifier.size(width = 18.dp, height = 10.dp).clip(RoundedCornerShape(5.dp)).background(MaterialTheme.colorScheme.onPrimary.copy(alpha = if (it == 0) 0.9f else 0.4f))) }
+            }
+        }
+        return
+    }
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(5.dp)) {
         Box(Modifier.fillMaxWidth(width).height(height).clip(shape).background(MaterialTheme.colorScheme.primary))
         Box(Modifier.fillMaxWidth(0.62f).height(16.dp).clip(RoundedCornerShape(50)).background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)))
@@ -1049,6 +1061,7 @@ private fun MiniPlayerPreview(style: com.justlorenzo.archivetunex.ui.AtxStyle) {
         if (style.miniPlayer == MiniPlayerStyle.Accent) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
     val (shape, padding, height, artSize) =
         when (style.miniLayout) {
+            MiniLayout.Joined -> PreviewGeometry(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp), 0.dp, 72.dp, 48.dp)
             MiniLayout.Floating -> PreviewGeometry(RoundedCornerShape(26.dp), 16.dp, 68.dp, 48.dp)
             MiniLayout.Pill -> PreviewGeometry(RoundedCornerShape(50), 32.dp, 58.dp, 42.dp)
             MiniLayout.Large -> PreviewGeometry(RoundedCornerShape(30.dp), 16.dp, 92.dp, 72.dp)
