@@ -3,6 +3,7 @@ package com.justlorenzo.archivetunex.ui
 /** Testi dell'interfaccia in inglese (la chiave è il testo italiano usato nel codice). */
 val EnglishStrings: Map<String, String> =
     mapOf(
+        "Singolo" to "Single",
         "Mosaico" to "Mosaic",
         "Biglietto" to "Ticket",
         "Trasmetti" to "Cast",

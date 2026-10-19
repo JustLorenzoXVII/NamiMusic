@@ -641,6 +641,10 @@ fun PlayerScreen() {
         rememberTrackSwipe { forward -> if (forward) connection.seekToNext() else connection.player.seekToPreviousMediaItem() }
     val swipeX = swipe.offset.value
 
+    // Mosaico: la copertina toccata vola dal suo riquadro al posto di quella grande
+    var flyer by remember { mutableStateOf<Pair<ArtFrame, String>?>(null) }
+    val flyProgress = remember { androidx.compose.animation.core.Animatable(0f) }
+
     // Prossimi brani per il Mosaico: copertina e posizione in coda (toccandoli si salta lì)
     val upcoming =
         remember(windows, currentIndex) {
@@ -787,6 +791,10 @@ fun PlayerScreen() {
                         ArtFrame(art.x, art.y + art.height + gap, (grid - gap) / 2, side, 16.dp),
                         ArtFrame(art.x + (grid + gap) / 2, art.y + art.height + gap, (grid - gap) / 2, side, 16.dp),
                     )
+                // In pausa tutto il mosaico si rimpicciolisce insieme, verso il suo centro
+                val groupScale = artScale + (1f - artScale) * tLyrics
+                val centerX = art.x + grid / 2
+                val centerY = art.y + grid / 2
                 tiles.forEachIndexed { i, tile ->
                     val next = upcoming.getOrNull(i)
                     Box(
@@ -796,10 +804,21 @@ fun PlayerScreen() {
                             .graphicsLayer {
                                 // Compaiono una dopo l'altra mentre il player si apre
                                 alpha = (styleVisible * 1.4f - i * 0.12f).coerceIn(0f, 1f) * if (next == null) 0.35f else 0.9f
+                                scaleX = groupScale
+                                scaleY = groupScale
+                                translationX = ((tile.x + tile.width / 2) - centerX).toPx() * (groupScale - 1f)
+                                translationY = ((tile.y + tile.height / 2) - centerY).toPx() * (groupScale - 1f)
                             }.clip(RoundedCornerShape(tile.radius))
                             .background(pc.text.copy(alpha = 0.08f))
                             .clickable(enabled = next != null) {
-                                next?.let { (index, _) ->
+                                next?.let { (index, url) ->
+                                    // La copertina vola al posto di quella grande mentre parte il brano
+                                    flyer = tile to url
+                                    scope.launch {
+                                        flyProgress.snapTo(0f)
+                                        flyProgress.animateTo(1f, spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMediumLow))
+                                        flyer = null
+                                    }
                                     connection.player.seekToDefaultPosition(index)
                                     connection.player.playWhenReady = true
                                 }
@@ -814,8 +833,8 @@ fun PlayerScreen() {
             if (layout == PlayerLayout.Ticket && tLyrics < 1f) {
                 val ticketW = art.width + 28.dp
                 TicketBody(
-                    title = cleanTitle,
-                    artist = song.artists.joinToString { it.name },
+                    album = song.album?.title,
+                    durationMs = progress.duration.longValue,
                     holeColor = pc.background,
                     artSide = art.width,
                     modifier =
@@ -871,6 +890,14 @@ fun PlayerScreen() {
                         val s = if (poster || layout == PlayerLayout.Cassette || layout == PlayerLayout.Vinyl || layout == PlayerLayout.Ticket) 1f else (artScale + (1f - artScale) * tLyrics)
                         scaleX = s
                         scaleY = s
+                        // Mentre la copertina toccata vola qui, quella sotto resta nascosta
+                        alpha = if (flyer != null) 0f else 1f
+                        if (layout == PlayerLayout.Mosaic) {
+                            // Si rimpicciolisce verso il centro del mosaico, insieme alle altre copertine
+                            val grid = art.width / 0.68f
+                            translationX += (art.width / 2 - grid / 2).toPx() * (s - 1f)
+                            translationY = (art.height / 2 - grid / 2).toPx() * (s - 1f)
+                        }
                     }.size(art.width, art.height)
                     .shadow(shadow, artShape, ambientColor = pc.accent, spotColor = pc.accent)
                     .then(
@@ -907,6 +934,20 @@ fun PlayerScreen() {
                             ),
                     )
                 }
+            }
+
+            // Mosaico: la copertina toccata che vola al posto grande
+            flyer?.let { (from, url) ->
+                val frame = lerpFrame(from, art, flyProgress.value)
+                Artwork(
+                    url,
+                    Modifier
+                        .offset(frame.x, frame.y)
+                        .size(frame.width, frame.height)
+                        .shadow(18.dp * flyProgress.value, RoundedCornerShape(frame.radius)),
+                    RoundedCornerShape(frame.radius),
+                    sizePx = 1080,
+                )
             }
 
             // ================= Contenuto =================
@@ -1479,8 +1520,8 @@ private class WaveBottomShape(
 /** Il cartoncino del biglietto: fori laterali, linea tratteggiata e il brano stampato sulla parte da strappare. */
 @Composable
 private fun TicketBody(
-    title: String,
-    artist: String,
+    album: String?,
+    durationMs: Long,
     holeColor: Color,
     artSide: Dp,
     modifier: Modifier,
@@ -1500,29 +1541,44 @@ private fun TicketBody(
                 x += 12.dp.toPx()
             }
         }
-        Column(
-            Modifier.align(Alignment.BottomStart).padding(start = 18.dp, end = 18.dp, bottom = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+        // Sulla parte da strappare: album, durata e un codice a barre (titolo e artista sono già sotto)
+        Row(
+            Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(start = 18.dp, end = 18.dp, bottom = 14.dp),
+            verticalAlignment = Alignment.Bottom,
         ) {
-            Text(
-                title.uppercase(),
-                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                fontWeight = FontWeight.Bold,
-                fontSize = 15.sp,
-                color = ink,
-                maxLines = 1,
-                softWrap = false,
-                modifier = Modifier.scrollingText(),
-            )
-            Text(
-                (artist + " · ADMIT ONE").uppercase(),
-                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                fontSize = 11.sp,
-                color = ink.copy(alpha = 0.6f),
-                maxLines = 1,
-                softWrap = false,
-                modifier = Modifier.scrollingText(),
-            )
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    (album ?: tr("Singolo")).uppercase(),
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = ink,
+                    maxLines = 1,
+                    softWrap = false,
+                    modifier = Modifier.scrollingText(),
+                )
+                Text(
+                    (if (durationMs > 0) formatTime(durationMs) + " · " else "") + "ADMIT ONE · NAMI",
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                    fontSize = 11.sp,
+                    color = ink.copy(alpha = 0.6f),
+                    maxLines = 1,
+                    softWrap = false,
+                )
+            }
+            Spacer(Modifier.width(10.dp))
+            // Codice a barre (sempre uguale per lo stesso album)
+            val seed = remember(album) { (album ?: "nami").fold(17) { acc, c -> acc * 31 + c.code } }
+            Canvas(Modifier.width(54.dp).height(30.dp)) {
+                var x = 0f
+                var n = seed
+                while (x < size.width) {
+                    n = n * 1103515245 + 12345
+                    val w = (1 + ((n ushr 16) and 3)) * 1.2.dp.toPx()
+                    drawRect(ink, topLeft = Offset(x, 0f), size = Size(w, size.height))
+                    x += w + (1 + ((n ushr 20) and 1)) * 1.6.dp.toPx()
+                }
+            }
         }
     }
 }
