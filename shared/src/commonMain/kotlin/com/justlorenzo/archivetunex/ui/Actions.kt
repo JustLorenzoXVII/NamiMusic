@@ -37,6 +37,12 @@ class AtxActions(
     val database: MusicDatabase,
     val downloads: DownloadUtil,
 ) {
+    /**
+     * Playlist eliminate da YouTube Music in questa sessione: la Libreria le nasconde subito,
+     * anche se l'elenco del tuo account era già stato caricato prima.
+     */
+    val deletedPlaylistIds = androidx.compose.runtime.mutableStateListOf<String>()
+
     /** Un brano singolo (da ricerca o Home): parte il brano e poi la radio di YouTube Music. */
     fun playSong(song: SongItem) {
         player.player.shuffleModeEnabled = false
@@ -183,7 +189,10 @@ class AtxActions(
     fun deletePlaylist(playlist: PlaylistEntity) =
         launchSafely(tr("Eliminazione playlist non riuscita")) {
             val browseId = playlist.browseId
-            if (browseId != null && playlist.isEditable) YouTube.deletePlaylist(browseId).getOrThrow()
+            if (browseId != null && playlist.isEditable) {
+                deletedPlaylistIds += browseId
+                YouTube.deletePlaylist(browseId).onFailure { deletedPlaylistIds -= browseId }.getOrThrow()
+            }
             database.delete(playlist)
         }
 

@@ -148,7 +148,7 @@ fun LibraryScreen() {
                     }
                 val fromAccount =
                     (remote.value as? LoadState.Ready)?.value.orEmpty()
-                        .filter { item -> playlists.none { it.playlist.browseId == item.id } }
+                        .filter { item -> playlists.none { it.playlist.browseId == item.id } && item.id !in actions.deletedPlaylistIds }
                         .map { item ->
                             LibraryCard("yt-${item.id}", item.title, item.subtitle(), item.thumbnail) { openItem(item, actions, navigator) }
                         }
