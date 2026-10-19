@@ -55,6 +55,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import archivetunex.shared.generated.resources.Res
+import archivetunex.shared.generated.resources.delete
 import archivetunex.shared.generated.resources.arrow_back
 import archivetunex.shared.generated.resources.download
 import archivetunex.shared.generated.resources.play
@@ -91,6 +92,7 @@ fun PlayShuffleButtons(
     onDownload: (() -> Unit)? = null,
     toggle: DetailToggle? = null,
     menu: List<DetailMenuItem> = emptyList(),
+    onDelete: (() -> Unit)? = null,
     playLabel: String = tr("Riproduci"),
     shuffleLabel: String = tr("Casuale"),
     shuffleIcon: DrawableResource = Res.drawable.shuffle,
@@ -134,6 +136,11 @@ fun PlayShuffleButtons(
                         )
                     }
                 }
+            }
+        }
+        if (onDelete != null) {
+            IconButton(onClick = onDelete) {
+                AtxIcon(Res.drawable.delete, tr("Elimina"), size = 26.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         Spacer(Modifier.weight(1f))

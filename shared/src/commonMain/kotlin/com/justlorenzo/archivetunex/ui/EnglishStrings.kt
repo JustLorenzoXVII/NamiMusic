@@ -3,6 +3,12 @@ package com.justlorenzo.archivetunex.ui
 /** Testi dell'interfaccia in inglese (la chiave è il testo italiano usato nel codice). */
 val EnglishStrings: Map<String, String> =
     mapOf(
+        "Ordina" to "Sort",
+        "Ordina per" to "Sort by",
+        "Personalizzato" to "Custom",
+        "Titolo" to "Title",
+        "Data di aggiunta" to "Date added",
+        "Durata" to "Duration",
         "Mostra a griglia" to "Show as grid",
         "Mostra a elenco" to "Show as list",
         "Spostamento non riuscito" to "Couldn't move the song",

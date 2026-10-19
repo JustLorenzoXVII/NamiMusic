@@ -66,6 +66,14 @@ import archivetunex.shared.generated.resources.edit
 import archivetunex.shared.generated.resources.playlist_add
 import archivetunex.shared.generated.resources.remove
 import archivetunex.shared.generated.resources.search
+import archivetunex.shared.generated.resources.sort
+import archivetunex.shared.generated.resources.arrow_downward
+import archivetunex.shared.generated.resources.arrow_upward
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import com.justlorenzo.archivetunex.ui.PlaylistSortKey
+import com.justlorenzo.archivetunex.ui.PlaylistSortDescendingKey
+import moe.rukamori.archivetune.utils.rememberPreference
 import com.justlorenzo.archivetunex.ui.LocalActions
 import com.justlorenzo.archivetunex.ui.LocalNavigator
 import com.justlorenzo.archivetunex.ui.components.Artwork
@@ -131,14 +139,31 @@ fun LocalPlaylistScreen(
     val cover = playlist?.playlist?.thumbnailUrl ?: playlist?.thumbnails?.firstOrNull() ?: songs.firstOrNull()?.thumbnailUrl
     val synced = playlist?.playlist?.browseId != null
 
+    // Ordine di visualizzazione: personalizzato (quello della playlist) o per titolo, artista, ecc.
+    var sortName by rememberPreference(PlaylistSortKey, PlaylistSort.Custom.name)
+    var descending by rememberPreference(PlaylistSortDescendingKey, false)
+    val sort = PlaylistSort.entries.firstOrNull { it.name == sortName } ?: PlaylistSort.Custom
+    val ordered =
+        remember(entries, songs, sort, descending) {
+            val base =
+                when (sort) {
+                    PlaylistSort.Custom -> entries.indices.toList()
+                    PlaylistSort.Title -> entries.indices.sortedBy { songs[it].title.lowercase() }
+                    PlaylistSort.Artist -> entries.indices.sortedBy { songs[it].artists.firstOrNull()?.name.orEmpty().lowercase() }
+                    PlaylistSort.Album -> entries.indices.sortedBy { songs[it].album?.title.orEmpty().lowercase() }
+                    PlaylistSort.Added -> entries.indices.sortedBy { entries[it].map.id }
+                    PlaylistSort.Duration -> entries.indices.sortedBy { songs[it].duration }
+                }
+            if (descending) base.reversed() else base
+        }
     // Ricerca dentro la playlist (titolo o artista)
     val visible =
-        remember(entries, songs, query) {
+        remember(ordered, songs, query) {
             val q = query.trim().lowercase()
             if (q.isEmpty()) {
-                entries.indices.toList()
+                ordered
             } else {
-                entries.indices.filter { i ->
+                ordered.filter { i ->
                     songs[i].title.lowercase().contains(q) || songs[i].artists.any { it.name.lowercase().contains(q) }
                 }
             }
@@ -162,16 +187,10 @@ fun LocalPlaylistScreen(
                     detail = trf("{0} brani", songs.size),
                 ) {
                     PlayShuffleButtons(
-                        onPlay = { actions.playList(songs, title = name) },
+                        onPlay = { actions.playList(ordered.map { songs[it] }, title = name) },
                         onShuffle = { actions.playList(songs, title = name, shuffle = true) },
                         onDownload = { actions.downloadAll(songs) },
-                        menu =
-                            listOf(
-                                DetailMenuItem(tr("Aggiungi brani"), Res.drawable.playlist_add) { adding = true },
-                                DetailMenuItem(tr("Modifica"), Res.drawable.edit) { editing = true; query = "" },
-                                DetailMenuItem(tr("Rinomina"), Res.drawable.edit) { renaming = true },
-                                DetailMenuItem(tr("Elimina"), Res.drawable.delete, danger = true) { deleting = true },
-                            ),
+                        onDelete = { deleting = true },
                     )
                 }
             }
@@ -240,12 +259,68 @@ fun LocalPlaylistScreen(
                 }
             } else if (entries.isNotEmpty()) {
                 item(key = "search") {
-                    PlaylistSearchField(
-                        query = query,
-                        onQueryChange = { query = it },
-                        placeholder = tr("Cerca nella playlist"),
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                    )
+                    Row(
+                        Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        PlaylistSearchField(
+                            query = query,
+                            onQueryChange = { query = it },
+                            placeholder = tr("Cerca nella playlist"),
+                            modifier = Modifier.weight(1f),
+                        )
+                        // Ordina per…
+                        Box {
+                            var sortOpen by remember { mutableStateOf(false) }
+                            IconButton(onClick = { sortOpen = true }, modifier = Modifier.padding(start = 4.dp)) {
+                                AtxIcon(
+                                    Res.drawable.sort,
+                                    tr("Ordina"),
+                                    tint = if (sort != PlaylistSort.Custom) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            DropdownMenu(expanded = sortOpen, onDismissRequest = { sortOpen = false }, shape = RoundedCornerShape(20.dp)) {
+                                Text(
+                                    tr("Ordina per"),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                )
+                                PlaylistSort.entries.forEach { option ->
+                                    val selected = option == sort
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(
+                                                option.label,
+                                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                                                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                            )
+                                        },
+                                        trailingIcon = {
+                                            if (selected) {
+                                                AtxIcon(
+                                                    if (descending) Res.drawable.arrow_downward else Res.drawable.arrow_upward,
+                                                    null,
+                                                    size = 20.dp,
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                )
+                                            }
+                                        },
+                                        // Toccando di nuovo l'ordine scelto si inverte
+                                        onClick = {
+                                            if (selected) {
+                                                descending = !descending
+                                            } else {
+                                                sortName = option.name
+                                                descending = option == PlaylistSort.Added
+                                            }
+                                            sortOpen = false
+                                        },
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -354,7 +429,10 @@ fun LocalPlaylistScreen(
                         subtitle = song.artists.joinToString { it.name },
                         artworkUrl = song.thumbnailUrl,
                         explicit = song.explicit,
-                        onClick = { actions.playList(songs, startIndex = index, title = name) },
+                        onClick = {
+                            val queue = visible.takeIf { query.isNotBlank() } ?: ordered
+                            actions.playList(queue.map { songs[it] }, startIndex = queue.indexOf(index).coerceAtLeast(0), title = name)
+                        },
                         onMore = { menuEntryKey = entries[index].map.id },
                     )
                 }
@@ -406,6 +484,20 @@ fun LocalPlaylistScreen(
             },
         )
     }
+}
+
+/** Come mostrare i brani di una playlist. */
+private enum class PlaylistSort(
+    private val rawLabel: String,
+) {
+    Custom("Personalizzato"),
+    Title("Titolo"),
+    Artist("Artista"),
+    Album("Album"),
+    Added("Data di aggiunta"),
+    Duration("Durata");
+
+    val label: String get() = tr(rawLabel)
 }
 
 /** Campo di ricerca arrotondato. */
