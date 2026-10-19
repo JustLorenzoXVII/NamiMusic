@@ -101,6 +101,7 @@ import moe.rukamori.archivetune.compat.Timber
 import moe.rukamori.archivetune.constants.DarkModeKey
 import moe.rukamori.archivetune.ui.screens.settings.DarkMode
 import moe.rukamori.archivetune.utils.rememberEnumPreference
+import moe.rukamori.archivetune.utils.dataStore
 import moe.rukamori.archivetune.downloads.DownloadedArtworkRepository
 import moe.rukamori.archivetune.innertube.network.createPlatformHttpClient
 import org.jetbrains.compose.resources.DrawableResource
