@@ -223,12 +223,20 @@ fun DetailHeader(
         if (artwork != null) {
             artwork()
         } else {
-            Artwork(
-                artworkUrl,
-                Modifier.size(250.dp).shadow(28.dp, artworkShape),
-                shape = artworkShape,
-                sizePx = 720,
-            )
+            // L'ombra si calcola su forme semplici: su quelle con rientranze (il "biscotto" degli artisti)
+            // è pesantissima per il sistema grafico e bloccava l'app. Lì l'ombra è un cerchio sotto la foto.
+            val simpleShape = artworkShape is androidx.compose.foundation.shape.CornerBasedShape
+            Box(Modifier.size(250.dp), contentAlignment = Alignment.Center) {
+                if (!simpleShape) {
+                    Box(Modifier.size(214.dp).shadow(28.dp, androidx.compose.foundation.shape.CircleShape))
+                }
+                Artwork(
+                    artworkUrl,
+                    Modifier.size(250.dp).then(if (simpleShape) Modifier.shadow(28.dp, artworkShape) else Modifier),
+                    shape = artworkShape,
+                    sizePx = 720,
+                )
+            }
         }
         Text(
             title,
