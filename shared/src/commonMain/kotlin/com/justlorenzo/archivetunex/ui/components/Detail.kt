@@ -1,5 +1,31 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.justlorenzo.archivetunex.ui.components
 
+import org.jetbrains.compose.resources.DrawableResource
+import archivetunex.shared.generated.resources.more_vert
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.material3.toShape
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.animateFloatAsState
 import com.justlorenzo.archivetunex.ui.tr
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,40 +60,137 @@ import archivetunex.shared.generated.resources.play
 import archivetunex.shared.generated.resources.shuffle
 import com.justlorenzo.archivetunex.ui.LocalNavigator
 
-/** "Riproduci" pieno e "Casuale" tonale, uno accanto all'altro (stile Expressive). */
+/** Un'azione del menu "Altro" (⋮) delle pagine di album, playlist e artisti. */
+class DetailMenuItem(
+    val label: String,
+    val icon: DrawableResource,
+    val danger: Boolean = false,
+    val onClick: () -> Unit,
+)
+
+/** Pulsante a due stati (Salva in libreria, Segui). */
+class DetailToggle(
+    val active: Boolean,
+    val labelOn: String,
+    val labelOff: String,
+    val iconOn: DrawableResource,
+    val iconOff: DrawableResource,
+    val onClick: () -> Unit,
+)
+
+/**
+ * Barra delle azioni (stile Expressive): al centro il grande Play a biscotto, ai lati Casuale e Scarica,
+ * alle estremità Salva/Segui e "Altro". Ogni pulsante ha il suo nome sotto.
+ */
 @Composable
 fun PlayShuffleButtons(
-    onPlay: () -> Unit,
-    onShuffle: () -> Unit,
+    onPlay: (() -> Unit)?,
+    onShuffle: (() -> Unit)?,
     modifier: Modifier = Modifier,
     onDownload: (() -> Unit)? = null,
+    toggle: DetailToggle? = null,
+    menu: List<DetailMenuItem> = emptyList(),
+    playLabel: String = tr("Riproduci"),
+    shuffleLabel: String = tr("Casuale"),
+    shuffleIcon: DrawableResource = Res.drawable.shuffle,
 ) {
     Row(
-        modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        modifier.fillMaxWidth().padding(top = 4.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.Top,
     ) {
-        Button(
-            onClick = onPlay,
-            modifier = Modifier.weight(1f),
-            contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-        ) {
-            AtxIcon(Res.drawable.play, null, size = 20.dp)
-            Text(tr("Riproduci"), modifier = Modifier.padding(start = 8.dp))
+        if (toggle != null) {
+            ActionButton(
+                icon = if (toggle.active) toggle.iconOn else toggle.iconOff,
+                label = if (toggle.active) toggle.labelOn else toggle.labelOff,
+                size = 48.dp,
+                container = if (toggle.active) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceContainerHigh,
+                content = if (toggle.active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                onClick = toggle.onClick,
+            )
         }
-        FilledTonalButton(
-            onClick = onShuffle,
-            modifier = Modifier.weight(1f),
-            contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-        ) {
-            AtxIcon(Res.drawable.shuffle, null, size = 20.dp)
-            Text(tr("Casuale"), modifier = Modifier.padding(start = 8.dp))
+        if (onShuffle != null) {
+            ActionButton(shuffleIcon, shuffleLabel, 58.dp, MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer, onClick = onShuffle)
+        }
+        if (onPlay != null) {
+            ActionButton(
+                Res.drawable.play,
+                playLabel,
+                76.dp,
+                MaterialTheme.colorScheme.primary,
+                MaterialTheme.colorScheme.onPrimary,
+                shape = MaterialShapes.Cookie9Sided.toShape(),
+                iconSize = 34.dp,
+                onClick = onPlay,
+            )
         }
         if (onDownload != null) {
-            FilledTonalIconButton(onClick = onDownload) {
-                AtxIcon(Res.drawable.download, tr("Scarica tutto"))
+            ActionButton(Res.drawable.download, tr("Scarica"), 58.dp, MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer, onClick = onDownload)
+        }
+        if (menu.isNotEmpty()) {
+            var open by remember { mutableStateOf(false) }
+            Box {
+                ActionButton(Res.drawable.more_vert, tr("Altro"), 48.dp, MaterialTheme.colorScheme.surfaceContainerHigh, MaterialTheme.colorScheme.onSurface) { open = true }
+                DropdownMenu(expanded = open, onDismissRequest = { open = false }, shape = RoundedCornerShape(20.dp)) {
+                    menu.forEach { item ->
+                        val color = if (item.danger) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                        DropdownMenuItem(
+                            text = { Text(item.label, color = color, fontWeight = FontWeight.SemiBold) },
+                            leadingIcon = { AtxIcon(item.icon, null, size = 20.dp, tint = color) },
+                            onClick = {
+                                open = false
+                                item.onClick()
+                            },
+                        )
+                    }
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun ActionButton(
+    icon: DrawableResource,
+    label: String,
+    size: Dp,
+    container: Color,
+    content: Color,
+    shape: Shape = CircleShape,
+    iconSize: Dp = 24.dp,
+    onClick: () -> Unit,
+) {
+    val source = remember { MutableInteractionSource() }
+    val pressed by source.collectIsPressedAsState()
+    val scale by animateFloatAsState(if (pressed) 0.88f else 1f, spring(dampingRatio = 0.45f, stiffness = 700f), label = "actionScale")
+    Column(
+        Modifier.width(76.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        // I pulsanti piccoli restano centrati sull'altezza del Play
+        Box(Modifier.height(76.dp), contentAlignment = Alignment.Center) {
+            Box(
+                Modifier
+                    .size(size)
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                    }.clip(shape)
+                    .background(container)
+                    .clickable(interactionSource = source, indication = LocalIndication.current, onClick = onClick),
+                contentAlignment = Alignment.Center,
+            ) { AtxIcon(icon, label, size = iconSize, tint = content) }
+        }
+        Text(
+            label,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
@@ -133,6 +256,6 @@ fun DetailHeader(
                 textAlign = TextAlign.Center,
             )
         }
-        Box(Modifier.padding(top = 10.dp, bottom = 8.dp)) { buttons() }
+        Box(Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 8.dp)) { buttons() }
     }
 }

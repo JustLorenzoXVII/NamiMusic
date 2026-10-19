@@ -1,5 +1,15 @@
 package com.justlorenzo.archivetunex.ui.screens
 
+import archivetunex.shared.generated.resources.Res
+import archivetunex.shared.generated.resources.add
+import archivetunex.shared.generated.resources.check
+import archivetunex.shared.generated.resources.radio
+import archivetunex.shared.generated.resources.delete
+import archivetunex.shared.generated.resources.edit
+import archivetunex.shared.generated.resources.library_add_check
+import archivetunex.shared.generated.resources.library_add
+import com.justlorenzo.archivetunex.ui.components.DetailMenuItem
+import com.justlorenzo.archivetunex.ui.components.DetailToggle
 import com.justlorenzo.archivetunex.ui.tr
 import com.justlorenzo.archivetunex.ui.trf
 import androidx.compose.foundation.background
@@ -120,22 +130,24 @@ fun AlbumScreen(browseId: String) {
                             subtitle = albumItem.artists?.joinToString { it.name },
                             detail = listOfNotNull(albumItem.year?.toString(), trf("{0} brani", songs.size)).joinToString(" · "),
                         ) {
-                            androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                PlayShuffleButtons(
-                                    onPlay = { actions.playList(songs, title = albumItem.title) },
-                                    onShuffle = { actions.playList(songs, title = albumItem.title, shuffle = true) },
-                                    onDownload = { actions.downloadAll(songs) },
-                                )
-                                OutlinedButton(
-                                    onClick = {
+                            PlayShuffleButtons(
+                                onPlay = { actions.playList(songs, title = albumItem.title) },
+                                onShuffle = { actions.playList(songs, title = albumItem.title, shuffle = true) },
+                                onDownload = { actions.downloadAll(songs) },
+                                toggle =
+                                    DetailToggle(
+                                        active = isSaved,
+                                        labelOn = tr("Salvato"),
+                                        labelOff = tr("Salva"),
+                                        iconOn = Res.drawable.library_add_check,
+                                        iconOff = Res.drawable.library_add,
+                                    ) {
                                         actions.database.transaction {
                                             insert(state.value)
                                             album(browseId).first()?.album?.let { update(it.toggleLike()) }
                                         }
                                     },
-                                    modifier = Modifier.padding(horizontal = 0.dp),
-                                ) { Text(if (isSaved) tr("Salvato in libreria") else tr("Salva in libreria")) }
-                            }
+                            )
                         }
                     }
                     itemsIndexed(songs) { index, song ->
@@ -206,20 +218,25 @@ fun PlaylistScreen(playlistId: String) {
                             subtitle = playlist.author?.name,
                             detail = playlist.songCountText ?: trf("{0} brani", songs.size),
                         ) {
-                            androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                PlayShuffleButtons(
-                                    onPlay = { actions.playList(songs, title = playlist.title) },
-                                    onShuffle = { actions.playList(songs, title = playlist.title, shuffle = true) },
-                                    onDownload = { actions.downloadAll(songs) },
-                                )
-                                OutlinedButton(onClick = {
-                                    if (savedPlaylist != null) {
-                                        actions.unsaveYouTubePlaylist(playlistId)
-                                    } else {
-                                        actions.saveYouTubePlaylist(playlist, songs)
-                                    }
-                                }) { Text(if (savedPlaylist != null) tr("Salvata in libreria") else tr("Salva in libreria")) }
-                            }
+                            PlayShuffleButtons(
+                                onPlay = { actions.playList(songs, title = playlist.title) },
+                                onShuffle = { actions.playList(songs, title = playlist.title, shuffle = true) },
+                                onDownload = { actions.downloadAll(songs) },
+                                toggle =
+                                    DetailToggle(
+                                        active = savedPlaylist != null,
+                                        labelOn = tr("Salvata"),
+                                        labelOff = tr("Salva"),
+                                        iconOn = Res.drawable.library_add_check,
+                                        iconOff = Res.drawable.library_add,
+                                    ) {
+                                        if (savedPlaylist != null) {
+                                            actions.unsaveYouTubePlaylist(playlistId)
+                                        } else {
+                                            actions.saveYouTubePlaylist(playlist, songs)
+                                        }
+                                    },
+                            )
                         }
                     }
                     if (songs.isEmpty()) item(key = "empty") { EmptyState(tr("Questa playlist è vuota.")) }
@@ -256,27 +273,28 @@ fun LocalPlaylistScreen(
     val entries by remember(playlistId) { actions.database.playlistSongs(playlistId) }.collectAsState(emptyList())
     val songs = remember(entries) { entries.map { it.song.toMediaMetadata() } }
     val name = playlist?.playlist?.name ?: title
+    // Stessa copertina della Libreria: quella impostata, poi quella del primo brano
+    val cover = playlist?.playlist?.thumbnailUrl ?: playlist?.thumbnails?.firstOrNull() ?: songs.firstOrNull()?.thumbnailUrl
 
-    DetailScaffold(songs.firstOrNull()?.thumbnailUrl) {
+    DetailScaffold(cover) {
         LazyColumn(Modifier.fillMaxSize(), contentPadding = detailPadding()) {
             item(key = "header") {
                 DetailHeader(
-                    artworkUrl = songs.firstOrNull()?.thumbnailUrl,
+                    artworkUrl = cover,
                     title = name,
                     subtitle = null,
                     detail = trf("{0} brani", songs.size),
                 ) {
-                    androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        PlayShuffleButtons(
-                            onPlay = { actions.playList(songs, title = name) },
-                            onShuffle = { actions.playList(songs, title = name, shuffle = true) },
-                            onDownload = { actions.downloadAll(songs) },
-                        )
-                        androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedButton(onClick = { renaming = true }) { Text(tr("Rinomina")) }
-                            OutlinedButton(onClick = { deleting = true }) { Text(tr("Elimina")) }
-                        }
-                    }
+                    PlayShuffleButtons(
+                        onPlay = { actions.playList(songs, title = name) },
+                        onShuffle = { actions.playList(songs, title = name, shuffle = true) },
+                        onDownload = { actions.downloadAll(songs) },
+                        menu =
+                            listOf(
+                                DetailMenuItem(tr("Rinomina"), Res.drawable.edit) { renaming = true },
+                                DetailMenuItem(tr("Elimina"), Res.drawable.delete, danger = true) { deleting = true },
+                            ),
+                    )
                 }
             }
             if (songs.isEmpty()) item(key = "empty") { EmptyState(tr("Questa playlist è vuota. Aggiungi brani dal menu ⋮ di un brano.")) }
@@ -349,27 +367,34 @@ fun ArtistScreen(browseId: String) {
                             detail = artistItem.monthlyListenerCountText ?: artistItem.subscriberCountText,
                             artworkShape = com.justlorenzo.archivetunex.ui.components.ArtistShape,
                         ) {
-                            androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                (artistItem.shuffleEndpoint ?: artistItem.playEndpoint)?.let { endpoint ->
-                                    androidx.compose.material3.Button(onClick = { actions.playEndpoint(endpoint) }) { Text(tr("Riproduci")) }
-                                }
-                                artistItem.radioEndpoint?.let { endpoint ->
-                                    FilledTonalButton(onClick = { actions.playEndpoint(endpoint) }) { Text(tr("Radio")) }
-                                }
-                                OutlinedButton(onClick = {
-                                    actions.database.transaction {
-                                        val existing = artist(browseId).first()?.artist
-                                        val entity =
-                                            existing ?: ArtistEntity(
-                                                id = browseId,
-                                                name = artistItem.title,
-                                                thumbnailUrl = artistItem.thumbnail,
-                                                channelId = artistItem.channelId,
-                                            ).also { insert(it) }
-                                        update(entity.toggleLike())
-                                    }
-                                }) { Text(if (isFollowed) tr("Segui già") else tr("Segui")) }
-                            }
+                            val playEndpoint = artistItem.shuffleEndpoint ?: artistItem.playEndpoint
+                            PlayShuffleButtons(
+                                onPlay = playEndpoint?.let { endpoint -> { actions.playEndpoint(endpoint) } },
+                                // Per gli artisti il secondo pulsante è la Radio
+                                onShuffle = artistItem.radioEndpoint?.let { endpoint -> { actions.playEndpoint(endpoint) } },
+                                shuffleLabel = tr("Radio"),
+                                shuffleIcon = Res.drawable.radio,
+                                toggle =
+                                    DetailToggle(
+                                        active = isFollowed,
+                                        labelOn = tr("Segui già"),
+                                        labelOff = tr("Segui"),
+                                        iconOn = Res.drawable.check,
+                                        iconOff = Res.drawable.add,
+                                    ) {
+                                        actions.database.transaction {
+                                            val existing = artist(browseId).first()?.artist
+                                            val entity =
+                                                existing ?: ArtistEntity(
+                                                    id = browseId,
+                                                    name = artistItem.title,
+                                                    thumbnailUrl = artistItem.thumbnail,
+                                                    channelId = artistItem.channelId,
+                                                ).also { insert(it) }
+                                            update(entity.toggleLike())
+                                        }
+                                    },
+                            )
                         }
                     }
                     state.value.sections.forEachIndexed { index, section ->
