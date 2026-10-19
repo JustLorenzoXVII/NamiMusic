@@ -1,8 +1,13 @@
-@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
 
 package com.justlorenzo.archivetunex.ui.screens
 
 import androidx.compose.material3.toShape
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.runtime.LaunchedEffect
+import moe.rukamori.archivetune.innertube.models.YTItem
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.foundation.border
 import com.justlorenzo.archivetunex.ui.tr
@@ -126,6 +131,21 @@ fun LibraryScreen() {
             if (account == null) Result.success(emptyList()) else YouTube.library("FEmusic_liked_playlists").map { it.items }
         }
 
+    // Ultimo elenco del tuo account: resta visibile mentre si aggiorna (niente sfarfallio)
+    var remoteItems by remember { mutableStateOf<List<YTItem>>(emptyList()) }
+    LaunchedEffect(remote.value) { (remote.value as? LoadState.Ready)?.value?.let { remoteItems = it } }
+    // Aggiornamento automatico: quando crei, elimini o salvi una playlist si ricarica l'elenco del tuo account
+    val playlistIds = remember(playlists) { playlists.map { it.playlist.id }.toSet() }
+    var lastIds by remember { mutableStateOf<Set<String>?>(null) }
+    LaunchedEffect(playlistIds) {
+        val previous = lastIds
+        lastIds = playlistIds
+        if (previous != null && previous != playlistIds && account != null) remote.reload()
+    }
+    // Trascina verso il basso per aggiornare
+    var pulling by remember { mutableStateOf(false) }
+    LaunchedEffect(remote.value) { if (remote.value !is LoadState.Loading) pulling = false }
+
     val cards: List<LibraryCard> =
         when (section) {
             LibrarySection.Playlists -> {
@@ -147,7 +167,7 @@ fun LibraryScreen() {
                         }
                     }
                 val fromAccount =
-                    (remote.value as? LoadState.Ready)?.value.orEmpty()
+                    remoteItems
                         .filter { item -> playlists.none { it.playlist.browseId == item.id } && item.id !in actions.deletedPlaylistIds }
                         .map { item ->
                             LibraryCard("yt-${item.id}", item.title, item.subtitle(), item.thumbnail) { openItem(item, actions, navigator) }
@@ -175,6 +195,25 @@ fun LibraryScreen() {
                 }
         }
 
+    val pullState = rememberPullToRefreshState()
+    PullToRefreshBox(
+        isRefreshing = pulling,
+        onRefresh = {
+            pulling = true
+            if (account != null) remote.reload() else pulling = false
+        },
+        state = pullState,
+        modifier = Modifier.fillMaxSize(),
+        indicator = {
+            PullToRefreshDefaults.LoadingIndicator(
+                state = pullState,
+                isRefreshing = pulling,
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.align(Alignment.TopCenter).padding(top = 48.dp),
+            )
+        },
+    ) {
     LazyColumn(Modifier.fillMaxSize(), contentPadding = BottomContentPadding) {
         item(key = "header") {
             ScreenTitle(tr("Libreria"), overline = tr("La tua musica")) {
@@ -272,6 +311,7 @@ fun LibraryScreen() {
                 cards
             }
         if (listView) cardList(shown) else cardGrid(shown)
+    }
     }
 
     if (creating) CreatePlaylistDialog(onDismiss = { creating = false })
