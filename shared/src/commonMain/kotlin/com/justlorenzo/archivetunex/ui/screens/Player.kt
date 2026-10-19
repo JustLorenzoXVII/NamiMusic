@@ -545,7 +545,7 @@ private fun lerpFrame(
 ) = ArtFrame(lerp(a.x, b.x, t), lerp(a.y, b.y, t), lerp(a.width, b.width, t), lerp(a.height, b.height, t), lerp(a.radius, b.radius, t))
 
 @Composable
-fun PlayerScreen() {
+fun PlayerScreen(underArtwork: @Composable () -> Unit = {}) {
     val actions = LocalActions.current
     val navigator = LocalNavigator.current
     val connection = actions.player
@@ -729,6 +729,10 @@ fun PlayerScreen() {
                 PlayerBackground.Plain -> Unit
             }
             }
+
+            // Durante l'apertura/chiusura: il mini player (titolo e tasti) sfuma qui, SOTTO la copertina,
+            // così la copertina che vola resta sempre visibile
+            underArtwork()
 
             // ================= Dove va la copertina =================
             val zoneStart = statusTop + 64.dp
@@ -2263,15 +2267,20 @@ fun PlayerMorph(
                 Modifier
                     .wrapContentSize(Alignment.TopStart, unbounded = true)
                     .requiredSize(fullW, fullH),
-            ) { PlayerScreen() }
-            // Le scritte e i tasti del mini player sfumano subito (la copertina vola via da sola)
-            if (p < 0.4f) {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(start.height)
-                        .graphicsLayer { alpha = (1f - p / 0.3f).coerceIn(0f, 1f) },
-                ) { MiniPlayer(Modifier.fillMaxSize(), interactive = false) }
+            ) {
+                PlayerScreen(
+                    underArtwork = {
+                        // Le scritte e i tasti del mini player sfumano subito (la copertina vola via da sola)
+                        if (p < 0.4f) {
+                            Box(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(start.height)
+                                    .graphicsLayer { alpha = (1f - p / 0.3f).coerceIn(0f, 1f) },
+                            ) { MiniPlayer(Modifier.fillMaxSize(), interactive = false) }
+                        }
+                    },
+                )
             }
         }
     }
