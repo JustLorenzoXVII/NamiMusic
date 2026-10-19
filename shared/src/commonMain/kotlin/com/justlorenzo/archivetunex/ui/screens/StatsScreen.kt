@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import archivetunex.shared.generated.resources.Res
 import archivetunex.shared.generated.resources.stats
+import com.justlorenzo.archivetunex.insights.ArtistResolver
 import com.justlorenzo.archivetunex.insights.GenreService
 import com.justlorenzo.archivetunex.insights.Insights
 import com.justlorenzo.archivetunex.insights.ListeningSignals
@@ -83,6 +84,7 @@ fun StatsScreen() {
     var period by rememberSaveable { mutableStateOf(StatsPeriod.Month) }
     val genres by GenreService.genres.collectAsState()
     val signals by ListeningSignals.signals.collectAsState()
+    val resolvedArtists by ArtistResolver.resolved.collectAsState()
     var loading by remember { mutableStateOf(true) }
     val stats by produceState<ListeningStats?>(null, period, genres, signals) {
         loading = true
@@ -145,7 +147,13 @@ fun StatsScreen() {
             return@LazyColumn
         }
 
-        item(key = "hero") { HeroTotals(current) }
+        item(key = "hero") {
+            HeroTotals(current)
+            // Foto e pagina vera degli artisti più ascoltati (cercati su YouTube Music una volta sola)
+            LaunchedEffect(current.topArtists.map { it.name }) {
+                runCatching { ArtistResolver.resolve(current.topArtists.map { it.name to it.id }) }
+            }
+        }
 
         // Brani più ascoltati
         item(key = "songs-title") { SectionHeader(tr("Brani più ascoltati")) }
@@ -169,16 +177,20 @@ fun StatsScreen() {
                     horizontalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
                     itemsIndexed(current.topArtists, key = { _, a -> a.name }) { index, artist ->
+                        val found = resolvedArtists[artist.name.lowercase()]
+                        // Si apre solo un artista che esiste su YouTube Music (i codici interni non si aprono)
+                        val pageId = found?.browseId ?: artist.id?.takeIf { ArtistResolver.isYouTubeId(it) }
+                        val photo = artist.thumbnailUrl ?: found?.thumbnailUrl
                         Column(
                             Modifier
                                 .width(104.dp)
                                 .clip(RoundedCornerShape(20.dp))
-                                .clickable(enabled = artist.id != null) { artist.id?.let { navigator.open(Route.Artist(it)) } }
+                                .clickable(enabled = pageId != null) { pageId?.let { navigator.open(Route.Artist(it)) } }
                                 .padding(4.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Box {
-                                Artwork(artist.thumbnailUrl, Modifier.size(96.dp), ArtistShape, sizePx = 300)
+                                Artwork(photo, Modifier.size(96.dp), ArtistShape, sizePx = 300)
                                 Box(
                                     Modifier
                                         .align(Alignment.BottomEnd)
