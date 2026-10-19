@@ -952,6 +952,15 @@ fun PlayerScreen() {
                                     .padding(horizontal = 12.dp, vertical = 6.dp),
                         )
                     }
+                    TopBarButton(chip, { connection.toggleLike() }) {
+                        AtxIcon(
+                            if (liked) Res.drawable.favorite else Res.drawable.favorite_border,
+                            if (liked) tr("Togli dai preferiti") else tr("Aggiungi ai preferiti"),
+                            size = 22.dp,
+                            tint = if (liked) pc.accent else pc.text,
+                        )
+                    }
+                    Spacer(Modifier.width(6.dp))
                     TopBarButton(chip, { navigator.lyricsVisible = !showLyrics }) {
                         AtxIcon(Res.drawable.lyrics, tr("Testo"), size = 22.dp, tint = if (showLyrics) pc.accent else pc.text)
                     }
@@ -980,7 +989,6 @@ fun PlayerScreen() {
                                 modifier = Modifier.scrollingText(),
                             )
                         }
-                        LikeButton(liked, pc) { connection.toggleLike() }
                     }
                     // I testi compaiono a metà animazione, così la copertina si muove leggera
                     Box(
@@ -1035,22 +1043,7 @@ fun PlayerScreen() {
                                         }
                                     },
                             )
-                            song.album?.let { album ->
-                                Text(
-                                    album.title,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = pc.text.copy(alpha = 0.6f),
-                                    maxLines = 1,
-                                    softWrap = false,
-                                    modifier =
-                                        Modifier.scrollingText().clickable {
-                                            close()
-                                            navigator.open(Route.Album(album.id))
-                                        },
-                                )
-                            }
                         }
-                        LikeButton(liked, pc) { connection.toggleLike() }
                     }
                 }
 
@@ -1169,22 +1162,6 @@ private fun ExplicitBadge(
             "E",
             color = text,
             style = TextStyle(fontSize = (size.value * 0.62f).sp, lineHeight = (size.value * 0.62f).sp, fontWeight = FontWeight.Black),
-        )
-    }
-}
-
-@Composable
-private fun LikeButton(
-    liked: Boolean,
-    pc: PlayerColors,
-    onClick: () -> Unit,
-) {
-    IconButton(onClick = onClick) {
-        AtxIcon(
-            if (liked) Res.drawable.favorite else Res.drawable.favorite_border,
-            if (liked) tr("Togli dai preferiti") else tr("Aggiungi ai preferiti"),
-            size = 28.dp,
-            tint = if (liked) pc.accent else pc.text,
         )
     }
 }
