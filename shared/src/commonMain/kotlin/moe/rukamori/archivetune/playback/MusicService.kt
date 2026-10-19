@@ -747,6 +747,11 @@ class MusicService(
     private var currentHistoryRecorded = false
     private var historyThresholdJob: Job? = null
 
+    // Nami: l'ascolto salvato del brano in corso, da aggiornare a fine brano con il tempo vero
+    // (prima restava sempre a 30 secondi e le statistiche venivano sballate)
+    private var currentHistoryEventId: Long? = null
+    private var historySession = 0
+
     private fun historyThresholdMs(): Long =
         (runCatching { dataStore.get(HistoryDuration, HISTORY_DURATION_DEFAULT) }.getOrNull() ?: HISTORY_DURATION_DEFAULT)
             .coerceIn(HISTORY_DURATION_MIN, HISTORY_DURATION_MAX)
@@ -766,20 +771,43 @@ class MusicService(
         }
         historyThresholdJob?.cancel()
         historyThresholdJob = null
+        finishHistorySession()
+        historySession++
         currentHistoryMediaId = normalizedMediaId
         currentHistoryAccumulatedPlayMs = 0L
         currentHistoryStartedAtMs = null
         currentHistoryRecorded = false
+        currentHistoryEventId = null
         updateHistoryTrackingPlaybackState()
     }
 
+    /** Fine del brano: l'ascolto salvato prende il tempo d'ascolto vero (e il totale del brano cresce). */
+    private fun finishHistorySession() {
+        val eventId = currentHistoryEventId ?: return
+        val songId = currentHistoryMediaId ?: return
+        if (!currentHistoryRecorded) return
+        val playedMs = currentHistoryPlayedMs()
+        if (playedMs <= 0) return
+        ioScope.launch {
+            try {
+                database.updateEventPlayTime(eventId, playedMs)
+                database.incrementTotalPlayTime(songId, playedMs)
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (throwable: Throwable) {
+                reportException(throwable)
+            }
+        }
+    }
+
     private fun updateHistoryTrackingPlaybackState() {
-        if (currentHistoryMediaId == null || currentHistoryRecorded) {
+        if (currentHistoryMediaId == null) {
             historyThresholdJob?.cancel()
             historyThresholdJob = null
             currentHistoryStartedAtMs = null
             return
         }
+        // Il tempo d'ascolto si conta sempre (anche dopo aver salvato l'ascolto), così a fine brano è giusto
         if (player.isPlaying) {
             if (currentHistoryStartedAtMs == null) currentHistoryStartedAtMs = System.currentTimeMillis()
         } else {
@@ -788,7 +816,7 @@ class MusicService(
         }
         historyThresholdJob?.cancel()
         historyThresholdJob = null
-        if (!player.isPlaying) return
+        if (currentHistoryRecorded || !player.isPlaying) return
         val remaining = historyThresholdMs() - currentHistoryPlayedMs()
         historyThresholdJob =
             scope.launch {
@@ -804,19 +832,25 @@ class MusicService(
         currentHistoryRecorded = true
         val playedMs = currentHistoryPlayedMs()
         val metadata = player.currentMetadata?.takeIf { it.id == mediaId }
+        val session = historySession
         ioScope.launch {
             try {
-                database.withTransaction {
-                    if (song(mediaId).first() == null && metadata != null) {
-                        insert(metadata)
+                val eventId =
+                    database.withTransaction {
+                        if (song(mediaId).first() == null && metadata != null) {
+                            insert(metadata)
+                        }
+                        insert(
+                            Event(
+                                songId = mediaId,
+                                timestamp = LocalDateTime.now(),
+                                playTime = playedMs,
+                            ),
+                        )
                     }
-                    insert(
-                        Event(
-                            songId = mediaId,
-                            timestamp = LocalDateTime.now(),
-                            playTime = playedMs,
-                        ),
-                    )
+                // Ricorda l'ascolto per aggiornarlo a fine brano (se nel frattempo non è già cambiato brano)
+                withContext(Dispatchers.Main) {
+                    if (historySession == session) currentHistoryEventId = eventId
                 }
             } catch (cancellation: CancellationException) {
                 throw cancellation

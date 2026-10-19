@@ -52,6 +52,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -238,6 +239,47 @@ private fun AppPage(
     }
 }
 
+/** Una pagina: radice di una scheda o pagina aperta sopra ([depth] = quante pagine aperte). */
+private data class PageEntry(
+    val key: String,
+    val tab: Tab,
+    val route: Route?,
+    val depth: Int,
+)
+
+private enum class PageChange { None, Push, Back, Tab, GestureBack }
+
+private enum class PageRole { Under, Current, Leaving }
+
+private class PageSlot(
+    val page: PageEntry,
+    val role: PageRole,
+)
+
+private class PageChangeInfo(
+    val kind: PageChange,
+    val from: PageEntry?,
+)
+
+/** Ricorda l'ultima pagina mostrata, per capire che cambio è avvenuto. */
+private class PageTracker {
+    var last: PageEntry? = null
+}
+
+private fun classifyPageChange(
+    last: PageEntry?,
+    now: PageEntry,
+    afterGesture: Boolean,
+): PageChange =
+    when {
+        last == null || last.key == now.key -> PageChange.None
+        afterGesture -> PageChange.GestureBack
+        last.tab != now.tab -> PageChange.Tab
+        now.depth > last.depth -> PageChange.Push
+        now.depth < last.depth -> PageChange.Back
+        else -> PageChange.Tab
+    }
+
 /** Stato del gesto indietro sulle pagine. */
 @androidx.compose.runtime.Stable
 private class PageBackState {
@@ -274,7 +316,7 @@ private suspend fun pageBackGesture(
             return
         }
         // Confermato: la pagina finisce di uscire, poi si passa a quella sotto senza altre animazioni
-        androidx.compose.animation.core.animate(0f, 1f, animationSpec = tween(170)) { value, _ -> state.commit = value }
+        androidx.compose.animation.core.animate(0f, 1f, animationSpec = tween(220, easing = androidx.compose.animation.core.FastOutSlowInEasing)) { value, _ -> state.commit = value }
         state.instant = true
         navigator.back()
         state.active = false
@@ -283,7 +325,7 @@ private suspend fun pageBackGesture(
     } catch (e: kotlinx.coroutines.CancellationException) {
         // Annullato: la pagina torna al suo posto
         kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
-            androidx.compose.animation.core.animate(state.progress, 0f, animationSpec = spring(dampingRatio = 0.85f, stiffness = 500f)) { value, _ ->
+            androidx.compose.animation.core.animate(state.progress, 0f, animationSpec = spring(dampingRatio = 1f, stiffness = 400f)) { value, _ ->
                 state.progress = value
             }
             state.active = false
@@ -343,71 +385,94 @@ private fun AppContent(navigator: AtxNavigator) {
     CompositionLocalProvider(com.justlorenzo.archivetunex.ui.screens.LocalPlayerTransition provides playerTransition) {
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Box(Modifier.fillMaxSize()) {
-            // Pagina corrente della scheda; ogni pagina ricorda il punto in cui la si era lasciata
+            // Pagine: quella attuale, sotto quella a cui si torna (già pronta, così il gesto indietro
+            // la scopre senza doverla creare) e, per un attimo, quella che sta uscendo.
             val stack = navigator.currentStack
             val route = stack.lastOrNull()
             val key = "${navigator.tab}-${stack.size}-$route"
-            // Durante la dissolvenza ci sono due pagine insieme: ognuna usa il proprio stato
-            // (targetState), così le chiavi non si ripetono.
-            // Durante il gesto indietro: sotto, la pagina a cui si torna (un po' scurita)
-            val previous = if (pageBack.active) navigator.previousPage() else null
-            if (previous != null) {
-                Box(Modifier.fillMaxSize()) {
-                    stateHolder.SaveableStateProvider(previous.first) { AppPage(previous.second, previous.third) }
-                    Box(
-                        Modifier
-                            .fillMaxSize()
-                            .graphicsLayer { alpha = 0.35f * (1f - pageBack.progress) * (1f - pageBack.commit) }
-                            .background(Color.Black),
-                    )
-                }
-            }
+            val current = PageEntry(key, navigator.tab, route, stack.size)
+            val previous = navigator.previousPage()?.let { PageEntry(it.first, it.second, it.third, -1) }
+
+            // Che cambio è appena successo: avanti, indietro, scheda o fine del gesto
+            val tracker = remember { PageTracker() }
+            val change = remember(key) { PageChangeInfo(classifyPageChange(tracker.last, current, pageBack.instant), tracker.last) }
+            androidx.compose.runtime.SideEffect { tracker.last = current }
+            val enter = remember(key) { androidx.compose.animation.core.Animatable(if (change.kind == PageChange.Push || change.kind == PageChange.Tab) 0f else 1f) }
+            val leave = remember(key) { androidx.compose.animation.core.Animatable(0f) }
+            val leavingEntry = if (change.kind == PageChange.Back || change.kind == PageChange.Tab) change.from else null
+            var leavingDone by remember(key) { mutableStateOf(leavingEntry == null) }
             androidx.compose.runtime.LaunchedEffect(key) {
-                // Qualche frame dopo il cambio: la pagina uscita è già stata tolta
-                androidx.compose.runtime.withFrameNanos { }
+                val tabSwitch = change.kind == PageChange.Tab
+                launch { enter.animateTo(1f, tween(if (tabSwitch) 180 else 280, easing = androidx.compose.animation.core.FastOutSlowInEasing)) }
+                if (leavingEntry != null) {
+                    leave.animateTo(1f, tween(if (tabSwitch) 140 else 240, easing = androidx.compose.animation.core.FastOutSlowInEasing))
+                    leavingDone = true
+                }
                 androidx.compose.runtime.withFrameNanos { }
                 pageBack.instant = false
             }
-            AnimatedContent(
-                targetState = Triple(key, navigator.tab, route),
-                transitionSpec = {
-                    // Dopo il gesto la pagina sotto è già visibile: cambio istantaneo, niente dissolvenza doppia
-                    if (pageBack.instant) {
-                        androidx.compose.animation.EnterTransition.None togetherWith androidx.compose.animation.ExitTransition.None
-                    } else {
-                        fadeIn(tween(220)) togetherWith fadeOut(tween(160))
-                    }
-                },
-                contentKey = { it.first },
-                label = "pagina",
-                modifier = Modifier.fillMaxSize(),
-            ) { (pageKey, pageTab, pageRoute) ->
-                val isCurrent = pageKey == key
-                val density = androidx.compose.ui.platform.LocalDensity.current
-                val background = MaterialTheme.colorScheme.background
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .graphicsLayer {
-                            // La pagina appena chiusa col gesto non deve ricomparire neanche per un frame
-                            if (!isCurrent && pageBack.instant) alpha = 0f
-                            if (isCurrent && pageBack.active) {
-                                // Si rimpicciolisce, si sposta verso il bordo opposto e arrotonda gli angoli
-                                val p = pageBack.progress
-                                val c = pageBack.commit
-                                val scale = 1f - 0.1f * p - 0.06f * c
-                                scaleX = scale
-                                scaleY = scale
+
+            val slots =
+                buildList {
+                    // La pagina sotto non si disegna due volte se è anche quella che sta uscendo
+                    if (previous != null && previous.key != leavingEntry?.key.takeIf { !leavingDone }) add(PageSlot(previous, PageRole.Under))
+                    add(PageSlot(current, PageRole.Current))
+                    if (leavingEntry != null && !leavingDone) add(PageSlot(leavingEntry, PageRole.Leaving))
+                }
+            val density = androidx.compose.ui.platform.LocalDensity.current
+            val background = MaterialTheme.colorScheme.background
+            slots.forEach { slot ->
+                androidx.compose.runtime.key(slot.page.key) {
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                val w = size.width
                                 val direction = if (pageBack.fromLeft) 1f else -1f
-                                translationX = direction * (size.width * 0.05f * p + size.width * 0.12f * c)
-                                alpha = 1f - c
-                                shape = RoundedCornerShape(with(density) { (32.dp * p.coerceAtLeast(c)).toPx() })
-                                clip = true
-                                shadowElevation = with(density) { 16.dp.toPx() } * p
-                            }
-                        }.background(background),
-                ) {
-                    stateHolder.SaveableStateProvider(pageKey) { AppPage(pageTab, pageRoute) }
+                                // Quanto è uscita la pagina col gesto (dito + finale automatico)
+                                val gesture = pageBack.progress + (1f - pageBack.progress) * pageBack.commit
+                                when (slot.role) {
+                                    PageRole.Under -> {
+                                        val pushing = change.kind == PageChange.Push && enter.value < 1f
+                                        when {
+                                            pageBack.active -> translationX = -direction * w * 0.25f * (1f - gesture)
+                                            pushing -> Unit
+                                            // Nascosta: è pronta ma coperta dalla pagina attuale
+                                            else -> alpha = 0f
+                                        }
+                                    }
+                                    PageRole.Current -> {
+                                        if (pageBack.active) {
+                                            // Segue il dito, con l'ombra sul bordo
+                                            translationX = direction * w * gesture
+                                            shadowElevation = with(density) { 24.dp.toPx() } * (1f - gesture)
+                                        } else if (change.kind == PageChange.Push) {
+                                            translationX = (1f - enter.value) * w * 0.18f
+                                            alpha = enter.value
+                                        } else if (change.kind == PageChange.Tab) {
+                                            alpha = enter.value
+                                        }
+                                    }
+                                    PageRole.Leaving -> {
+                                        if (change.kind == PageChange.Back) translationX = leave.value * w * 0.18f
+                                        alpha = 1f - leave.value
+                                    }
+                                }
+                            }.background(background),
+                    ) {
+                        stateHolder.SaveableStateProvider(slot.page.key) { AppPage(slot.page.tab, slot.page.route) }
+                        // Durante il gesto la pagina sotto è un po' scura e si schiarisce
+                        if (slot.role == PageRole.Under) {
+                            Box(
+                                Modifier
+                                    .fillMaxSize()
+                                    .graphicsLayer {
+                                        val gesture = pageBack.progress + (1f - pageBack.progress) * pageBack.commit
+                                        alpha = if (pageBack.active) 0.3f * (1f - gesture) else 0f
+                                    }.background(Color.Black),
+                            )
+                        }
+                    }
                 }
             }
 
