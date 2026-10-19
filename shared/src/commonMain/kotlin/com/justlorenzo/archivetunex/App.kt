@@ -175,9 +175,11 @@ fun App() {
 private fun AppContent(navigator: AtxNavigator) {
     val stateHolder = rememberSaveableStateHolder()
     var miniBounds by remember { mutableStateOf<androidx.compose.ui.geometry.Rect?>(null) }
+    val playerTransition = remember { com.justlorenzo.archivetunex.ui.screens.PlayerTransition() }
     var playerProgress by remember { mutableStateOf(0f) }
 
     // Surface: dà a tutti i testi il colore giusto per il tema (chiaro o scuro)
+    CompositionLocalProvider(com.justlorenzo.archivetunex.ui.screens.LocalPlayerTransition provides playerTransition) {
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Box(Modifier.fillMaxSize()) {
             // Pagina corrente della scheda; ogni pagina ricorda il punto in cui la si era lasciata
@@ -302,6 +304,7 @@ private fun AppContent(navigator: AtxNavigator) {
             if (navigator.queueVisible) QueueSheet()
             if (navigator.accountVisible) AccountSheet()
         }
+    }
     }
 }
 

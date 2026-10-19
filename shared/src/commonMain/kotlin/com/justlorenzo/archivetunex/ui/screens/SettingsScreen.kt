@@ -507,13 +507,16 @@ private fun AppearancePage() {
                 )
             }
         }
-        SettingsGroup("Schede in basso") {
-            PreviewChoices(
-                options = TabLabels.entries,
-                selected = style.tabLabels,
-                label = { it.label },
-                onSelect = { saveEnum(TabLabelsKey, it) },
-            ) { labels -> TabsPreview(labels) }
+        // Vale solo per le schede fluttuanti: con la barra unita (stile Fuji) i nomi ci sono sempre
+        if (style.miniLayout != com.justlorenzo.archivetunex.ui.MiniLayout.Joined) {
+            SettingsGroup("Schede in basso") {
+                PreviewChoices(
+                    options = TabLabels.entries,
+                    selected = style.tabLabels,
+                    label = { it.label },
+                    onSelect = { saveEnum(TabLabelsKey, it) },
+                ) { labels -> TabsPreview(labels) }
+            }
         }
         SettingsGroup {
             SwitchRow("Home colorata", "Le card della Home prendono i colori delle copertine", style.coloredHome) { save(ColoredHomeKey, it) }

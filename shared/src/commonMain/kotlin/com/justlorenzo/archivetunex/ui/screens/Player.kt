@@ -368,7 +368,7 @@ fun MiniPlayer(
             .then(if (interactive) Modifier.shadow(14.dp, geometry.shape) else Modifier)
             .clip(geometry.shape)
             .background(background)
-            .then(if (interactive) swipe.modifier.clickable { navigator.playerExpanded = true } else Modifier),
+            .then(if (interactive) swipe.modifier.dragToOpenPlayer().clickable { navigator.playerExpanded = true } else Modifier),
     ) {
         // Avanzamento "riempimento": lo sfondo si colora da sinistra
         if (style.miniProgress == MiniProgress.Fill) {
@@ -392,7 +392,9 @@ fun MiniPlayer(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Box(Modifier.size(geometry.artSize + 8.dp), contentAlignment = Alignment.Center) {
-                    if (style.miniArtwork == MiniArtwork.Vinyl) {
+                    if (!interactive) {
+                        // Durante l'apertura la copertina la disegna il player (vola verso il suo posto)
+                    } else if (style.miniArtwork == MiniArtwork.Vinyl) {
                         VinylDisc(song.thumbnailUrl, if (isPlaying) spin else 0f, Modifier.size(geometry.artSize))
                     } else {
                         val artShape: Shape =
@@ -659,6 +661,9 @@ fun PlayerScreen() {
     var rootY by remember { mutableFloatStateOf(0f) }
 
     // Surface: blocca i tocchi verso le schermate sotto il player
+    // 0 = chiuso nel mini player, 1 = aperto (lo guida l'animazione o il dito)
+    val open = LocalPlayerTransition.current.progress.value.coerceIn(0f, 1f)
+
     Surface(Modifier.fillMaxSize(), color = pc.background) {
         BoxWithConstraints(
             Modifier
@@ -669,6 +674,7 @@ fun PlayerScreen() {
             val width = maxWidth
 
             // ================= Sfondi =================
+            Box(Modifier.fillMaxSize().graphicsLayer { alpha = open }) {
             when (playerBackground) {
                 PlayerBackground.Glow ->
                     Box(
@@ -701,6 +707,7 @@ fun PlayerScreen() {
                     Box(Modifier.fillMaxSize().background(pc.background.copy(alpha = 0.62f)))
                 }
                 PlayerBackground.Plain -> Unit
+            }
             }
 
             // ================= Dove va la copertina =================
@@ -737,8 +744,9 @@ fun PlayerScreen() {
                 }
             // Con i testi aperti la copertina si rimpicciolisce in alto a sinistra
             val small = ArtFrame(24.dp, statusTop + 64.dp, 56.dp, 56.dp, 12.dp)
-            val art = lerpFrame(full, small, tLyrics)
-            val styleVisible = 1f - tLyrics
+            // La copertina parte dal mini player e vola al suo posto mentre il player si apre
+            val art = lerpFrame(miniArtFrame(style), lerpFrame(full, small, tLyrics), open)
+            val styleVisible = (1f - tLyrics) * ((open - 0.3f) / 0.7f).coerceIn(0f, 1f)
 
             // Vinile: il disco sta dietro la copertina e scivola fuori verso destra
             if (layout == PlayerLayout.Vinyl && tLyrics < 1f) {
@@ -808,7 +816,7 @@ fun PlayerScreen() {
             val shadow =
                 when (layout) {
                     PlayerLayout.Cassette, PlayerLayout.Poster -> 0.dp
-                    else -> if (tLyrics > 0f) 0.dp else 24.dp
+                    else -> if (tLyrics > 0f || open < 0.6f) 0.dp else 24.dp
                 }
             val tilt =
                 when (layout) {
@@ -900,7 +908,11 @@ fun PlayerScreen() {
             Column(
                 Modifier
                     .fillMaxSize()
-                    .systemBarsPadding()
+                    .graphicsLayer {
+                        // Titolo e comandi salgono e compaiono mentre il player si apre (come Fuji)
+                        alpha = ((open - 0.35f) / 0.65f).coerceIn(0f, 1f)
+                        translationY = (1f - open) * 80.dp.toPx()
+                    }.systemBarsPadding()
                     .padding(horizontal = 24.dp),
             ) {
                 // Barra in alto
@@ -986,7 +998,7 @@ fun PlayerScreen() {
                         Spacer(
                             Modifier.onGloballyPositioned { c ->
                                 val y = with(density) { (c.positionInRoot().y - rootY).toDp() }
-                                if (textTop == null || abs((textTop!! - y).value) > 1f) textTop = y
+                                if (open > 0.99f && (textTop == null || abs((textTop!! - y).value) > 1f)) textTop = y
                             },
                         )
                         if (tags.isNotEmpty()) {
@@ -1910,7 +1922,7 @@ private fun JoinedMini(
                 if (style.miniProgress == MiniProgress.Fill) {
                     drawRect(lerpColor(pc.background, pc.text, 0.09f), size = Size(size.width * progress.fraction(), size.height))
                 }
-            }.then(if (interactive) swipe.modifier.clickable { navigator.playerExpanded = true } else Modifier),
+            }.then(if (interactive) swipe.modifier.dragToOpenPlayer().clickable { navigator.playerExpanded = true } else Modifier),
     ) {
         Row(
             Modifier
@@ -1923,7 +1935,9 @@ private fun JoinedMini(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(Modifier.size(56.dp), contentAlignment = Alignment.Center) {
-                if (style.miniArtwork == MiniArtwork.Vinyl) {
+                if (!interactive) {
+                    // Durante l'apertura la copertina la disegna il player (vola verso il suo posto)
+                } else if (style.miniArtwork == MiniArtwork.Vinyl) {
                     VinylDisc(song.thumbnailUrl, if (isPlaying) spin else 0f, Modifier.size(48.dp))
                 } else {
                     val shape: Shape =
@@ -2042,8 +2056,69 @@ private fun MiniTime(
 // endregion
 
 /**
- * Il player che si apre "gonfiandosi" dal mini player e si richiude dentro di lui (come Fuji).
- * Si può anche trascinare: il player segue il dito e torna nel mini player.
+ * Stato condiviso dell'apertura del player: 0 = chiuso nel mini player, 1 = aperto.
+ * Lo muovono l'animazione (tocco, freccia, indietro) e il dito (trascinando su o giù).
+ */
+@androidx.compose.runtime.Stable
+class PlayerTransition {
+    val progress = androidx.compose.animation.core.Animatable(0f)
+    var dragging by mutableStateOf(false)
+    var heightPx by mutableFloatStateOf(2000f)
+    val spec = spring<Float>(dampingRatio = 0.86f, stiffness = Spring.StiffnessMediumLow)
+
+    /** Il dito si è staccato: decide se aprire o chiudere e ci arriva con la stessa velocità del dito. */
+    suspend fun settle(
+        velocity: Float,
+        navigator: com.justlorenzo.archivetunex.ui.AtxNavigator,
+    ) {
+        dragging = false
+        val open =
+            when {
+                velocity < -900f -> true
+                velocity > 900f -> false
+                else -> progress.value > 0.5f
+            }
+        if (!open) navigator.lyricsVisible = false
+        navigator.playerExpanded = open
+        progress.animateTo(if (open) 1f else 0f, spec, initialVelocity = -velocity / heightPx)
+    }
+}
+
+val LocalPlayerTransition = androidx.compose.runtime.staticCompositionLocalOf { PlayerTransition() }
+
+/** Trascina in su il mini player per aprire il player: il player segue il dito. */
+@Composable
+fun Modifier.dragToOpenPlayer(): Modifier {
+    val transition = LocalPlayerTransition.current
+    val navigator = LocalNavigator.current
+    val scope = rememberCoroutineScope()
+    val state =
+        rememberDraggableState { delta ->
+            scope.launch { transition.progress.snapTo((transition.progress.value - delta / transition.heightPx).coerceIn(0f, 1f)) }
+        }
+    return draggable(
+        state = state,
+        orientation = Orientation.Vertical,
+        onDragStarted = {
+            transition.dragging = true
+            transition.progress.stop()
+        },
+        onDragStopped = { velocity -> scope.launch { transition.settle(velocity, navigator) } },
+    )
+}
+
+/** Dove sta la copertina dentro il mini player, per farla partire (e tornare) esattamente da lì. */
+private fun miniArtFrame(style: com.justlorenzo.archivetunex.ui.AtxStyle): ArtFrame =
+    when (style.miniLayout) {
+        MiniLayout.Joined -> ArtFrame(12.dp, 12.dp, 48.dp, 48.dp, 12.dp)
+        MiniLayout.Floating -> ArtFrame(10.dp, 10.dp, 48.dp, 48.dp, 14.dp)
+        MiniLayout.Pill -> ArtFrame(8.dp, 8.dp, 42.dp, 42.dp, 21.dp)
+        MiniLayout.Large -> ArtFrame(10.dp, 10.dp, 72.dp, 72.dp, 14.dp)
+    }.let { if (style.miniArtwork == MiniArtwork.Circle || style.miniArtwork == MiniArtwork.Vinyl) it.copy(radius = it.width / 2) else it }
+
+/**
+ * Il player che si apre dal mini player e si richiude dentro di lui (come Fuji): il riquadro si allarga,
+ * la copertina vola al suo posto, titolo e comandi salgono e compaiono. Tutto segue anche il dito.
  *
  * [miniBounds] è la posizione del mini player sullo schermo, [miniRadius] il raggio dei suoi angoli.
  */
@@ -2055,12 +2130,15 @@ fun PlayerMorph(
     topCornersOnly: Boolean = false,
 ) {
     val navigator = LocalNavigator.current
+    val transition = LocalPlayerTransition.current
+    val progress = transition.progress
     val scope = rememberCoroutineScope()
-    val progress = remember { androidx.compose.animation.core.Animatable(0f) }
-    val openSpring = spring<Float>(dampingRatio = 0.86f, stiffness = Spring.StiffnessMediumLow)
 
+    // Tocco, freccia o tasto indietro: anima verso aperto o chiuso (se non lo sta già facendo il dito)
     LaunchedEffect(navigator.playerExpanded) {
-        progress.animateTo(if (navigator.playerExpanded) 1f else 0f, openSpring)
+        val target = if (navigator.playerExpanded) 1f else 0f
+        if (transition.dragging || (progress.isRunning && progress.targetValue == target)) return@LaunchedEffect
+        progress.animateTo(target, transition.spec)
     }
     val p = progress.value.coerceIn(0f, 1f)
     androidx.compose.runtime.SideEffect { onProgress(p) }
@@ -2070,7 +2148,7 @@ fun PlayerMorph(
         val density = LocalDensity.current
         val fullW = maxWidth
         val fullH = maxHeight
-        val heightPx = with(density) { fullH.toPx() }.coerceAtLeast(1f)
+        transition.heightPx = with(density) { fullH.toPx() }.coerceAtLeast(1f)
         // Se il mini player non è ancora stato misurato si parte dal fondo dello schermo
         val start =
             miniBounds?.let {
@@ -2080,7 +2158,7 @@ fun PlayerMorph(
 
         val dragState =
             rememberDraggableState { delta ->
-                scope.launch { progress.snapTo((progress.value - delta / heightPx).coerceIn(0f, 1f)) }
+                scope.launch { progress.snapTo((progress.value - delta / transition.heightPx).coerceIn(0f, 1f)) }
             }
 
         Box(
@@ -2092,37 +2170,27 @@ fun PlayerMorph(
                 .draggable(
                     state = dragState,
                     orientation = Orientation.Vertical,
-                    onDragStarted = { progress.stop() },
-                    onDragStopped = { velocity ->
-                        val close = velocity > 900f || (velocity > -900f && progress.value < 0.75f)
-                        if (close) {
-                            navigator.lyricsVisible = false
-                            navigator.playerExpanded = false
-                        }
-                        scope.launch { progress.animateTo(if (close) 0f else 1f, openSpring, initialVelocity = -velocity / heightPx) }
+                    onDragStarted = {
+                        transition.dragging = true
+                        progress.stop()
                     },
+                    onDragStopped = { velocity -> scope.launch { transition.settle(velocity, navigator) } },
                 ),
         ) {
-            // Il player è sempre disegnato a schermo intero, ancorato in alto: il riquadro lo "scopre"
+            // Il player è sempre disegnato a schermo intero, ancorato in alto: il riquadro lo "scopre".
+            // Copertina, titolo e comandi si muovono da soli in base all'apertura.
             Box(
                 Modifier
                     .wrapContentSize(Alignment.TopStart, unbounded = true)
-                    .requiredSize(fullW, fullH)
-                    .graphicsLayer {
-                        alpha = ((p - 0.12f) / 0.45f).coerceIn(0f, 1f)
-                        val s = 0.92f + 0.08f * p
-                        scaleX = s
-                        scaleY = s
-                        transformOrigin = TransformOrigin(0.5f, 0f)
-                    },
+                    .requiredSize(fullW, fullH),
             ) { PlayerScreen() }
-            // Il mini player sfuma mentre il riquadro si allarga
-            if (p < 0.45f) {
+            // Le scritte e i tasti del mini player sfumano subito (la copertina vola via da sola)
+            if (p < 0.4f) {
                 Box(
                     Modifier
                         .fillMaxWidth()
                         .height(start.height)
-                        .graphicsLayer { alpha = (1f - p / 0.35f).coerceIn(0f, 1f) },
+                        .graphicsLayer { alpha = (1f - p / 0.3f).coerceIn(0f, 1f) },
                 ) { MiniPlayer(Modifier.fillMaxSize(), interactive = false) }
             }
         }
