@@ -882,12 +882,20 @@ private fun PlayerLayoutPreview(
                     Box(Modifier.size(26.dp).clip(RoundedCornerShape(5.dp)).background(art))
                 }
             }
-            PlayerLayout.Stack -> {
-                Spacer(Modifier.height(12.dp))
-                Box(Modifier.size(36.dp)) {
-                    Box(Modifier.offset(x = 9.dp, y = (-3).dp).size(26.dp).rotate(9f).clip(RoundedCornerShape(6.dp)).background(Color(0xFF7B5CFF).copy(alpha = 0.6f)))
-                    Box(Modifier.offset(x = 5.dp, y = (-1).dp).size(26.dp).rotate(4.5f).clip(RoundedCornerShape(6.dp)).background(Color(0xFF3FA7FF).copy(alpha = 0.8f)))
-                    Box(Modifier.offset(y = 4.dp).size(26.dp).clip(RoundedCornerShape(6.dp)).background(art))
+            PlayerLayout.Mosaic -> {
+                Spacer(Modifier.height(10.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Box(Modifier.size(26.dp).clip(RoundedCornerShape(5.dp)).background(art))
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Box(Modifier.width(12.dp).height(12.dp).clip(RoundedCornerShape(3.dp)).background(Color(0xFF3FA7FF)))
+                            Box(Modifier.width(12.dp).height(12.dp).clip(RoundedCornerShape(3.dp)).background(Color(0xFF7B5CFF)))
+                        }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Box(Modifier.width(19.dp).height(12.dp).clip(RoundedCornerShape(3.dp)).background(Color(0xFF06D6A0)))
+                        Box(Modifier.width(19.dp).height(12.dp).clip(RoundedCornerShape(3.dp)).background(Color(0xFFF7B267)))
+                    }
                 }
             }
             PlayerLayout.Cassette -> {
@@ -901,15 +909,23 @@ private fun PlayerLayoutPreview(
                     Box(Modifier.width(22.dp).height(6.dp).clip(CircleShape).background(Color(0xFF3B2A1A)))
                 }
             }
-            PlayerLayout.Portrait -> {
-                // Copertina a tutta larghezza e scheda dei comandi sopra
-                Box(Modifier.fillMaxWidth().height(50.dp)) {
-                    Box(Modifier.fillMaxWidth().height(42.dp).background(art))
-                    Box(
-                        Modifier.align(Alignment.BottomCenter).padding(horizontal = 3.dp).fillMaxWidth().height(14.dp)
-                            .clip(RoundedCornerShape(topStart = 7.dp, topEnd = 7.dp)).background(MaterialTheme.colorScheme.surfaceContainerHighest),
-                    )
+            PlayerLayout.Ticket -> {
+                Spacer(Modifier.height(8.dp))
+                Column(
+                    Modifier.width(34.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFFFBF3E9)).padding(3.dp),
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
+                    Box(Modifier.fillMaxWidth().height(28.dp).clip(RoundedCornerShape(2.dp)).background(art))
+                    Box(Modifier.width(22.dp).height(3.dp).background(Color(0xFF2B1230)))
+                    Box(Modifier.width(14.dp).height(3.dp).background(Color(0xFF7A3B6E)))
                 }
+            }
+            PlayerLayout.Wave -> {
+                Box(
+                    Modifier.fillMaxWidth().height(44.dp)
+                        .clip(RoundedCornerShape(bottomStart = 14.dp, bottomEnd = 4.dp))
+                        .background(art),
+                )
             }
         }
         Spacer(Modifier.weight(1f))

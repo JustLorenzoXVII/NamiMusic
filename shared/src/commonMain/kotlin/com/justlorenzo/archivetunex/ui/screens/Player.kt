@@ -620,8 +620,13 @@ fun PlayerScreen() {
     // Il disco / le bobine girano solo mentre la musica suona
     var spinAngle by remember { mutableFloatStateOf(0f) }
     LaunchedEffect(isPlaying, layout) {
-        if (!isPlaying || (layout != PlayerLayout.Vinyl && layout != PlayerLayout.Cassette)) return@LaunchedEffect
-        val speed = if (layout == PlayerLayout.Cassette) 180f else 72f
+        if (!isPlaying || (layout != PlayerLayout.Vinyl && layout != PlayerLayout.Cassette && layout != PlayerLayout.Wave)) return@LaunchedEffect
+        val speed =
+            when (layout) {
+                PlayerLayout.Cassette -> 180f
+                PlayerLayout.Wave -> 90f
+                else -> 72f
+            }
         var last = withFrameNanos { it }
         while (true) {
             withFrameNanos { now ->
@@ -632,32 +637,17 @@ fun PlayerScreen() {
     }
 
     // ================= Swipe sulla copertina =================
-    // Pila: la copertina vecchia vola via mentre quella nuova è già davanti
-    var ghostUrl by remember { mutableStateOf<String?>(null) }
-    var ghostX by remember { mutableFloatStateOf(0f) }
-    val screenWidthPx = with(density) { 420.dp.toPx() }
     val swipe =
-        rememberTrackSwipe(
-            onNext = { from ->
-                if (layout != PlayerLayout.Stack) return@rememberTrackSwipe false
-                ghostUrl = song.thumbnailUrl
-                ghostX = from
-                scope.launch {
-                    animate(from, -screenWidthPx * 1.4f, animationSpec = tween(380, easing = FastOutLinearInEasing)) { v, _ -> ghostX = v }
-                    ghostUrl = null
-                }
-                true
-            },
-        ) { forward -> if (forward) connection.seekToNext() else connection.player.seekToPreviousMediaItem() }
+        rememberTrackSwipe { forward -> if (forward) connection.seekToNext() else connection.player.seekToPreviousMediaItem() }
     val swipeX = swipe.offset.value
 
-    // Prossimi brani per la Pila
+    // Prossimi brani per il Mosaico: copertina e posizione in coda (toccandoli si salta lì)
     val upcoming =
-        remember(windows, currentIndex, repeatMode) {
-            val list = windows.mapNotNull { it.mediaItem.metadata?.thumbnailUrl }
-            val after = list.drop(currentIndex + 1).toMutableList()
-            if (repeatMode == Player.REPEAT_MODE_ALL) after += list
-            after.take(2)
+        remember(windows, currentIndex) {
+            windows
+                .mapIndexedNotNull { index, window -> window.mediaItem.metadata?.thumbnailUrl?.let { index to it } }
+                .filter { it.first > currentIndex }
+                .take(4)
         }
     val nextTitle =
         remember(windows, currentIndex, repeatMode) {
@@ -730,19 +720,27 @@ fun PlayerScreen() {
             fun centerY(h: Dp) = zoneStart + ((zone - h) / 2).coerceAtLeast(0.dp)
             val full =
                 when (layout) {
-                    PlayerLayout.Stack -> {
-                        // La copertina davanti è centrata; le carte dietro spuntano un po' in alto a destra
-                        val side = minOf(width * 0.68f, zone - 40.dp)
-                        ArtFrame((width - side) / 2, centerY(side) + 10.dp, side, side, 28.dp)
+                    PlayerLayout.Mosaic -> {
+                        // Copertina grande a sinistra; a destra e sotto le copertine dei prossimi brani
+                        val grid = minOf(width - 48.dp, zone - 8.dp)
+                        val big = grid * 0.68f
+                        val total = big + 8.dp + (grid - big - 8.dp)
+                        ArtFrame((width - grid) / 2, centerY(total), big, big, 22.dp)
                     }
+                    PlayerLayout.Ticket -> {
+                        // Biglietto: la copertina è la parte alta, sotto la parte da strappare
+                        val w = minOf(width - 64.dp, zone / 1.3f)
+                        val h = w * 1.3f
+                        ArtFrame((width - w) / 2 + 14.dp, centerY(h) + 14.dp, w - 28.dp, w - 28.dp, 8.dp)
+                    }
+                    // Onda: copertina a tutta larghezza in alto che finisce con un bordo ondulato
+                    PlayerLayout.Wave -> ArtFrame(0.dp, 0.dp, width, (textTop ?: (screenHeight * 0.6f)) - 24.dp, 0.dp)
                     PlayerLayout.Cassette -> {
                         // La copertina è l'etichetta della cassetta
                         val w = minOf(width - 48.dp, zone / 0.62f)
                         val h = w * 0.62f
                         ArtFrame((width - w) / 2 + 14.dp, centerY(h) + 14.dp, w - 28.dp, h * 0.56f, 8.dp)
                     }
-                    // Ritratto: copertina a tutta larghezza in alto, la scheda dei comandi la copre in basso
-                    PlayerLayout.Portrait -> ArtFrame(0.dp, 0.dp, width, (textTop ?: (screenHeight * 0.6f)) + 40.dp, 0.dp)
                     PlayerLayout.Card -> {
                         val side = minOf(width - 64.dp, zone - 8.dp)
                         ArtFrame((width - side) / 2, centerY(side), side, side, style.corners.radius.coerceAtLeast(16.dp))
@@ -777,31 +775,58 @@ fun PlayerScreen() {
                 )
             }
 
-            // Pila: le copertine dei prossimi brani dietro, un po' storte
-            if (layout == PlayerLayout.Stack && tLyrics < 1f) {
-                val thresholdPx = with(density) { 90.dp.toPx() }
-                val advance = (-swipeX / (thresholdPx * 1.5f)).coerceIn(0f, 1f)
-                upcoming.indices.reversed().forEach { i ->
-                    val level = (i + 1) - advance
-                    StackCard(
-                        url = upcoming[i],
-                        light = 1f - 0.3f * level,
-                        shape = RoundedCornerShape(art.radius),
-                        modifier =
-                            Modifier
-                                .offset(x = art.x, y = art.y)
-                                .size(art.width, art.height)
-                                .graphicsLayer {
-                                    alpha = styleVisible
-                                    translationX = 17.dp.toPx() * level
-                                    translationY = -11.dp.toPx() * level
-                                    rotationZ = 4.5f * level
-                                    val s = 1f - 0.07f * level
-                                    scaleX = s
-                                    scaleY = s
-                                },
+            // Mosaico: le copertine dei prossimi brani a destra e sotto quella grande (toccale per saltarci)
+            if (layout == PlayerLayout.Mosaic && tLyrics < 1f) {
+                val gap = 8.dp
+                val grid = art.width / 0.68f
+                val side = grid - art.width - gap
+                val tiles =
+                    listOf(
+                        ArtFrame(art.x + art.width + gap, art.y, side, (art.height - gap) / 2, 16.dp),
+                        ArtFrame(art.x + art.width + gap, art.y + (art.height + gap) / 2, side, (art.height - gap) / 2, 16.dp),
+                        ArtFrame(art.x, art.y + art.height + gap, (grid - gap) / 2, side, 16.dp),
+                        ArtFrame(art.x + (grid + gap) / 2, art.y + art.height + gap, (grid - gap) / 2, side, 16.dp),
                     )
+                tiles.forEachIndexed { i, tile ->
+                    val next = upcoming.getOrNull(i)
+                    Box(
+                        Modifier
+                            .offset(tile.x, tile.y)
+                            .size(tile.width, tile.height)
+                            .graphicsLayer {
+                                // Compaiono una dopo l'altra mentre il player si apre
+                                alpha = (styleVisible * 1.4f - i * 0.12f).coerceIn(0f, 1f) * if (next == null) 0.35f else 0.9f
+                            }.clip(RoundedCornerShape(tile.radius))
+                            .background(pc.text.copy(alpha = 0.08f))
+                            .clickable(enabled = next != null) {
+                                next?.let { (index, _) ->
+                                    connection.player.seekToDefaultPosition(index)
+                                    connection.player.playWhenReady = true
+                                }
+                            },
+                    ) {
+                        if (next != null) Artwork(next.second, Modifier.fillMaxSize(), RoundedCornerShape(0.dp), sizePx = 400)
+                    }
                 }
+            }
+
+            // Biglietto: il cartoncino del concerto, con la parte da strappare e il brano stampato
+            if (layout == PlayerLayout.Ticket && tLyrics < 1f) {
+                val ticketW = art.width + 28.dp
+                TicketBody(
+                    title = cleanTitle,
+                    artist = song.artists.joinToString { it.name },
+                    holeColor = pc.background,
+                    artSide = art.width,
+                    modifier =
+                        Modifier
+                            .offset(x = art.x - 14.dp, y = art.y - 14.dp)
+                            .size(ticketW, ticketW * 1.3f)
+                            .graphicsLayer {
+                                alpha = styleVisible
+                                translationX = swipeX
+                            },
+                )
             }
 
             // Cassetta: il corpo con le bobine, la copertina fa da etichetta
@@ -827,16 +852,15 @@ fun PlayerScreen() {
             val artShape = RoundedCornerShape(art.radius.coerceAtLeast(0.dp))
             val shadow =
                 when (layout) {
-                    PlayerLayout.Cassette, PlayerLayout.Portrait -> 0.dp
+                    PlayerLayout.Cassette, PlayerLayout.Ticket, PlayerLayout.Wave -> 0.dp
                     else -> if (tLyrics > 0f || open < 0.6f) 0.dp else 24.dp
                 }
             val tilt =
                 when (layout) {
-                    PlayerLayout.Stack -> 0.05f
-                    PlayerLayout.Cassette -> 0f
+                    PlayerLayout.Cassette, PlayerLayout.Ticket, PlayerLayout.Wave -> 0f
                     else -> 0.02f
                 }
-            val poster = layout == PlayerLayout.Portrait
+            val poster = layout == PlayerLayout.Wave
             Box(
                 Modifier
                     .offset(x = art.x, y = art.y)
@@ -844,14 +868,21 @@ fun PlayerScreen() {
                         // Segue il dito e si inclina un po' durante lo swipe
                         translationX = swipeX
                         rotationZ = swipeX * tilt
-                        val s = if (poster || layout == PlayerLayout.Cassette || layout == PlayerLayout.Vinyl) 1f else (artScale + (1f - artScale) * tLyrics)
+                        val s = if (poster || layout == PlayerLayout.Cassette || layout == PlayerLayout.Vinyl || layout == PlayerLayout.Ticket) 1f else (artScale + (1f - artScale) * tLyrics)
                         scaleX = s
                         scaleY = s
                     }.size(art.width, art.height)
                     .shadow(shadow, artShape, ambientColor = pc.accent, spotColor = pc.accent)
-                    .clip(artShape)
                     .then(
-                        Modifier
+                        if (poster) {
+                            // Onda: il bordo in basso ondeggia mentre suona (l'ampiezza cresce con l'apertura)
+                            Modifier.graphicsLayer {
+                                clip = true
+                                shape = WaveBottomShape(amplitude = 12.dp.toPx() * styleVisible, phase = spinAngle / 360f * 2f * kotlin.math.PI.toFloat())
+                            }
+                        } else {
+                            Modifier.clip(artShape)
+                        },
                     ).then(swipe.modifier)
                     .clickable(enabled = showLyrics) { navigator.lyricsVisible = false },
             ) {
@@ -862,7 +893,7 @@ fun PlayerScreen() {
                     sizePx = 1080,
                     colorFilter = if (saturation < 0.999f) ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(saturation) }) else null,
                 )
-                // Ritratto: un velo in alto per leggere la barra di stato e i tasti
+                // Onda: un velo in alto per leggere la barra di stato e i tasti
                 if (poster) {
                     Box(
                         Modifier
@@ -875,42 +906,6 @@ fun PlayerScreen() {
                                 ),
                             ),
                     )
-                }
-            }
-
-            // Pila: la copertina vecchia che vola via a sinistra
-            ghostUrl?.let { url ->
-                StackCard(
-                    url = url,
-                    light = 1f,
-                    shape = artShape,
-                    modifier =
-                        Modifier
-                            .offset(x = art.x, y = art.y)
-                            .size(art.width, art.height)
-                            .graphicsLayer {
-                                translationX = ghostX
-                                rotationZ = ghostX * 0.05f
-                            },
-                )
-            }
-
-            // Ritratto: la scheda arrotondata dei comandi che copre la parte bassa della copertina
-            if (poster && textTop != null) {
-                val cardTop = textTop!! - 36.dp
-                Column(
-                    Modifier
-                        .offset(y = cardTop)
-                        .padding(horizontal = 12.dp)
-                        .fillMaxWidth()
-                        .height(screenHeight - cardTop - 12.dp)
-                        .graphicsLayer { alpha = styleVisible }
-                        .shadow(24.dp, RoundedCornerShape(34.dp))
-                        .clip(RoundedCornerShape(34.dp))
-                        .background(lerpColor(pc.background, pc.text, 0.07f)),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Box(Modifier.padding(top = 10.dp).width(40.dp).height(5.dp).clip(CircleShape).background(pc.text.copy(alpha = 0.3f)))
                 }
             }
 
@@ -930,7 +925,7 @@ fun PlayerScreen() {
                     Modifier.fillMaxWidth().padding(top = 8.dp).height(48.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    // Nel Ritratto la barra sta sopra la copertina: icone e titolo su "bolle" leggibili
+                    // Nell'Onda la barra sta sopra la copertina: icone e titolo su "bolle" leggibili
                     val chip = if (poster && !showLyrics) pc.background.copy(alpha = 0.55f) else Color.Transparent
                     TopBarButton(chip, ::close) {
                         AtxIcon(Res.drawable.expand_more, tr("Chiudi player"), size = 30.dp, tint = pc.text)
@@ -1453,7 +1448,84 @@ private fun PlayerPill(
     }
 }
 
-// region Vinile, Pila e Cassetta
+// region Vinile, Mosaico, Biglietto, Onda e Cassetta
+
+/** Rettangolo con il bordo in basso ondulato: la fase fa scorrere l'onda. */
+private class WaveBottomShape(
+    private val amplitude: Float,
+    private val phase: Float,
+) : Shape {
+    override fun createOutline(
+        size: Size,
+        layoutDirection: androidx.compose.ui.unit.LayoutDirection,
+        density: androidx.compose.ui.unit.Density,
+    ): androidx.compose.ui.graphics.Outline {
+        val path = Path()
+        val base = size.height - amplitude
+        path.moveTo(0f, 0f)
+        path.lineTo(size.width, 0f)
+        path.lineTo(size.width, base)
+        val steps = 48
+        for (i in steps downTo 0) {
+            val x = size.width * i / steps
+            val y = base + amplitude * kotlin.math.sin(x / size.width * 2f * kotlin.math.PI.toFloat() * 2.5f + phase)
+            path.lineTo(x, y)
+        }
+        path.close()
+        return androidx.compose.ui.graphics.Outline.Generic(path)
+    }
+}
+
+/** Il cartoncino del biglietto: fori laterali, linea tratteggiata e il brano stampato sulla parte da strappare. */
+@Composable
+private fun TicketBody(
+    title: String,
+    artist: String,
+    holeColor: Color,
+    artSide: Dp,
+    modifier: Modifier,
+) {
+    val paper = Color(0xFFFBF3E9)
+    val ink = Color(0xFF2B1230)
+    Box(modifier.shadow(20.dp, RoundedCornerShape(16.dp)).clip(RoundedCornerShape(16.dp)).background(paper)) {
+        // Dove si strappa: due mezzi fori ai lati e la linea tratteggiata
+        Canvas(Modifier.fillMaxSize()) {
+            val y = 14.dp.toPx() + artSide.toPx() + 14.dp.toPx()
+            val r = 10.dp.toPx()
+            drawCircle(holeColor, radius = r, center = Offset(0f, y))
+            drawCircle(holeColor, radius = r, center = Offset(size.width, y))
+            var x = r + 6.dp.toPx()
+            while (x < size.width - r - 6.dp.toPx()) {
+                drawCircle(holeColor, radius = 2.5.dp.toPx(), center = Offset(x, y))
+                x += 12.dp.toPx()
+            }
+        }
+        Column(
+            Modifier.align(Alignment.BottomStart).padding(start = 18.dp, end = 18.dp, bottom = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Text(
+                title.uppercase(),
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp,
+                color = ink,
+                maxLines = 1,
+                softWrap = false,
+                modifier = Modifier.scrollingText(),
+            )
+            Text(
+                (artist + " · ADMIT ONE").uppercase(),
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                fontSize = 11.sp,
+                color = ink.copy(alpha = 0.6f),
+                maxLines = 1,
+                softWrap = false,
+                modifier = Modifier.scrollingText(),
+            )
+        }
+    }
+}
 
 @Composable
 private fun PlayerDisc(

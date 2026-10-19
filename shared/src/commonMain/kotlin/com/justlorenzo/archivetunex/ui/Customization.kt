@@ -100,9 +100,10 @@ enum class PlayerLayout(
 ) {
     Card("Copertina"),
     Vinyl("Vinile"),
-    Stack("Pila"),
+    Mosaic("Mosaico"),
     Cassette("Cassetta"),
-    Portrait("Ritratto");
+    Ticket("Biglietto"),
+    Wave("Onda");
 
     val label: String get() = tr(rawLabel)
 }
