@@ -10,6 +10,16 @@
 	<string>Serve per riconoscere la musica che sta suonando intorno a te.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Serve per ascoltare musica insieme ad altri dispositivi sulla stessa rete (Music Together).</string>
+	<!-- Schermata di avvio: sfondo melanzana con il biscotto e l'onda -->
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>LaunchBackground</string>
+		<key>UIImageName</key>
+		<string>LaunchIcon</string>
+		<key>UIImageRespectsSafeAreaInsets</key>
+		<true/>
+	</dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<!-- La musica continua con lo schermo bloccato o l'app in background -->
