@@ -2,6 +2,7 @@
 
 package com.justlorenzo.archivetunex.ui.components
 
+import androidx.compose.foundation.layout.Spacer
 import org.jetbrains.compose.resources.DrawableResource
 import archivetunex.shared.generated.resources.more_vert
 import androidx.compose.ui.unit.Dp
@@ -79,8 +80,8 @@ class DetailToggle(
 )
 
 /**
- * Barra delle azioni (stile Expressive): al centro il grande Play a biscotto, ai lati Casuale e Scarica,
- * alle estremità Salva/Segui e "Altro". Ogni pulsante ha il suo nome sotto.
+ * Barra delle azioni: a sinistra le azioni secondarie come icone semplici (Salva, Scarica, Altro),
+ * a destra Casuale in un cerchio tonale e il grande Play pieno, che si "schiaccia" quando lo premi.
  */
 @Composable
 fun PlayShuffleButtons(
@@ -96,41 +97,30 @@ fun PlayShuffleButtons(
 ) {
     Row(
         modifier.fillMaxWidth().padding(top = 4.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.Top,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
+        // Azioni secondarie: solo icone, discrete
         if (toggle != null) {
-            ActionButton(
-                icon = if (toggle.active) toggle.iconOn else toggle.iconOff,
-                label = if (toggle.active) toggle.labelOn else toggle.labelOff,
-                size = 48.dp,
-                container = if (toggle.active) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceContainerHigh,
-                content = if (toggle.active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                onClick = toggle.onClick,
-            )
-        }
-        if (onShuffle != null) {
-            ActionButton(shuffleIcon, shuffleLabel, 58.dp, MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer, onClick = onShuffle)
-        }
-        if (onPlay != null) {
-            ActionButton(
-                Res.drawable.play,
-                playLabel,
-                76.dp,
-                MaterialTheme.colorScheme.primary,
-                MaterialTheme.colorScheme.onPrimary,
-                shape = MaterialShapes.Cookie9Sided.toShape(),
-                iconSize = 34.dp,
-                onClick = onPlay,
-            )
+            IconButton(onClick = toggle.onClick) {
+                AtxIcon(
+                    if (toggle.active) toggle.iconOn else toggle.iconOff,
+                    if (toggle.active) toggle.labelOn else toggle.labelOff,
+                    size = 26.dp,
+                    tint = if (toggle.active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
         if (onDownload != null) {
-            ActionButton(Res.drawable.download, tr("Scarica"), 58.dp, MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer, onClick = onDownload)
+            IconButton(onClick = onDownload) {
+                AtxIcon(Res.drawable.download, tr("Scarica tutto"), size = 26.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
         if (menu.isNotEmpty()) {
             var open by remember { mutableStateOf(false) }
             Box {
-                ActionButton(Res.drawable.more_vert, tr("Altro"), 48.dp, MaterialTheme.colorScheme.surfaceContainerHigh, MaterialTheme.colorScheme.onSurface) { open = true }
+                IconButton(onClick = { open = true }) {
+                    AtxIcon(Res.drawable.more_vert, tr("Altro"), size = 26.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
                 DropdownMenu(expanded = open, onDismissRequest = { open = false }, shape = RoundedCornerShape(20.dp)) {
                     menu.forEach { item ->
                         val color = if (item.danger) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
@@ -146,52 +136,53 @@ fun PlayShuffleButtons(
                 }
             }
         }
+        Spacer(Modifier.weight(1f))
+        // Azioni principali: Casuale e Play
+        if (onShuffle != null) {
+            PressableCircle(
+                size = 52.dp,
+                container = MaterialTheme.colorScheme.secondaryContainer,
+                onClick = onShuffle,
+            ) { AtxIcon(shuffleIcon, shuffleLabel, size = 24.dp, tint = MaterialTheme.colorScheme.onSecondaryContainer) }
+            Spacer(Modifier.width(12.dp))
+        }
+        if (onPlay != null) {
+            PressableCircle(
+                size = 64.dp,
+                container = MaterialTheme.colorScheme.primary,
+                onClick = onPlay,
+            ) { AtxIcon(Res.drawable.play, playLabel, size = 32.dp, tint = MaterialTheme.colorScheme.onPrimary) }
+        }
     }
 }
 
+/** Pulsante tondo che, premuto, diventa un quadrato arrotondato e si rimpicciolisce un po' (Expressive). */
 @Composable
-private fun ActionButton(
-    icon: DrawableResource,
-    label: String,
+private fun PressableCircle(
     size: Dp,
     container: Color,
-    content: Color,
-    shape: Shape = CircleShape,
-    iconSize: Dp = 24.dp,
     onClick: () -> Unit,
+    content: @Composable () -> Unit,
 ) {
     val source = remember { MutableInteractionSource() }
     val pressed by source.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (pressed) 0.88f else 1f, spring(dampingRatio = 0.45f, stiffness = 700f), label = "actionScale")
-    Column(
-        Modifier.width(76.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        // I pulsanti piccoli restano centrati sull'altezza del Play
-        Box(Modifier.height(76.dp), contentAlignment = Alignment.Center) {
-            Box(
-                Modifier
-                    .size(size)
-                    .graphicsLayer {
-                        scaleX = scale
-                        scaleY = scale
-                    }.clip(shape)
-                    .background(container)
-                    .clickable(interactionSource = source, indication = LocalIndication.current, onClick = onClick),
-                contentAlignment = Alignment.Center,
-            ) { AtxIcon(icon, label, size = iconSize, tint = content) }
-        }
-        Text(
-            label,
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-        )
-    }
+    val radius by androidx.compose.animation.core.animateDpAsState(
+        if (pressed) size * 0.28f else size / 2,
+        spring(dampingRatio = 0.5f, stiffness = 600f),
+        label = "pressRadius",
+    )
+    val scale by animateFloatAsState(if (pressed) 0.92f else 1f, spring(dampingRatio = 0.5f, stiffness = 600f), label = "pressScale")
+    Box(
+        Modifier
+            .size(size)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }.clip(RoundedCornerShape(radius))
+            .background(container)
+            .clickable(interactionSource = source, indication = LocalIndication.current, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) { content() }
 }
 
 /** Freccia indietro in alto a sinistra delle pagine aperte. */
