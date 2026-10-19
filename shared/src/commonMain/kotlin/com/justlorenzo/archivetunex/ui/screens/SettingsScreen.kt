@@ -409,7 +409,7 @@ private fun <T> PreviewChoices(
 @Composable
 private fun SettingsHome() {
     val navigator = LocalNavigator.current
-    SettingsScaffold("Impostazioni", overline = "ArchiveTuneX", isHome = true) {
+    SettingsScaffold("Impostazioni", overline = "Nami", isHome = true) {
         SettingsGroup("Personalizza") {
             NavRow(Res.drawable.palette, Color(0xFFFA4058), "Aspetto", "Tema, colore d'accento, copertine, schede") { navigator.settingsPage = SettingsPage.Appearance }
             NavRow(Res.drawable.play, Color(0xFF8B5CF6), "Player", "Sfondo, barra, pulsante Play, dettagli") { navigator.settingsPage = SettingsPage.Player }
@@ -1222,7 +1222,7 @@ private fun AboutPage() {
     val navigator = LocalNavigator.current
     SettingsScaffold("Informazioni", overline = "Altro") {
         SettingsGroup {
-            ValueRow(Res.drawable.info, "ArchiveTuneX", "Motore ArchiveTune ${BuildConfig.VERSION_NAME}") {}
+            ValueRow(Res.drawable.info, "Nami", "Motore ArchiveTune ${BuildConfig.VERSION_NAME}") {}
             ValueRow(Res.drawable.manage_search, "Registro errori", "Per capire cosa non funziona") {
                 navigator.settingsVisible = false
                 navigator.logsVisible = true
