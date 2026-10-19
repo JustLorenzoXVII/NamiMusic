@@ -47,6 +47,20 @@ class QueuePlayer(
     private var engineIsPlaying = false
     private var engineBuffering = false
 
+    /**
+     * Il brano successivo, già pronto (URL chiesto a YouTube mentre suona quello attuale):
+     * a fine brano parte subito, senza aspettare la rete. Importante in background, dove iOS
+     * sospende l'app se l'audio resta fermo troppo a lungo.
+     */
+    private var prefetched: Prefetched? = null
+    private var prefetchJob: Job? = null
+
+    private class Prefetched(
+        val uid: Any,
+        val media: ResolvedMedia,
+        val atMs: Long,
+    )
+
     init {
         engine.listener = this
     }
@@ -397,44 +411,92 @@ class QueuePlayer(
         val item = currentMediaItem ?: return
         val uid = uids[index]
         loadJob?.cancel()
+        prefetchJob?.cancel()
         engine.stop()
+        // Nuovo brano: lo stato del motore riparte da zero (sarà lui a dire quando suona)
+        engineIsPlaying = false
+        engineBuffering = false
         loadedIndexUid = uid
         knownDurationMs = C.TIME_UNSET
         if (!keepPosition) pendingSeekMs = 0
         if (playerError != null) setError(null)
         setPlaybackState(Player.STATE_BUFFERING)
         updateIsPlaying()
+
+        // Già pronto? Parte subito, senza passare dalla rete
+        val ready = prefetched?.takeIf { it.uid === uid && nowMs() - it.atMs < PREFETCH_MAX_AGE_MS }?.media
+        prefetched = null
+        if (ready != null) {
+            startEngine(item, ready)
+            prefetchNext()
+            return
+        }
         loadJob =
             scope.launch {
                 try {
                     val media = resolver(item)
                     if (uids.getOrNull(index) !== uid) return@launch
-                    knownDurationMs = media.durationMs ?: C.TIME_UNSET
-                    val metadata = item.mediaMetadata
-                    engine.load(
-                        url = media.url,
-                        headers = media.headers,
-                        info =
-                            NowPlayingInfo(
-                                title = metadata.title?.toString().orEmpty(),
-                                artist = metadata.artist?.toString().orEmpty(),
-                                artworkUrl = metadata.artworkUri?.toString(),
-                                durationMs = media.durationMs,
-                            ),
-                        playWhenReady = false,
-                    )
-                    engine.speed = playbackParameters.speed
-                    engine.volume = volume
-                    val seek = pendingSeekMs
-                    pendingSeekMs = C.TIME_UNSET
-                    if (seek > 0) engine.seekTo(seek)
-                    if (playWhenReady) engine.play()
+                    startEngine(item, media)
                 } catch (cancellation: CancellationException) {
                     throw cancellation
                 } catch (failure: Throwable) {
                     if (uids.getOrNull(index) !== uid) return@launch
                     pendingSeekMs = C.TIME_UNSET
                     setError(failure.toPlaybackException())
+                }
+            }
+        // Appena caricato questo, prepara il successivo
+        loadJob?.invokeOnCompletion { cause -> if (cause == null) scope.launch { prefetchNext() } }
+    }
+
+    private fun startEngine(
+        item: MediaItem,
+        media: ResolvedMedia,
+    ) {
+        knownDurationMs = media.durationMs ?: C.TIME_UNSET
+        val metadata = item.mediaMetadata
+        engine.load(
+            url = media.url,
+            headers = media.headers,
+            info =
+                NowPlayingInfo(
+                    title = metadata.title?.toString().orEmpty(),
+                    artist = metadata.artist?.toString().orEmpty(),
+                    artworkUrl = metadata.artworkUri?.toString(),
+                    durationMs = media.durationMs,
+                ),
+            playWhenReady = false,
+        )
+        engine.speed = playbackParameters.speed
+        engine.volume = volume
+        val seek = pendingSeekMs
+        pendingSeekMs = C.TIME_UNSET
+        if (seek > 0) engine.seekTo(seek)
+        if (playWhenReady) engine.play()
+    }
+
+    /** Chiede in anticipo l'URL del brano successivo (se non è già pronto). */
+    private fun prefetchNext() {
+        prefetchJob?.cancel()
+        val nextIndex =
+            if (repeatMode == Player.REPEAT_MODE_ONE) {
+                return
+            } else {
+                currentTimeline.getNextWindowIndex(index, repeatMode, shuffleModeEnabled)
+            }
+        if (nextIndex == C.INDEX_UNSET) return
+        val nextItem = items.getOrNull(nextIndex) ?: return
+        val nextUid = uids.getOrNull(nextIndex) ?: return
+        if (prefetched?.uid === nextUid) return
+        prefetchJob =
+            scope.launch {
+                try {
+                    val media = resolver(nextItem)
+                    prefetched = Prefetched(nextUid, media, nowMs())
+                } catch (cancellation: CancellationException) {
+                    throw cancellation
+                } catch (_: Throwable) {
+                    // Pazienza: a fine brano lo si chiederà normalmente
                 }
             }
     }
@@ -460,6 +522,11 @@ class QueuePlayer(
         if (isPlaying) {
             engineBuffering = false
             if (playbackState == Player.STATE_BUFFERING) setPlaybackState(Player.STATE_READY)
+            // L'audio è partito da fuori (auto, Bluetooth, sistema): l'app si allinea, niente più "in pausa"
+            if (!playWhenReady && loadJob?.isActive != true) {
+                playWhenReady = true
+                return
+            }
         }
         updateIsPlaying()
     }
@@ -519,6 +586,9 @@ class QueuePlayer(
 
     // region Utilità
 
+    private fun nowMs(): Long =
+        kotlin.time.Clock.System.now().toEpochMilliseconds()
+
     private fun firstIndex(): Int = currentTimeline.getFirstWindowIndex(shuffleModeEnabled).takeIf { it != C.INDEX_UNSET } ?: 0
 
     private fun setPlaybackState(state: Int) {
@@ -535,6 +605,8 @@ class QueuePlayer(
     }
 
     private fun timelineChanged() {
+        // La coda è cambiata: il brano successivo potrebbe essere un altro
+        if (prepared && loadJob?.isActive != true && currentMediaItem != null) prefetchNext()
         val timeline = currentTimeline
         dispatch(setOf(Player.EVENT_TIMELINE_CHANGED)) { it.onTimelineChanged(timeline, Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) }
     }
@@ -587,5 +659,8 @@ class QueuePlayer(
 
     private companion object {
         const val MAX_SEEK_TO_PREVIOUS_POSITION_MS = 3_000L
+
+        /** Gli URL di YouTube scadono dopo qualche ora: oltre questo tempo si richiedono. */
+        const val PREFETCH_MAX_AGE_MS = 60 * 60 * 1000L
     }
 }

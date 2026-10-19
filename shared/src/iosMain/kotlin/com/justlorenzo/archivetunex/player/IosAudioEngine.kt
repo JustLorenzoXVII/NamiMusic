@@ -27,7 +27,8 @@ actual fun preferredAudioItag(): Int? = 140
 
 /**
  * Motore audio iPhone: AVPlayer, con audio in background, schermata di blocco
- * (Now Playing) e comandi da cuffie / Centro di Controllo.
+ * (Now Playing), comandi da cuffie / auto / Centro di Controllo, interruzioni (chiamate, Siri)
+ * e cambi di uscita (Bluetooth che si scollega).
  */
 @OptIn(ExperimentalForeignApi::class)
 internal class IosAudioEngine : AudioEngine {
@@ -40,22 +41,72 @@ internal class IosAudioEngine : AudioEngine {
 
     private var info: NowPlayingInfo? = null
     private var artwork: MPMediaItemArtwork? = null
+
+    // Ultimo stato comunicato all'app: si azzera a ogni brano, così il nuovo stato arriva sempre
     private var lastIsPlaying = false
     private var lastIsBuffering = false
     private var errorReported = false
+
+    /** Il brano attuale ha già segnalato la fine (si segnala una volta sola). */
+    private var endReported = false
+
+    /** L'app vuole che suoni (play chiesto e non ancora messo in pausa). */
+    private var wantsPlay = false
+
+    /** Controlli di fila in cui il brano risulta fermo alla fine senza che sia arrivato l'evento. */
+    private var stuckAtEndChecks = 0
+
+    /** Prima dell'interruzione (chiamata, Siri) stava suonando: alla fine si riprende. */
+    private var resumeAfterInterruption = false
+
+    /** Tempo extra chiesto a iOS tra un brano e l'altro, per non essere sospesi in background. */
+    private var backgroundTask: UIBackgroundTaskIdentifier = UIBackgroundTaskInvalid
+    private var backgroundTaskJob: Job? = null
 
     init {
         val session = AVAudioSession.sharedInstance()
         session.setCategory(AVAudioSessionCategoryPlayback, null)
         session.setActive(true, null)
 
-        NSNotificationCenter.defaultCenter.addObserverForName(
+        val center = NSNotificationCenter.defaultCenter
+        // Fine del brano: conta solo quella del brano in riproduzione (non di quelli vecchi)
+        center.addObserverForName(
             name = AVPlayerItemDidPlayToEndTimeNotification,
             `object` = null,
             queue = NSOperationQueue.mainQueue,
-        ) { _ ->
-            updateNowPlaying()
-            listener?.onEnded()
+        ) { note ->
+            val item = note?.`object` as? AVPlayerItem
+            if (item != null && item === player.currentItem) reportEnded()
+        }
+        // Il brano non è riuscito ad arrivare alla fine (rete persa, stream chiuso)
+        center.addObserverForName(
+            name = AVPlayerItemFailedToPlayToEndTimeNotification,
+            `object` = null,
+            queue = NSOperationQueue.mainQueue,
+        ) { note ->
+            val item = note?.`object` as? AVPlayerItem
+            if (item != null && item === player.currentItem && !errorReported) {
+                errorReported = true
+                val error = note.userInfo?.get(AVPlayerItemFailedToPlayToEndTimeErrorKey) as? NSError
+                listener?.onError(error?.localizedDescription ?: "Riproduzione interrotta")
+            }
+        }
+        // Chiamate, Siri, navigatore dell'auto: pausa e, se iOS lo consente, si riprende dopo
+        center.addObserverForName(
+            name = AVAudioSessionInterruptionNotification,
+            `object` = null,
+            queue = NSOperationQueue.mainQueue,
+        ) { note -> handleInterruption(note) }
+        // Cuffie o Bluetooth scollegati: pausa, come fanno tutte le app musicali
+        center.addObserverForName(
+            name = AVAudioSessionRouteChangeNotification,
+            `object` = null,
+            queue = NSOperationQueue.mainQueue,
+        ) { note ->
+            val reason = (note?.userInfo?.get(AVAudioSessionRouteChangeReasonKey) as? NSNumber)?.unsignedLongValue
+            if (reason == AVAudioSessionRouteChangeReasonOldDeviceUnavailable) {
+                listener?.onRemotePause() ?: pause()
+            }
         }
 
         setUpRemoteCommands()
@@ -80,7 +131,7 @@ internal class IosAudioEngine : AudioEngine {
         info: NowPlayingInfo,
         playWhenReady: Boolean,
     ) {
-        val nsUrl = NSURL.URLWithString(url)
+        val nsUrl = if (url.startsWith("file://")) NSURL.fileURLWithPath(url.removePrefix("file://")) else NSURL.URLWithString(url)
         if (nsUrl == null) {
             listener?.onError("URL non valido")
             return
@@ -88,6 +139,11 @@ internal class IosAudioEngine : AudioEngine {
         this.info = info
         artwork = null
         errorReported = false
+        endReported = false
+        stuckAtEndChecks = 0
+        // Nuovo brano: lo stato ripartirà da "fermo", così ogni cambio viene comunicato
+        lastIsPlaying = false
+        lastIsBuffering = false
         // "AVURLAssetHTTPHeaderFieldsKey": chiave non documentata ma usata da tutti per gli header HTTP
         val asset =
             AVURLAsset(
@@ -96,7 +152,7 @@ internal class IosAudioEngine : AudioEngine {
                 options = mapOf<Any?, Any?>("AVURLAssetHTTPHeaderFieldsKey" to headers.filterKeys { !it.equals("Range", ignoreCase = true) }),
             )
         player.replaceCurrentItemWithPlayerItem(AVPlayerItem(asset = asset))
-        if (playWhenReady) player.play()
+        if (playWhenReady) play()
         startStateUpdates()
         updateNowPlaying()
         loadArtwork(info.artworkUrl)
@@ -129,23 +185,33 @@ internal class IosAudioEngine : AudioEngine {
         }
 
     override fun play() {
+        wantsPlay = true
+        // Dopo un'interruzione la sessione audio può essere stata disattivata
+        AVAudioSession.sharedInstance().setActive(true, null)
         player.playImmediatelyAtRate(speed)
         updateNowPlaying()
     }
 
     override fun pause() {
+        wantsPlay = false
         player.pause()
         updateNowPlaying()
     }
 
     override fun seekTo(positionMs: Long) {
+        stuckAtEndChecks = 0
+        // Tornando indietro dopo la fine, il brano può finire di nuovo
+        if (endReported && positionMs < (limitMs() ?: Long.MAX_VALUE) - 2_000) endReported = false
         player.seekToTime(CMTimeMakeWithSeconds(positionMs / 1000.0, 1000))
         updateNowPlaying()
     }
 
     override fun stop() {
+        wantsPlay = false
         player.pause()
         player.replaceCurrentItemWithPlayerItem(null)
+        lastIsPlaying = false
+        lastIsBuffering = false
     }
 
     /** AVPlayer non ha un listener semplice come ExoPlayer: si controlla lo stato ogni 300 ms. */
@@ -159,6 +225,9 @@ internal class IosAudioEngine : AudioEngine {
                 }
             }
     }
+
+    /** Durata del brano: quella di YouTube (esatta) o, se manca, quella stimata da AVPlayer. */
+    private fun limitMs(): Long? = info?.durationMs?.takeIf { it > 0 } ?: durationMs
 
     private fun checkState() {
         val item = player.currentItem
@@ -174,10 +243,77 @@ internal class IosAudioEngine : AudioEngine {
             lastIsPlaying = isPlaying
             listener?.onIsPlayingChanged(isPlaying)
             updateNowPlaying()
+            if (isPlaying) endBackgroundTask()
         }
         if (isBuffering != lastIsBuffering) {
             lastIsBuffering = isBuffering
             listener?.onBufferingChanged(isBuffering)
+        }
+
+        // Rete di sicurezza: se l'evento di fine non arriva, la fine si riconosce dalla posizione
+        if (item != null && !endReported && item.status == AVPlayerItemStatusReadyToPlay) {
+            val limit = limitMs()
+            val position = positionMs
+            if (limit != null && limit > 0) {
+                when {
+                    // Il tempo va oltre la fine del brano: è finito
+                    position > limit + 2_000 -> reportEnded()
+                    // Fermo all'ultimo secondo mentre dovrebbe suonare: dopo ~1 s si considera finito
+                    wantsPlay && !isPlaying && position >= limit - 1_000 -> {
+                        stuckAtEndChecks++
+                        if (stuckAtEndChecks >= 3) reportEnded()
+                    }
+                    else -> stuckAtEndChecks = 0
+                }
+            }
+        }
+    }
+
+    private fun reportEnded() {
+        if (endReported) return
+        endReported = true
+        stuckAtEndChecks = 0
+        // Tra un brano e il successivo l'audio si ferma: si chiede a iOS un po' di tempo,
+        // così in background (schermo spento, in auto) l'app non viene sospesa prima di farlo partire
+        beginBackgroundTask()
+        lastIsPlaying = false
+        updateNowPlaying()
+        listener?.onEnded()
+    }
+
+    private fun beginBackgroundTask() {
+        endBackgroundTask()
+        val app = UIApplication.sharedApplication
+        backgroundTask = app.beginBackgroundTaskWithName("Nami-next-track") { endBackgroundTask() }
+        // Al massimo 30 secondi, poi lo si restituisce comunque
+        backgroundTaskJob =
+            scope.launch {
+                delay(30_000)
+                endBackgroundTask()
+            }
+    }
+
+    private fun endBackgroundTask() {
+        backgroundTaskJob?.cancel()
+        backgroundTaskJob = null
+        if (backgroundTask != UIBackgroundTaskInvalid) {
+            UIApplication.sharedApplication.endBackgroundTask(backgroundTask)
+            backgroundTask = UIBackgroundTaskInvalid
+        }
+    }
+
+    private fun handleInterruption(note: NSNotification?) {
+        val userInfo = note?.userInfo ?: return
+        val type = (userInfo[AVAudioSessionInterruptionTypeKey] as? NSNumber)?.unsignedLongValue ?: return
+        if (type == AVAudioSessionInterruptionTypeBegan) {
+            // iOS ha già fermato l'audio: lo si dice all'app, ricordando se stava suonando
+            resumeAfterInterruption = wantsPlay
+            listener?.onRemotePause() ?: pause()
+        } else if (type == AVAudioSessionInterruptionTypeEnded) {
+            val options = (userInfo[AVAudioSessionInterruptionOptionKey] as? NSNumber)?.unsignedLongValue ?: 0uL
+            val shouldResume = (options and AVAudioSessionInterruptionOptionShouldResume) != 0uL
+            if (resumeAfterInterruption && shouldResume) listener?.onRemotePlay() ?: play()
+            resumeAfterInterruption = false
         }
     }
 
@@ -186,7 +322,7 @@ internal class IosAudioEngine : AudioEngine {
         val nowPlaying = mutableMapOf<Any?, Any?>()
         nowPlaying[MPMediaItemPropertyTitle] = current.title
         nowPlaying[MPMediaItemPropertyArtist] = current.artist
-        (durationMs ?: current.durationMs)?.let { nowPlaying[MPMediaItemPropertyPlaybackDuration] = it / 1000.0 }
+        (current.durationMs ?: durationMs)?.let { nowPlaying[MPMediaItemPropertyPlaybackDuration] = it / 1000.0 }
         nowPlaying[MPNowPlayingInfoPropertyElapsedPlaybackTime] = positionMs / 1000.0
         nowPlaying[MPNowPlayingInfoPropertyPlaybackRate] = player.rate.toDouble()
         artwork?.let { nowPlaying[MPMediaItemPropertyArtwork] = it }
@@ -221,7 +357,8 @@ internal class IosAudioEngine : AudioEngine {
             MPRemoteCommandHandlerStatusSuccess
         }
         center.togglePlayPauseCommand.addTargetWithHandler { _ ->
-            if (player.rate > 0f) {
+            // Si decide in base a cosa l'app vuole (non a rate, che è 0 anche mentre carica)
+            if (wantsPlay) {
                 listener?.onRemotePause() ?: pause()
             } else {
                 listener?.onRemotePlay() ?: play()
