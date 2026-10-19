@@ -64,6 +64,9 @@ data class ListeningStats(
     val genreCoverage: Float = 0f,
     /** Artisti di cui servono ancora i generi. */
     val artistsForGenres: List<String> = emptyList(),
+    /** Tempo d'ascolto per artista e inizio del periodo: servono per salti e generi. */
+    val artistTimes: Map<String, Long> = emptyMap(),
+    val fromMs: Long? = null,
 )
 
 internal fun EventWithSong.epochMs(): Long = event.timestamp.toInstant(ZoneOffset.UTC).toEpochMilli()
@@ -71,7 +74,7 @@ internal fun EventWithSong.epochMs(): Long = event.timestamp.toInstant(ZoneOffse
 /** Analisi degli ascolti: tutto calcolato sul telefono dalla cronologia e dai salti registrati. */
 object Insights {
     private const val PAGE = 500
-    private const val MAX_EVENTS = 30_000
+    private const val MAX_EVENTS = 20_000
 
     /** Gli ascolti dal più recente, fino a [fromMs] (escluso). */
     suspend fun events(
@@ -93,7 +96,19 @@ object Insights {
             result
         }
 
+    /**
+     * La parte pesante (tutta la cronologia del periodo), in background: si rifà solo cambiando periodo.
+     * Salti e generi si aggiungono dopo con [withLiveData], che è leggero.
+     */
     suspend fun compute(
+        database: MusicDatabase,
+        period: StatsPeriod,
+    ): ListeningStats = withContext(Dispatchers.Default) { computeBase(database, period) }
+
+    /** Aggiunge salti e generi (cambiano spesso: a ogni brano e a ogni genere trovato). */
+    suspend fun withLiveData(base: ListeningStats): ListeningStats = withContext(Dispatchers.Default) { live(base) }
+
+    private suspend fun computeBase(
         database: MusicDatabase,
         period: StatsPeriod,
     ): ListeningStats {
@@ -139,6 +154,22 @@ object Insights {
                     ArtistStat(id, name, thumb, time, artistPlays[name] ?: 0)
                 }
 
+        return ListeningStats(
+            totalMs = total,
+            plays = events.size,
+            distinctSongs = songTime.size,
+            distinctArtists = artistTime.size,
+            topSongs = topSongs,
+            topArtists = topArtists,
+            byHour = byHour.toList(),
+            artistTimes = artistTime.toMap(),
+            fromMs = fromMs,
+        )
+    }
+
+    private fun live(base: ListeningStats): ListeningStats {
+        val fromMs = base.fromMs
+        val artistTime = base.artistTimes
         // Salti del periodo
         val signals = ListeningSignals.signals.value
         val skippedSongs =
@@ -181,14 +212,7 @@ object Insights {
         val artistTotal = artistTime.values.sum().coerceAtLeast(1)
         val never = if (genres.isEmpty()) emptyList() else Genre.entries.filter { g -> genres.none { it.genre == g } }
 
-        return ListeningStats(
-            totalMs = total,
-            plays = events.size,
-            distinctSongs = songTime.size,
-            distinctArtists = artistTime.size,
-            topSongs = topSongs,
-            topArtists = topArtists,
-            byHour = byHour.toList(),
+        return base.copy(
             skippedSongs = skippedSongs,
             skippedArtists = skippedArtists,
             genres = genres,

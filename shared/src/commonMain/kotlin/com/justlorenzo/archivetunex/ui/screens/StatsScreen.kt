@@ -86,10 +86,23 @@ fun StatsScreen() {
     val signals by ListeningSignals.signals.collectAsState()
     val resolvedArtists by ArtistResolver.resolved.collectAsState()
     var loading by remember { mutableStateOf(true) }
-    val stats by produceState<ListeningStats?>(null, period, genres, signals) {
+    // Parte pesante: solo quando cambia il periodo (in background, lo schermo non si blocca)
+    val base by produceState<ListeningStats?>(null, period) {
         loading = true
-        value = runCatching { Insights.compute(actions.database, period) }.getOrNull() ?: ListeningStats()
+        value =
+            try {
+                Insights.compute(actions.database, period)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (_: Throwable) {
+                ListeningStats()
+            }
         loading = false
+    }
+    // Salti e generi: leggeri, si aggiornano quando arrivano dati nuovi
+    val stats by produceState<ListeningStats?>(null, base, genres, signals) {
+        val b = base ?: return@produceState
+        value = runCatching { Insights.withLiveData(b) }.getOrNull() ?: b
     }
     // Generi: si chiedono a MusicBrainz quelli degli artisti che ancora non si conoscono
     var fetchingGenres by remember { mutableStateOf(false) }
