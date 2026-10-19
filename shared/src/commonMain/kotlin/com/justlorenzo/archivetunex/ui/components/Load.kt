@@ -95,7 +95,10 @@ fun <T> rememberLoadable(
         if (counter.value > 0 || state.value !is LoadState.Ready) state.value = LoadState.Loading
         val result =
             try {
-                withContext(Dispatchers.Default) { block() }.fold(
+                (
+                    kotlinx.coroutines.withTimeoutOrNull(30_000) { withContext(Dispatchers.Default) { block() } }
+                        ?: Result.failure(IllegalStateException("Tempo scaduto"))
+                ).fold(
                     onSuccess = { LoadState.Ready(it) },
                     onFailure = { error ->
                         if (error is CancellationException) throw error

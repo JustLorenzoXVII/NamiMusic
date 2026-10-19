@@ -78,6 +78,11 @@ object GenreService {
     suspend fun fetchMissing(
         artists: List<String>,
         limit: Int = 20,
+    ) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { fetchMissingNow(artists, limit) }
+
+    private suspend fun fetchMissingNow(
+        artists: List<String>,
+        limit: Int,
     ) = mutex.withLock {
         val now = nowMs()
         val missing =
@@ -88,7 +93,7 @@ object GenreService {
                     known == null || (known.tags.isEmpty() && now - known.checkedAt > RETRY_AFTER_MS)
                 }.take(limit)
         for (name in missing) {
-            val tags = runCatching { lookup(name) }.getOrNull() ?: continue
+            val tags = kotlinx.coroutines.withTimeoutOrNull(20_000) { runCatching { lookup(name) }.getOrNull() } ?: continue
             cache.update { it + (name.lowercase() to ArtistGenres(tags, nowMs())) }
         }
     }
