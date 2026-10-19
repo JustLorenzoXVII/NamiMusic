@@ -82,6 +82,7 @@ import kotlinx.coroutines.delay
 import moe.rukamori.archivetune.db.entities.SearchHistory
 import moe.rukamori.archivetune.innertube.YouTube.SearchFilter
 import moe.rukamori.archivetune.innertube.YouTube
+import kotlinx.coroutines.async
 import moe.rukamori.archivetune.innertube.models.ArtistItem
 import moe.rukamori.archivetune.innertube.models.SongItem
 import moe.rukamori.archivetune.innertube.models.YTItem
@@ -98,6 +99,7 @@ private enum class SearchKind(
     Albums("Album", SearchFilter.FILTER_ALBUM),
     Songs("Brani", SearchFilter.FILTER_SONG),
     Playlists("Playlist", SearchFilter.FILTER_FEATURED_PLAYLIST),
+    CommunityPlaylists("Playlist utenti", SearchFilter.FILTER_COMMUNITY_PLAYLIST),
     Videos("Video", SearchFilter.FILTER_VIDEO);
 
     val label: String get() = tr(rawLabel)
@@ -233,13 +235,34 @@ private fun SearchResults(
     onOpen: (YTItem) -> Unit,
 ) {
     val results =
-        rememberLoadable(query to kind, cache = "search-v2") {
+        rememberLoadable(query to kind, cache = "search-v3") {
             val filter = kind.filter
             if (filter == null) {
-                // Migliori risultati: le sezioni di YouTube Music (risultato principale, brani, album, artisti…) in una lista sola
-                YouTube.searchSummary(query).map { page -> page.summaries.flatMap { it.items }.distinctBy { it.id } }
+                // Migliori risultati: le sezioni di YouTube Music in una lista sola, poi le playlist
+                // ufficiali e quelle degli utenti legate alla ricerca (tre richieste in parallelo)
+                kotlinx.coroutines.coroutineScope {
+                    val summary = async { YouTube.searchSummary(query) }
+                    val featured = async { YouTube.search(query, SearchFilter.FILTER_FEATURED_PLAYLIST).getOrNull()?.items.orEmpty() }
+                    val community = async { YouTube.search(query, SearchFilter.FILTER_COMMUNITY_PLAYLIST).getOrNull()?.items.orEmpty() }
+                    summary.await().map { page ->
+                        val seen = mutableSetOf<String>()
+                        val rows = mutableListOf<SearchRow>()
+                        page.summaries.flatMap { it.items }.forEach { if (seen.add(it.id)) rows += SearchRow.Entry(it) }
+                        val official = featured.await().filter { seen.add(it.id) }.take(6)
+                        if (official.isNotEmpty()) {
+                            rows += SearchRow.Header(tr("Playlist in evidenza"))
+                            official.forEach { rows += SearchRow.Entry(it) }
+                        }
+                        val users = community.await().filter { seen.add(it.id) }.take(6)
+                        if (users.isNotEmpty()) {
+                            rows += SearchRow.Header(tr("Playlist degli utenti"))
+                            users.forEach { rows += SearchRow.Entry(it) }
+                        }
+                        rows.toList()
+                    }
+                }
             } else {
-                YouTube.search(query, filter).map { it.items }
+                YouTube.search(query, filter).map { result -> result.items.map { SearchRow.Entry(it) } }
             }
         }
 
@@ -272,7 +295,17 @@ private fun SearchResults(
                     item(key = "empty") { EmptyState(trf("Nessun risultato per “{0}”.", query), icon = Res.drawable.search) }
                 }
                 val showType = kind == SearchKind.Top
-                items(state.value) { item ->
+                items(state.value) { row ->
+                    if (row is SearchRow.Header) {
+                        Text(
+                            row.title,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.ExtraBold,
+                            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 6.dp),
+                        )
+                        return@items
+                    }
+                    val item = (row as SearchRow.Entry).item
                     if (item is SongItem) {
                         val metadata = remember(item) { item.toMediaMetadata() }
                         SongRow(
@@ -292,6 +325,13 @@ private fun SearchResults(
             }
         }
     }
+}
+
+/** Una riga dei risultati: un titolo di sezione o un elemento. */
+private sealed interface SearchRow {
+    data class Header(val title: String) : SearchRow
+
+    data class Entry(val item: YTItem) : SearchRow
 }
 
 /** Riga per album, artisti e playlist nei risultati. */

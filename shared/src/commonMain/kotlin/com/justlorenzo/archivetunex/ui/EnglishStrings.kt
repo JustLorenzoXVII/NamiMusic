@@ -3,6 +3,12 @@ package com.justlorenzo.archivetunex.ui
 /** Testi dell'interfaccia in inglese (la chiave è il testo italiano usato nel codice). */
 val EnglishStrings: Map<String, String> =
     mapOf(
+        "Migliori risultati" to "Top results",
+        "Playlist utenti" to "User playlists",
+        "Playlist in evidenza" to "Featured playlists",
+        "Playlist degli utenti" to "Playlists by users",
+        "Brano" to "Song",
+        "Episodio" to "Episode",
         "Ancora niente da mostrare per questo periodo. Ascolta un po' di musica e torna qui!" to "Nothing to show for this period yet. Listen to some music and come back!",
         "Artisti che salti più spesso" to "Artists you skip most",
         "Artisti più ascoltati" to "Top artists",
