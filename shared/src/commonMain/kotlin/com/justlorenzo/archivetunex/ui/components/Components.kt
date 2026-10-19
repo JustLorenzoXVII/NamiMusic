@@ -33,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
@@ -96,6 +97,17 @@ fun Artwork(
         )
         if (!url.isNullOrBlank()) {
             val context = coil3.compose.LocalPlatformContext.current
+            // Le copertine delle playlist automatiche di YouTube (Mi piace, Episodi…) hanno gli angoli già
+            // smussati nell'immagine: ingrandite un po', quegli angoli restano fuori dalla cornice
+            val imageModifier =
+                if (url.contains("gstatic.com") || url.contains("ytm/images")) {
+                    Modifier.fillMaxSize().graphicsLayer {
+                        scaleX = 1.12f
+                        scaleY = 1.12f
+                    }
+                } else {
+                    Modifier.fillMaxSize()
+                }
             // Anteprima piccola (già in memoria, la usa il mini player): niente vuoti mentre arriva quella grande
             if (previewSizePx != null && previewSizePx != sizePx) {
                 AsyncImage(
@@ -110,7 +122,7 @@ fun Artwork(
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     colorFilter = colorFilter,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = imageModifier,
                 )
             }
             AsyncImage(
@@ -127,7 +139,7 @@ fun Artwork(
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 colorFilter = colorFilter,
-                modifier = Modifier.fillMaxSize(),
+                modifier = imageModifier,
             )
         }
     }
