@@ -35,6 +35,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -58,6 +59,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import archivetunex.shared.generated.resources.Res
+import archivetunex.shared.generated.resources.navigate_next
 import archivetunex.shared.generated.resources.arrow_top_left
 import archivetunex.shared.generated.resources.close
 import archivetunex.shared.generated.resources.history
@@ -88,11 +90,13 @@ import moe.rukamori.archivetune.models.toMediaMetadata
 
 private enum class SearchKind(
     private val rawLabel: String,
-    val filter: SearchFilter,
+    val filter: SearchFilter?,
 ) {
-    Songs("Brani", SearchFilter.FILTER_SONG),
-    Albums("Album", SearchFilter.FILTER_ALBUM),
+    // Tutto insieme, come Apple Music: artisti, album, brani e playlist più rilevanti
+    Top("Migliori risultati", null),
     Artists("Artisti", SearchFilter.FILTER_ARTIST),
+    Albums("Album", SearchFilter.FILTER_ALBUM),
+    Songs("Brani", SearchFilter.FILTER_SONG),
     Playlists("Playlist", SearchFilter.FILTER_FEATURED_PLAYLIST),
     Videos("Video", SearchFilter.FILTER_VIDEO);
 
@@ -107,7 +111,7 @@ fun SearchScreen() {
 
     var text by rememberSaveable { mutableStateOf("") }
     var submitted by rememberSaveable { mutableStateOf("") }
-    var kind by rememberSaveable { mutableStateOf(SearchKind.Songs) }
+    var kind by rememberSaveable { mutableStateOf(SearchKind.Top) }
     var menuSong by remember { mutableStateOf<MediaMetadata?>(null) }
 
     val history by remember { actions.database.searchHistory() }.collectAsState(emptyList())
@@ -228,7 +232,16 @@ private fun SearchResults(
     onSongMenu: (MediaMetadata) -> Unit,
     onOpen: (YTItem) -> Unit,
 ) {
-    val results = rememberLoadable(query to kind, cache = "search") { YouTube.search(query, kind.filter) }
+    val results =
+        rememberLoadable(query to kind, cache = "search-v2") {
+            val filter = kind.filter
+            if (filter == null) {
+                // Migliori risultati: le sezioni di YouTube Music (risultato principale, brani, album, artisti…) in una lista sola
+                YouTube.searchSummary(query).map { page -> page.summaries.flatMap { it.items }.distinctBy { it.id } }
+            } else {
+                YouTube.search(query, filter).map { it.items }
+            }
+        }
 
     LazyColumn(contentPadding = BottomContentPadding, modifier = Modifier.fillMaxSize()) {
         item(key = "filters") {
@@ -240,8 +253,13 @@ private fun SearchResults(
                     FilterChip(
                         selected = entry == kind,
                         onClick = { onKindChange(entry) },
-                        label = { Text(entry.label) },
-                        shape = RoundedCornerShape(18.dp),
+                        label = { Text(entry.label, fontWeight = FontWeight.SemiBold) },
+                        shape = RoundedCornerShape(20.dp),
+                        colors =
+                            FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                            ),
                     )
                 }
             }
@@ -250,23 +268,25 @@ private fun SearchResults(
             LoadState.Loading -> item(key = "loading") { LoadingBox() }
             is LoadState.Failed -> item(key = "error") { ErrorBox(state.message, results::reload) }
             is LoadState.Ready -> {
-                if (state.value.items.isEmpty()) {
+                if (state.value.isEmpty()) {
                     item(key = "empty") { EmptyState(trf("Nessun risultato per “{0}”.", query), icon = Res.drawable.search) }
                 }
-                items(state.value.items) { item ->
+                val showType = kind == SearchKind.Top
+                items(state.value) { item ->
                     if (item is SongItem) {
                         val metadata = remember(item) { item.toMediaMetadata() }
                         SongRow(
                             songId = item.id,
                             title = item.title,
-                            subtitle = item.subtitle(),
+                            // Nei migliori risultati si dice cos'è (Brano · artista), come Apple Music
+                            subtitle = if (showType) listOf(tr("Brano"), item.artists.joinToString { it.name }).filter { it.isNotBlank() }.joinToString(" · ") else item.subtitle(),
                             artworkUrl = item.thumbnail,
                             explicit = item.explicit,
                             onClick = { onOpen(item) },
                             onMore = { onSongMenu(metadata) },
                         )
                     } else {
-                        ItemRow(item, onClick = { onOpen(item) })
+                        ItemRow(item, showType = showType, onClick = { onOpen(item) })
                     }
                 }
             }
@@ -278,6 +298,7 @@ private fun SearchResults(
 @Composable
 private fun ItemRow(
     item: YTItem,
+    showType: Boolean = false,
     onClick: () -> Unit,
 ) {
     Row(
@@ -300,15 +321,41 @@ private fun ItemRow(
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                item.subtitle(),
+                if (showType) typedSubtitle(item) else item.subtitle(),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
         }
+        // Freccia: si apre una pagina
+        AtxIcon(Res.drawable.navigate_next, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
+
+/** "Album · Eminem", "Artista", "Playlist · YouTube Music"… */
+private fun typedSubtitle(item: YTItem): String {
+    val type = itemTypeLabel(item)
+    val sub = item.subtitle()
+    return when {
+        item is ArtistItem -> type
+        type.isBlank() -> sub
+        sub.startsWith(type) -> sub
+        sub.isBlank() -> type
+        else -> "$type · $sub"
+    }
+}
+
+/** Cos'è un risultato (Artista, Album, Playlist…). */
+private fun itemTypeLabel(item: YTItem): String =
+    when (item) {
+        is ArtistItem -> tr("Artista")
+        is moe.rukamori.archivetune.innertube.models.AlbumItem -> tr("Album")
+        is moe.rukamori.archivetune.innertube.models.PlaylistItem -> tr("Playlist")
+        is moe.rukamori.archivetune.innertube.models.PodcastItem -> tr("Podcast")
+        is moe.rukamori.archivetune.innertube.models.EpisodeItem -> tr("Episodio")
+        else -> ""
+    }
 
 /** Cerca senza testo: ricerche recenti e i generi/mood di YouTube Music, colorati. */
 @Composable
