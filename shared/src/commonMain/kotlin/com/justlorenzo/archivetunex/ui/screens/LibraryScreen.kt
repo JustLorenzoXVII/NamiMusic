@@ -127,7 +127,7 @@ fun LibraryScreen() {
     val albums by remember { actions.database.albumsLikedByCreateDateAsc().map { it.reversed() } }.collectAsState(emptyList())
     val artists by remember { actions.database.artistsBookmarkedByCreateDateAsc().map { it.reversed() } }.collectAsState(emptyList())
     val remote =
-        rememberLoadable(account?.name) {
+        rememberLoadable(account?.name, cache = "library") {
             if (account == null) Result.success(emptyList()) else YouTube.library("FEmusic_liked_playlists").map { it.items }
         }
 

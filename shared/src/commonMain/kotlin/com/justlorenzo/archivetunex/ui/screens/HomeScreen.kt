@@ -90,7 +90,7 @@ fun HomeScreen() {
     val account = rememberAccount()
     var chipParams by rememberSaveable { mutableStateOf<String?>(null) }
     // La Home cambia con login/logout e con il mood scelto
-    val home = rememberLoadable(account?.name to chipParams) { YouTube.home(params = chipParams) }
+    val home = rememberLoadable(account?.name to chipParams, cache = "home") { YouTube.home(params = chipParams) }
     val recent by remember { actions.database.recentSongs(20) }.collectAsState(emptyList())
     val ready = (home.value as? LoadState.Ready)?.value
 

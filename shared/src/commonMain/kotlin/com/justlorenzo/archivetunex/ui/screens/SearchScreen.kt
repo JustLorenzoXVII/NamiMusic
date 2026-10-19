@@ -228,7 +228,7 @@ private fun SearchResults(
     onSongMenu: (MediaMetadata) -> Unit,
     onOpen: (YTItem) -> Unit,
 ) {
-    val results = rememberLoadable(query to kind) { YouTube.search(query, kind.filter) }
+    val results = rememberLoadable(query to kind, cache = "search") { YouTube.search(query, kind.filter) }
 
     LazyColumn(contentPadding = BottomContentPadding, modifier = Modifier.fillMaxSize()) {
         item(key = "filters") {
@@ -319,7 +319,7 @@ private fun SearchHome(
     onClearHistory: () -> Unit,
 ) {
     val navigator = LocalNavigator.current
-    val moods = rememberLoadable(Unit) { YouTube.moodAndGenres() }
+    val moods = rememberLoadable(Unit, cache = "moods", maxAgeMs = 6 * 60 * 60 * 1000L) { YouTube.moodAndGenres() }
 
     LazyColumn(contentPadding = BottomContentPadding, modifier = Modifier.fillMaxSize()) {
         if (history.isNotEmpty()) {

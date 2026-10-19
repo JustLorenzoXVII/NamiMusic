@@ -112,7 +112,7 @@ private fun rememberSongMenu(): Pair<MediaMetadata?, (MediaMetadata?) -> Unit> {
 @Composable
 fun AlbumScreen(browseId: String) {
     val actions = LocalActions.current
-    val page = rememberLoadable(browseId) { YouTube.album(browseId) }
+    val page = rememberLoadable(browseId, cache = "album") { YouTube.album(browseId) }
     val saved by remember(browseId) { actions.database.album(browseId) }.collectAsState(null)
     val (menuSong, setMenuSong) = rememberSongMenu()
 
@@ -188,7 +188,7 @@ fun PlaylistScreen(playlistId: String) {
     val savedPlaylist by remember(playlistId) { actions.database.playlistByBrowseId(playlistId) }.collectAsState(null)
     val (menuSong, setMenuSong) = rememberSongMenu()
     val page =
-        rememberLoadable(playlistId) {
+        rememberLoadable(playlistId, cache = "playlist") {
             YouTube.playlist(playlistId).mapCatching { first ->
                 // Le playlist lunghe arrivano a pagine: si caricano tutte (fino a un limite)
                 val songs = first.songs.toMutableList()
@@ -276,7 +276,7 @@ fun ArtistScreen(browseId: String) {
     val actions = LocalActions.current
     val navigator = LocalNavigator.current
     val (menuSong, setMenuSong) = rememberSongMenu()
-    val page = rememberLoadable(browseId) { YouTube.artist(browseId) }
+    val page = rememberLoadable(browseId, cache = "artist") { YouTube.artist(browseId) }
     val saved by remember(browseId) { actions.database.artist(browseId) }.collectAsState(null)
 
     DetailScaffold((page.value as? LoadState.Ready)?.value?.artist?.thumbnail) {

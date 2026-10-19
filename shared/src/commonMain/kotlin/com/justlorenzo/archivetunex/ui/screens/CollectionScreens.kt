@@ -171,7 +171,7 @@ fun BrowseScreen(
 ) {
     val actions = LocalActions.current
     val navigator = LocalNavigator.current
-    val page = rememberLoadable(browseId to params) { YouTube.browse(browseId, params) }
+    val page = rememberLoadable(browseId to params, cache = "browse") { YouTube.browse(browseId, params) }
     val top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
 
     Box(Modifier.fillMaxSize()) {
