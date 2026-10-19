@@ -74,7 +74,7 @@ fun DownloadsScreen() {
     SongCollection(
         title = "Scaricati",
         overline = "Sul telefono",
-        colors = listOf(Color(0xFFFA4058), Color(0xFFB0124A)),
+        colors = listOf(Color(0xFFFF8FB8), Color(0xFF7A3B6E)),
         songs = songs,
         emptyText = "I brani che scarichi appaiono qui e si ascoltano anche senza connessione.",
         emptyIcon = Res.drawable.download,

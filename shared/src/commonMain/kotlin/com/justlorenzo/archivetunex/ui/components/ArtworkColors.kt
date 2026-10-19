@@ -65,7 +65,7 @@ fun rememberArtworkColors(url: String?): ArtworkColors? {
                                 .resizeBitmapArea(PlayerColorExtractor.Config.BITMAP_AREA)
                                 .generate()
                         }
-                    val fallback = Color(0xFFFA4058).toArgb()
+                    val fallback = Color(0xFFFF8FB8).toArgb()
                     val primary = Color(palette.getVibrantColor(palette.getDominantColor(fallback)))
                     val gradient = PlayerColorExtractor.extractGradientColors(palette, fallback)
                     ArtworkColors(primary, gradient.ifEmpty { listOf(primary) }).also { colorCache[url] = it }

@@ -2,14 +2,16 @@ package com.justlorenzo.archivetunex.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Stessi colori di Fuji Music
+// Colori di Nami (palette "Sakura": rosa su melanzana)
 
 // Accento
-val AccentRed = Color(0xFFFA4058)
+val AccentRed = Color(0xFFFF8FB8)
+val SakuraDeep = Color(0xFF7A3B6E)
+val SakuraNight = Color(0xFF3E1B42)
 
 // ---------- Tema chiaro ----------
-val LightPrimaryContainer = Color(0xFFFFE1E5)
-val LightOnPrimaryContainer = Color(0xFF5C0A17)
+val LightPrimaryContainer = Color(0xFFFFD9E6)
+val LightOnPrimaryContainer = Color(0xFF3E1B42)
 val LightBackground = Color(0xFFFFFFFF)
 val LightOnBackground = Color(0xFF1C1C1E)
 val LightSurfaceVariant = Color(0xFFF2F2F7)
@@ -22,8 +24,8 @@ val LightContainerHigh = Color(0xFFEBEBF0)
 val LightContainerHighest = Color(0xFFE5E5EA)
 
 // ---------- Tema scuro ----------
-val DarkPrimaryContainer = Color(0xFF4A0C17)
-val DarkOnPrimaryContainer = Color(0xFFFFD9DE)
+val DarkPrimaryContainer = Color(0xFF4A2350)
+val DarkOnPrimaryContainer = Color(0xFFFFD9E6)
 val DarkBackground = Color(0xFF000000)
 val DarkOnBackground = Color(0xFFF2F2F7)
 val DarkSurfaceVariant = Color(0xFF1C1C1E)

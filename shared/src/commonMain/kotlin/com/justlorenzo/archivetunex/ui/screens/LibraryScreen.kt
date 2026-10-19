@@ -173,7 +173,7 @@ fun LibraryScreen() {
                     title = "Scaricati",
                     count = downloadCount,
                     icon = Res.drawable.download,
-                    colors = listOf(Color(0xFFFA4058), Color(0xFFB0124A)),
+                    colors = listOf(Color(0xFFFF8FB8), Color(0xFF7A3B6E)),
                     modifier = Modifier.weight(1f),
                 ) { navigator.open(Route.Downloads) }
                 PinnedTile(

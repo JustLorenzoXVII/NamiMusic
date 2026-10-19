@@ -48,6 +48,7 @@ enum class PaletteStyleChoice(
 /** Colori pronti per il colore personalizzato. */
 val PresetColors =
     listOf(
+        Color(0xFFFF8FB8),
         Color(0xFFFA4058),
         Color(0xFFFF7A2F),
         Color(0xFFF5B800),
@@ -216,7 +217,7 @@ val MiniShowArtistKey = booleanPreferencesKey("atx_mini_show_artist")
 @Immutable
 data class AtxStyle(
     val themeSource: ThemeSource = ThemeSource.Custom,
-    val customColor: Color = Color(0xFFFA4058),
+    val customColor: Color = Color(0xFFFF8FB8),
     val paletteStyle: PaletteStyleChoice = PaletteStyleChoice.TonalSpot,
     val pureBlack: Boolean = false,
     val corners: ArtworkCorners = ArtworkCorners.Large,

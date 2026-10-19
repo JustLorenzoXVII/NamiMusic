@@ -411,7 +411,7 @@ private fun SettingsHome() {
     val navigator = LocalNavigator.current
     SettingsScaffold("Impostazioni", overline = "Nami", isHome = true) {
         SettingsGroup("Personalizza") {
-            NavRow(Res.drawable.palette, Color(0xFFFA4058), "Aspetto", "Tema, colore d'accento, copertine, schede") { navigator.settingsPage = SettingsPage.Appearance }
+            NavRow(Res.drawable.palette, Color(0xFFFF8FB8), "Aspetto", "Tema, colore d'accento, copertine, schede") { navigator.settingsPage = SettingsPage.Appearance }
             NavRow(Res.drawable.play, Color(0xFF8B5CF6), "Player", "Sfondo, barra, pulsante Play, dettagli") { navigator.settingsPage = SettingsPage.Player }
             NavRow(Res.drawable.sliders, Color(0xFF00A88F), "Mini player", "Stile, avanzamento, pulsanti") { navigator.settingsPage = SettingsPage.MiniPlayer }
         }
