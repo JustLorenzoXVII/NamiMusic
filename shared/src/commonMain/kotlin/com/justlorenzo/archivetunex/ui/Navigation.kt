@@ -79,6 +79,22 @@ class AtxNavigator {
         stacks.getValue(tab).add(route)
     }
 
+    /** La pagina che comparirebbe tornando indietro (per mostrarla sotto durante il gesto). */
+    fun previousPage(): Triple<String, Tab, Route?>? {
+        val stack = stacks.getValue(tab)
+        return when {
+            stack.isNotEmpty() -> {
+                val rest = stack.dropLast(1)
+                Triple("$tab-${rest.size}-${rest.lastOrNull()}", tab, rest.lastOrNull())
+            }
+            tab != Tab.Home -> {
+                val home = stacks.getValue(Tab.Home)
+                Triple("${Tab.Home}-${home.size}-${home.lastOrNull()}", Tab.Home, home.lastOrNull())
+            }
+            else -> null
+        }
+    }
+
     /** Sostituisce la pagina aperta con un'altra (senza lasciarla nella cronologia). */
     fun replace(route: Route) {
         val stack = stacks.getValue(tab)

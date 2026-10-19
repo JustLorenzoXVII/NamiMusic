@@ -207,9 +207,110 @@ private fun LoadedApp(prefs: androidx.datastore.preferences.core.Preferences) {
             moe.rukamori.archivetune.LocalPlayerConnection provides actions.player,
             moe.rukamori.archivetune.LocalDatabase provides actions.database,
         ) {
-            BackHandler(enabled = navigator.canGoBack) { navigator.back() }
             AppContent(navigator)
         }
+    }
+}
+
+/** Una pagina dell'app (radice di una scheda o pagina aperta sopra). */
+@Composable
+private fun AppPage(
+    pageTab: Tab,
+    pageRoute: Route?,
+) {
+    when (pageRoute) {
+        null ->
+            when (pageTab) {
+                Tab.Home -> HomeScreen()
+                Tab.Search -> SearchScreen()
+                Tab.Library -> LibraryScreen()
+            }
+        is Route.Album -> AlbumScreen(pageRoute.browseId)
+        is Route.Artist -> ArtistScreen(pageRoute.browseId)
+        is Route.Playlist -> PlaylistScreen(pageRoute.playlistId)
+        is Route.LocalPlaylist -> LocalPlaylistScreen(pageRoute.playlistId, pageRoute.title)
+        is Route.Browse -> BrowseScreen(pageRoute.browseId, pageRoute.params, pageRoute.title)
+        Route.Downloads -> DownloadsScreen()
+        Route.Liked -> LikedScreen()
+    }
+}
+
+/** Stato del gesto indietro sulle pagine. */
+@androidx.compose.runtime.Stable
+private class PageBackState {
+    /** Il gesto è in corso (o sta finendo): la pagina sotto è visibile. */
+    var active by mutableStateOf(false)
+
+    /** Avanzamento del dito, 0…1. */
+    var progress by androidx.compose.runtime.mutableFloatStateOf(0f)
+
+    /** Dopo la conferma: la pagina esce (0…1). */
+    var commit by androidx.compose.runtime.mutableFloatStateOf(0f)
+    var fromLeft by mutableStateOf(true)
+
+    /** Il prossimo cambio di pagina è istantaneo (la pagina sotto era già visibile). */
+    var instant by mutableStateOf(false)
+}
+
+private suspend fun pageBackGesture(
+    gestures: kotlinx.coroutines.flow.Flow<moe.rukamori.archivetune.compat.BackGesture>,
+    state: PageBackState,
+    navigator: AtxNavigator,
+) {
+    var moved = false
+    try {
+        gestures.collect { gesture ->
+            moved = true
+            state.fromLeft = gesture.fromLeft
+            state.progress = gesture.progress
+            state.active = true
+        }
+        if (!moved) {
+            // Tasto indietro classico: dissolvenza normale
+            navigator.back()
+            return
+        }
+        // Confermato: la pagina finisce di uscire, poi si passa a quella sotto senza altre animazioni
+        androidx.compose.animation.core.animate(0f, 1f, animationSpec = tween(170)) { value, _ -> state.commit = value }
+        state.instant = true
+        navigator.back()
+        state.active = false
+        state.progress = 0f
+        state.commit = 0f
+    } catch (e: kotlinx.coroutines.CancellationException) {
+        // Annullato: la pagina torna al suo posto
+        kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
+            androidx.compose.animation.core.animate(state.progress, 0f, animationSpec = spring(dampingRatio = 0.85f, stiffness = 500f)) { value, _ ->
+                state.progress = value
+            }
+            state.active = false
+            state.commit = 0f
+        }
+        throw e
+    }
+}
+
+private suspend fun playerBackGesture(
+    gestures: kotlinx.coroutines.flow.Flow<moe.rukamori.archivetune.compat.BackGesture>,
+    transition: com.justlorenzo.archivetunex.ui.screens.PlayerTransition,
+    navigator: AtxNavigator,
+) {
+    try {
+        transition.progress.stop()
+        gestures.collect { gesture ->
+            transition.dragging = true
+            // Il player comincia a richiudersi verso il mini player seguendo il dito
+            transition.progress.snapTo(1f - 0.28f * gesture.progress)
+        }
+        transition.dragging = false
+        // Confermato: finisce di chiudersi dal punto in cui era, con la solita molla
+        navigator.back()
+    } catch (e: kotlinx.coroutines.CancellationException) {
+        kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
+            transition.dragging = false
+            transition.progress.animateTo(1f, transition.spec)
+        }
+        throw e
     }
 }
 
@@ -219,6 +320,21 @@ private fun AppContent(navigator: AtxNavigator) {
     var miniBounds by remember { mutableStateOf<androidx.compose.ui.geometry.Rect?>(null) }
     val playerTransition = remember { com.justlorenzo.archivetunex.ui.screens.PlayerTransition() }
     var playerProgress by remember { mutableStateOf(0f) }
+    val pageBack = remember { PageBackState() }
+
+    // Gesto indietro che segue il dito: il player si richiude verso il mini player,
+    // le pagine si rimpiccioliscono e lasciano vedere quella precedente
+    moe.rukamori.archivetune.compat.PredictiveBackHandler(enabled = navigator.canGoBack) { gestures ->
+        val overlay = navigator.logsVisible || navigator.settingsVisible || navigator.lyricsVisible || navigator.loginVisible || navigator.queueVisible
+        when {
+            !overlay && navigator.playerExpanded -> playerBackGesture(gestures, playerTransition, navigator)
+            !overlay && navigator.previousPage() != null -> pageBackGesture(gestures, pageBack, navigator)
+            else -> {
+                gestures.collect { }
+                navigator.back()
+            }
+        }
+    }
 
     // Surface: dà a tutti i testi il colore giusto per il tema (chiaro o scuro)
     CompositionLocalProvider(com.justlorenzo.archivetunex.ui.screens.LocalPlayerTransition provides playerTransition) {
@@ -230,29 +346,65 @@ private fun AppContent(navigator: AtxNavigator) {
             val key = "${navigator.tab}-${stack.size}-$route"
             // Durante la dissolvenza ci sono due pagine insieme: ognuna usa il proprio stato
             // (targetState), così le chiavi non si ripetono.
+            // Durante il gesto indietro: sotto, la pagina a cui si torna (un po' scurita)
+            val previous = if (pageBack.active) navigator.previousPage() else null
+            if (previous != null) {
+                Box(Modifier.fillMaxSize()) {
+                    stateHolder.SaveableStateProvider(previous.first) { AppPage(previous.second, previous.third) }
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .graphicsLayer { alpha = 0.35f * (1f - pageBack.progress) * (1f - pageBack.commit) }
+                            .background(Color.Black),
+                    )
+                }
+            }
+            androidx.compose.runtime.LaunchedEffect(key) {
+                // Qualche frame dopo il cambio: la pagina uscita è già stata tolta
+                androidx.compose.runtime.withFrameNanos { }
+                androidx.compose.runtime.withFrameNanos { }
+                pageBack.instant = false
+            }
             AnimatedContent(
                 targetState = Triple(key, navigator.tab, route),
-                transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(160)) },
+                transitionSpec = {
+                    // Dopo il gesto la pagina sotto è già visibile: cambio istantaneo, niente dissolvenza doppia
+                    if (pageBack.instant) {
+                        androidx.compose.animation.EnterTransition.None togetherWith androidx.compose.animation.ExitTransition.None
+                    } else {
+                        fadeIn(tween(220)) togetherWith fadeOut(tween(160))
+                    }
+                },
                 contentKey = { it.first },
                 label = "pagina",
                 modifier = Modifier.fillMaxSize(),
             ) { (pageKey, pageTab, pageRoute) ->
-                stateHolder.SaveableStateProvider(pageKey) {
-                    when (pageRoute) {
-                        null ->
-                            when (pageTab) {
-                                Tab.Home -> HomeScreen()
-                                Tab.Search -> SearchScreen()
-                                Tab.Library -> LibraryScreen()
+                val isCurrent = pageKey == key
+                val density = androidx.compose.ui.platform.LocalDensity.current
+                val background = MaterialTheme.colorScheme.background
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            // La pagina appena chiusa col gesto non deve ricomparire neanche per un frame
+                            if (!isCurrent && pageBack.instant) alpha = 0f
+                            if (isCurrent && pageBack.active) {
+                                // Si rimpicciolisce, si sposta verso il bordo opposto e arrotonda gli angoli
+                                val p = pageBack.progress
+                                val c = pageBack.commit
+                                val scale = 1f - 0.1f * p - 0.06f * c
+                                scaleX = scale
+                                scaleY = scale
+                                val direction = if (pageBack.fromLeft) 1f else -1f
+                                translationX = direction * (size.width * 0.05f * p + size.width * 0.12f * c)
+                                alpha = 1f - c
+                                shape = RoundedCornerShape(with(density) { (32.dp * p.coerceAtLeast(c)).toPx() })
+                                clip = true
+                                shadowElevation = with(density) { 16.dp.toPx() } * p
                             }
-                        is Route.Album -> AlbumScreen(pageRoute.browseId)
-                        is Route.Artist -> ArtistScreen(pageRoute.browseId)
-                        is Route.Playlist -> PlaylistScreen(pageRoute.playlistId)
-                        is Route.LocalPlaylist -> LocalPlaylistScreen(pageRoute.playlistId, pageRoute.title)
-                        is Route.Browse -> BrowseScreen(pageRoute.browseId, pageRoute.params, pageRoute.title)
-                        Route.Downloads -> DownloadsScreen()
-                        Route.Liked -> LikedScreen()
-                    }
+                        }.background(background),
+                ) {
+                    stateHolder.SaveableStateProvider(pageKey) { AppPage(pageTab, pageRoute) }
                 }
             }
 
