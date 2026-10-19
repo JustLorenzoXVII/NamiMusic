@@ -794,8 +794,7 @@ private fun PlayerPage() {
                 onSelect = { saveEnum(PlayerLayoutKey, it) },
             ) { layout -> PlayerLayoutPreview(layout) }
         }
-        // Il Poster ha già il suo sfondo (il colore della copertina): lì la scelta non serve
-        if (style.playerLayout != PlayerLayout.Poster) {
+        run {
             SettingsGroup(tr("Sfondo") + " · " + style.playerLayout.label) {
                 PreviewChoices(
                     options = PlayerBackground.entries,
@@ -902,10 +901,15 @@ private fun PlayerLayoutPreview(
                     Box(Modifier.width(22.dp).height(6.dp).clip(CircleShape).background(Color(0xFF3B2A1A)))
                 }
             }
-            PlayerLayout.Poster -> {
-                Box(Modifier.fillMaxWidth().height(30.dp).background(art))
-                Box(Modifier.padding(start = 5.dp, top = 3.dp).align(Alignment.Start).width(38.dp).height(8.dp).clip(RoundedCornerShape(2.dp)).background(MaterialTheme.colorScheme.onSurface))
-                Box(Modifier.padding(start = 5.dp, top = 2.dp).align(Alignment.Start).width(26.dp).height(8.dp).clip(RoundedCornerShape(2.dp)).background(primary))
+            PlayerLayout.Portrait -> {
+                // Copertina a tutta larghezza e scheda dei comandi sopra
+                Box(Modifier.fillMaxWidth().height(50.dp)) {
+                    Box(Modifier.fillMaxWidth().height(42.dp).background(art))
+                    Box(
+                        Modifier.align(Alignment.BottomCenter).padding(horizontal = 3.dp).fillMaxWidth().height(14.dp)
+                            .clip(RoundedCornerShape(topStart = 7.dp, topEnd = 7.dp)).background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                    )
+                }
             }
         }
         Spacer(Modifier.weight(1f))

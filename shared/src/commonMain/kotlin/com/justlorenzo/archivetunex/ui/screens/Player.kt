@@ -557,8 +557,7 @@ fun PlayerScreen() {
     val song = metadata ?: return
     val style = LocalAtxStyle.current
     val layout = style.playerLayout
-    // Il Poster ha il suo sfondo fisso (colore della copertina con il bagliore)
-    val playerBackground = if (layout == PlayerLayout.Poster) PlayerBackground.Glow else style.playerBackground
+    val playerBackground = style.playerBackground
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
     val haptics = LocalHapticFeedback.current
@@ -587,7 +586,7 @@ fun PlayerScreen() {
     val themeBackground = MaterialTheme.colorScheme.background
     val dark = themeBackground.luminance() < 0.5f
     val seed = if (style.coloredPlayerControls) artworkAccent else MaterialTheme.colorScheme.primary
-    val baseColors = remember(seed, dark, layout) { playerColors(seed, dark, poster = layout == PlayerLayout.Poster) }
+    val baseColors = remember(seed, dark, layout) { playerColors(seed, dark, poster = false) }
     val pc =
         if (playerBackground == PlayerBackground.Plain) {
             baseColors.copy(background = themeBackground, text = MaterialTheme.colorScheme.onBackground)
@@ -739,8 +738,8 @@ fun PlayerScreen() {
                         val h = w * 0.62f
                         ArtFrame((width - w) / 2 + 14.dp, centerY(h) + 14.dp, w - 28.dp, h * 0.56f, 8.dp)
                     }
-                    // Poster: copertina a tutta larghezza in alto, che sfuma nel colore
-                    PlayerLayout.Poster -> ArtFrame(0.dp, 0.dp, width, screenHeight * 0.74f, 0.dp)
+                    // Ritratto: copertina a tutta larghezza in alto, la scheda dei comandi la copre in basso
+                    PlayerLayout.Portrait -> ArtFrame(0.dp, 0.dp, width, (textTop ?: (screenHeight * 0.6f)) + 40.dp, 0.dp)
                     PlayerLayout.Card -> {
                         val side = minOf(width - 64.dp, zone - 8.dp)
                         ArtFrame((width - side) / 2, centerY(side), side, side, style.corners.radius.coerceAtLeast(16.dp))
@@ -825,7 +824,7 @@ fun PlayerScreen() {
             val artShape = RoundedCornerShape(art.radius.coerceAtLeast(0.dp))
             val shadow =
                 when (layout) {
-                    PlayerLayout.Cassette, PlayerLayout.Poster -> 0.dp
+                    PlayerLayout.Cassette, PlayerLayout.Portrait -> 0.dp
                     else -> if (tLyrics > 0f || open < 0.6f) 0.dp else 24.dp
                 }
             val tilt =
@@ -834,7 +833,7 @@ fun PlayerScreen() {
                     PlayerLayout.Cassette -> 0f
                     else -> 0.02f
                 }
-            val poster = layout == PlayerLayout.Poster
+            val poster = layout == PlayerLayout.Portrait
             Box(
                 Modifier
                     .offset(x = art.x, y = art.y)
@@ -849,25 +848,7 @@ fun PlayerScreen() {
                     .shadow(shadow, artShape, ambientColor = pc.accent, spotColor = pc.accent)
                     .clip(artShape)
                     .then(
-                        // Poster: la copertina diventa trasparente verso il basso, niente riga di stacco
-                        if (poster) {
-                            Modifier
-                                .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                                .drawWithContent {
-                                    drawContent()
-                                    drawRect(
-                                        Brush.verticalGradient(
-                                            0f to Color.Black,
-                                            0.45f to Color.Black,
-                                            0.8f to Color.Black.copy(alpha = 1f - 0.75f * styleVisible),
-                                            1f to Color.Black.copy(alpha = 1f - styleVisible),
-                                        ),
-                                        blendMode = BlendMode.DstIn,
-                                    )
-                                }
-                        } else {
-                            Modifier
-                        },
+                        Modifier
                     ).then(swipe.modifier)
                     .clickable(enabled = showLyrics) { navigator.lyricsVisible = false },
             ) {
@@ -878,7 +859,7 @@ fun PlayerScreen() {
                     sizePx = 1080,
                     colorFilter = if (saturation < 0.999f) ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(saturation) }) else null,
                 )
-                // Poster: la copertina sfuma nel colore verso il basso (e un po' in alto, per la barra di stato)
+                // Ritratto: un velo in alto per leggere la barra di stato e i tasti
                 if (poster) {
                     Box(
                         Modifier
@@ -886,11 +867,8 @@ fun PlayerScreen() {
                             .graphicsLayer { alpha = styleVisible }
                             .background(
                                 Brush.verticalGradient(
-                                    0f to pc.background.copy(alpha = 0.9f),
-                                    0.1f to pc.background.copy(alpha = 0.55f),
-                                    0.24f to Color.Transparent,
-                                    0.5f to Color.Transparent,
-                                    1f to pc.background.copy(alpha = 0.6f),
+                                    0f to pc.background.copy(alpha = 0.75f),
+                                    0.2f to Color.Transparent,
                                 ),
                             ),
                     )
@@ -914,6 +892,25 @@ fun PlayerScreen() {
                 )
             }
 
+            // Ritratto: la scheda arrotondata dei comandi che copre la parte bassa della copertina
+            if (poster && textTop != null) {
+                val cardTop = textTop!! - 36.dp
+                Column(
+                    Modifier
+                        .offset(y = cardTop)
+                        .padding(horizontal = 12.dp)
+                        .fillMaxWidth()
+                        .height(screenHeight - cardTop - 12.dp)
+                        .graphicsLayer { alpha = styleVisible }
+                        .shadow(24.dp, RoundedCornerShape(34.dp))
+                        .clip(RoundedCornerShape(34.dp))
+                        .background(lerpColor(pc.background, pc.text, 0.07f)),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Box(Modifier.padding(top = 10.dp).width(40.dp).height(5.dp).clip(CircleShape).background(pc.text.copy(alpha = 0.3f)))
+                }
+            }
+
             // ================= Contenuto =================
             Column(
                 Modifier
@@ -930,7 +927,7 @@ fun PlayerScreen() {
                     Modifier.fillMaxWidth().padding(top = 8.dp).height(48.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    // Nel Poster la barra sta sopra la copertina: icone e titolo su "bolle" leggibili
+                    // Nel Ritratto la barra sta sopra la copertina: icone e titolo su "bolle" leggibili
                     val chip = if (poster && !showLyrics) pc.background.copy(alpha = 0.55f) else Color.Transparent
                     TopBarButton(chip, ::close) {
                         AtxIcon(Res.drawable.expand_more, tr("Chiudi player"), size = 30.dp, tint = pc.text)
@@ -1000,17 +997,7 @@ fun PlayerScreen() {
                         if (tLyrics > 0.4f) PlayerLyrics(textColor = pc.text, modifier = Modifier.fillMaxSize())
                     }
                 } else {
-                    if (poster) {
-                        // Poster: il titolo gigante riempie lo spazio sopra la sfumatura
-                        PosterTitle(
-                            title = cleanTitle,
-                            tags = tags,
-                            pc = pc,
-                            pulse = { 1f + 0.025f * life * breath },
-                            modifier = Modifier.weight(1f).fillMaxWidth(),
-                        )
-                        Spacer(Modifier.height(12.dp))
-                    } else {
+                    run {
                         // Titolo, barra e controlli restano uniti in basso; la copertina si centra nello spazio sopra
                         Spacer(Modifier.weight(1f))
                         // Segnaposto invisibile: misura dove inizia il titolo
@@ -1027,7 +1014,7 @@ fun PlayerScreen() {
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
-                            if (!poster) TitleWithBadge(cleanTitle, song.explicit, MaterialTheme.typography.headlineMedium, pc, maxLines = 1)
+                            TitleWithBadge(cleanTitle, song.explicit, MaterialTheme.typography.headlineMedium, pc, maxLines = 1)
                             Text(
                                 song.artists.joinToString { it.name },
                                 style = MaterialTheme.typography.titleMedium,
@@ -1562,7 +1549,7 @@ private fun Cassette(
 
 // endregion
 
-// region Titolo pulito e Poster
+// region Titolo pulito
 
 // Parole che indicano un'aggiunta al titolo (parole intere, non pezzi: "Alive" non è "live")
 private val addedWords =
@@ -1614,114 +1601,6 @@ private fun TagRow(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f, fill = false).clip(CircleShape).background(background).padding(horizontal = 10.dp, vertical = 4.dp),
             )
-        }
-    }
-}
-
-// Come impaginare il titolo: tutto grande, oppure prime parole grandi e il resto più piccolo sotto
-private data class PosterLayout(
-    val big: String,
-    val small: String?,
-    val bigSize: Float,
-    val smallSize: Float,
-    val maxLines: Int,
-)
-
-private const val MAX_POSTER = 96f
-private const val MIN_POSTER = 56f // sotto questa grandezza non sembra più un poster
-
-@Composable
-private fun PosterTitle(
-    title: String,
-    tags: List<String>,
-    pc: PlayerColors,
-    pulse: () -> Float,
-    modifier: Modifier,
-) {
-    val measurer = rememberTextMeasurer()
-    val density = LocalDensity.current
-    val words = remember(title) { title.uppercase().split(" ").filter { it.isNotBlank() } }
-
-    fun posterStyle(size: Float) =
-        TextStyle(
-            fontSize = size.sp,
-            lineHeight = (size * 0.9f).sp,
-            fontWeight = FontWeight.Black,
-            letterSpacing = (-0.03).em,
-            lineBreak = LineBreak.Heading,
-            hyphens = Hyphens.None,
-        )
-
-    BoxWithConstraints(modifier, contentAlignment = Alignment.BottomStart) {
-        val widthPx = constraints.maxWidth
-        val tagSpace = if (tags.isNotEmpty()) with(density) { 36.dp.toPx() } else 0f
-        val heightPx = (constraints.maxHeight - tagSpace).coerceAtLeast(1f)
-
-        val plan =
-            remember(words, widthPx, heightPx) {
-                fun measure(
-                    text: String,
-                    size: Float,
-                ) = measurer.measure(text, style = posterStyle(size), constraints = Constraints(maxWidth = widthPx))
-                val sizes = generateSequence(MAX_POSTER) { it - 4f }.takeWhile { it >= MIN_POSTER }.toList()
-                val all = words.joinToString(" ")
-                // 1) Tutto il titolo grande, massimo 3 righe
-                for (s in sizes) {
-                    val m = measure(all, s)
-                    if (m.lineCount <= 3 && m.size.height <= heightPx) return@remember PosterLayout(all, null, s, 0f, 3)
-                }
-                // 2) Prime parole grandi (massimo 2 righe), il resto sotto a circa metà grandezza
-                if (words.size > 1) {
-                    for (s in sizes) {
-                        for (k in words.size - 1 downTo 1) {
-                            val big = words.take(k).joinToString(" ")
-                            val small = words.drop(k).joinToString(" ")
-                            val mb = measure(big, s)
-                            if (mb.lineCount > 2) continue
-                            val smallSize = (s * 0.45f).coerceAtLeast(26f)
-                            val ms = measure(small, smallSize)
-                            val gap = with(density) { 6.dp.toPx() }
-                            val maxSmall = with(density) { (smallSize * 0.9f * 3).sp.toPx() }
-                            if (mb.size.height + gap + min(ms.size.height.toFloat(), maxSmall) <= heightPx) {
-                                return@remember PosterLayout(big, small, s, smallSize, 2)
-                            }
-                        }
-                    }
-                }
-                // 3) Caso estremo: grandezza minima, massimo 4 righe con "…"
-                PosterLayout(all, null, MIN_POSTER, 0f, 4)
-            }
-
-        Column(
-            Modifier.fillMaxWidth().graphicsLayer {
-                val s = pulse()
-                scaleX = s
-                scaleY = s
-                transformOrigin = TransformOrigin(0f, 1f)
-            },
-        ) {
-            if (tags.isNotEmpty()) {
-                TagRow(tags, background = pc.accent, text = pc.onAccent)
-                Spacer(Modifier.height(10.dp))
-            }
-            if (plan.small == null) {
-                // Tutto grande: seconda metà delle parole nel secondo colore
-                val parts = plan.big.split(" ")
-                val half = ((parts.size + 1) / 2).coerceAtLeast(1)
-                val text =
-                    buildAnnotatedString {
-                        append(parts.take(half).joinToString(" "))
-                        if (parts.size > half) {
-                            append(" ")
-                            withStyle(SpanStyle(color = pc.posterSecond)) { append(parts.drop(half).joinToString(" ")) }
-                        }
-                    }
-                Text(text, style = posterStyle(plan.bigSize), color = pc.text, maxLines = plan.maxLines, overflow = TextOverflow.Ellipsis)
-            } else {
-                Text(plan.big, style = posterStyle(plan.bigSize), color = pc.text, maxLines = plan.maxLines)
-                Spacer(Modifier.height(6.dp))
-                Text(plan.small, style = posterStyle(plan.smallSize), color = pc.posterSecond, maxLines = 3, overflow = TextOverflow.Ellipsis)
-            }
         }
     }
 }

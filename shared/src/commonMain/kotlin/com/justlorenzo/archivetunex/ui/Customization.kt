@@ -102,7 +102,7 @@ enum class PlayerLayout(
     Vinyl("Vinile"),
     Stack("Pila"),
     Cassette("Cassetta"),
-    Poster("Poster");
+    Portrait("Ritratto");
 
     val label: String get() = tr(rawLabel)
 }
