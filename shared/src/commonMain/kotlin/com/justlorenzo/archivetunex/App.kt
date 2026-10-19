@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import archivetunex.shared.generated.resources.Res
 import archivetunex.shared.generated.resources.library_filled
 import archivetunex.shared.generated.resources.search
+import archivetunex.shared.generated.resources.stats
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.network.ktor3.KtorNetworkFetcherFactory
@@ -223,6 +224,7 @@ private fun AppPage(
             when (pageTab) {
                 Tab.Home -> HomeScreen()
                 Tab.Search -> SearchScreen()
+                Tab.Stats -> com.justlorenzo.archivetunex.ui.screens.StatsScreen()
                 Tab.Library -> LibraryScreen()
             }
         is Route.Album -> AlbumScreen(pageRoute.browseId)
@@ -232,6 +234,7 @@ private fun AppPage(
         is Route.Browse -> BrowseScreen(pageRoute.browseId, pageRoute.params, pageRoute.title)
         Route.Downloads -> DownloadsScreen()
         Route.Liked -> LikedScreen()
+        is Route.Mix -> com.justlorenzo.archivetunex.ui.screens.MixScreen(pageRoute.mixId, pageRoute.title)
     }
 }
 
@@ -416,6 +419,7 @@ private fun AppContent(navigator: AtxNavigator) {
                         listOf(
                             BarTab(Tab.Home, tr("Home"), Res.drawable.atx_home),
                             BarTab(Tab.Search, tr("Cerca"), Res.drawable.search),
+                            BarTab(Tab.Stats, tr("Statistiche"), Res.drawable.stats),
                             BarTab(Tab.Library, tr("Libreria"), Res.drawable.library_filled),
                         ),
                     hideMini = playerProgress > 0f,
@@ -520,6 +524,7 @@ private fun FloatingTabs(
         ) {
             TabPill(navigator, Tab.Home, tr("Home"), Res.drawable.atx_home)
             TabPill(navigator, Tab.Search, tr("Cerca"), Res.drawable.search)
+            TabPill(navigator, Tab.Stats, tr("Statistiche"), Res.drawable.stats)
             TabPill(navigator, Tab.Library, tr("Libreria"), Res.drawable.library_filled)
         }
     }

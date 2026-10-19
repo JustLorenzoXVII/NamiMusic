@@ -138,6 +138,24 @@ class AtxActions(
         if (firstSong != null) addToPlaylistNow(entity.id, firstSong)
     }
 
+    /** Salva un mix come playlist (anche su YouTube Music se l'account è collegato). */
+    fun saveAsPlaylist(
+        name: String,
+        songs: List<MediaMetadata>,
+    ) = launchSafely(tr("Creazione playlist non riuscita")) {
+        val browseId = YouTube.createPlaylist(name).getOrNull()
+        val entity = PlaylistEntity(name = name, browseId = browseId, isEditable = true)
+        database.insert(entity)
+        songs.forEach { database.insert(it) }
+        val playlist = database.playlist(entity.id).first() ?: return@launchSafely
+        database.addSongToPlaylist(playlist, songs.map { it.id })
+        if (browseId != null) {
+            YouTube.addSongsToPlaylist(browseId, songs.map { it.id })
+            // Ordine e id delle voci di YouTube, per poterla poi modificare
+            refreshOwnPlaylist(entity)
+        }
+    }
+
     fun addToPlaylist(
         playlistId: String,
         song: MediaMetadata,

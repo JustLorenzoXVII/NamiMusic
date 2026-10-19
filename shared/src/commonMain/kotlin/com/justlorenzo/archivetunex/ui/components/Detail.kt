@@ -212,6 +212,7 @@ fun DetailHeader(
     detail: String?,
     modifier: Modifier = Modifier,
     artworkShape: Shape = androidx.compose.foundation.shape.RoundedCornerShape(com.justlorenzo.archivetunex.ui.LocalAtxStyle.current.corners.radius),
+    artwork: (@Composable () -> Unit)? = null,
     buttons: @Composable () -> Unit,
 ) {
     Column(
@@ -219,12 +220,16 @@ fun DetailHeader(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Artwork(
-            artworkUrl,
-            Modifier.size(250.dp).shadow(28.dp, artworkShape),
-            shape = artworkShape,
-            sizePx = 720,
-        )
+        if (artwork != null) {
+            artwork()
+        } else {
+            Artwork(
+                artworkUrl,
+                Modifier.size(250.dp).shadow(28.dp, artworkShape),
+                shape = artworkShape,
+                sizePx = 720,
+            )
+        }
         Text(
             title,
             style = MaterialTheme.typography.headlineMedium,

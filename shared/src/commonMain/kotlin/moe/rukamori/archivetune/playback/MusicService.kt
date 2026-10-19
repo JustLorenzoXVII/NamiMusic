@@ -662,6 +662,17 @@ class MusicService(
             return
         }
 
+        // Nami: com'è finito il brano precedente (ascoltato fino in fondo o saltato), per statistiche e mix
+        currentMediaMetadata.value?.let { previous ->
+            if (previous.id == currentHistoryMediaId && previous.id != mediaItem?.mediaId) {
+                com.justlorenzo.archivetunex.insights.ListeningSignals.record(
+                    song = previous,
+                    playedMs = currentHistoryPlayedMs(),
+                    finished = reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO,
+                    userSkipped = reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK,
+                )
+            }
+        }
         beginHistorySession(mediaItem?.mediaId, forceNew = true)
 
         val timelineEmpty = player.currentTimeline.isEmpty || player.mediaItemCount == 0 || player.currentMediaItem == null

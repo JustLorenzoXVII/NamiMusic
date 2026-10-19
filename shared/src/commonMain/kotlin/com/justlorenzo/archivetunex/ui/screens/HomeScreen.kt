@@ -145,6 +145,9 @@ fun HomeScreen() {
                 }
             }
 
+            // Mix generati dai tuoi ascolti
+            item(key = "made-for-you") { MadeForYouSection() }
+
             if (recent.isNotEmpty()) {
                 item(key = "recent") {
                     SectionHeader(tr("Ascoltati di recente"))

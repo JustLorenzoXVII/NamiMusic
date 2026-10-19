@@ -11,7 +11,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 enum class SettingsPage { Appearance, Player, MiniPlayer, Playback, Content, Storage, Privacy, About }
 
 /** Le tre schede in basso. */
-enum class Tab { Home, Search, Library }
+enum class Tab { Home, Search, Stats, Library }
 
 /** Le pagine che si aprono sopra una scheda. */
 sealed interface Route {
@@ -26,6 +26,9 @@ sealed interface Route {
     data object Downloads : Route
 
     data object Liked : Route
+
+    /** Una playlist "Fatta per te". */
+    data class Mix(val mixId: String, val title: String) : Route
 
     /** Pagina di YouTube Music generica (generi e mood, "altro" di una sezione). */
     data class Browse(val browseId: String, val params: String?, val title: String) : Route
