@@ -663,8 +663,22 @@ fun PlayerScreen() {
 
     val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     // Dove inizia il blocco del titolo (misurato): la copertina si centra nello spazio sopra
-    var textTop by remember { mutableStateOf<Dp?>(null) }
-    var rootY by remember { mutableFloatStateOf(0f) }
+    // La misura resta nel PlayerTransition: non si perde chiudendo il player, così l'apertura
+    // successiva va già dritta al punto giusto
+    val playerTransition = LocalPlayerTransition.current
+    val textTop = playerTransition.textTop
+    // Coordinate del contenuto *prima* dello spostamento animato: la misura non dipende dall'apertura
+    val measureCoords = remember { arrayOfNulls<androidx.compose.ui.layout.LayoutCoordinates>(2) }
+    val density0 = LocalDensity.current
+
+    /** Calcola la posizione del titolo appena sono pronti sia il contenuto [0] sia il segnaposto [1]. */
+    fun measureTextTop() {
+        val parent = measureCoords[0]?.takeIf { it.isAttached } ?: return
+        val title = measureCoords[1]?.takeIf { it.isAttached } ?: return
+        val y = with(density0) { parent.localPositionOf(title, Offset.Zero).y.toDp() }
+        val current = playerTransition.textTop
+        if (current == null || abs((current - y).value) > 1f) playerTransition.textTop = y
+    }
 
     // Surface: blocca i tocchi verso le schermate sotto il player
     // 0 = chiuso nel mini player, 1 = aperto (lo guida l'animazione o il dito)
@@ -673,8 +687,7 @@ fun PlayerScreen() {
     Surface(Modifier.fillMaxSize(), color = pc.background) {
         BoxWithConstraints(
             Modifier
-                .fillMaxSize()
-                .onGloballyPositioned { rootY = it.positionInRoot().y },
+                .fillMaxSize(),
         ) {
             val screenHeight = maxHeight
             val width = maxWidth
@@ -718,7 +731,13 @@ fun PlayerScreen() {
 
             // ================= Dove va la copertina =================
             val zoneStart = statusTop + 64.dp
-            val zoneEnd = (textTop ?: (screenHeight - 340.dp)) - 20.dp
+            // Se cambia (es. compaiono i tag) la copertina ci scivola, senza scatti
+            val measuredTextTop by animateDpAsState(
+                textTop ?: (screenHeight - 340.dp),
+                spring(dampingRatio = 0.9f, stiffness = Spring.StiffnessMediumLow),
+                label = "textTop",
+            )
+            val zoneEnd = measuredTextTop - 20.dp
             val zone = (zoneEnd - zoneStart).coerceAtLeast(120.dp)
 
             fun centerY(h: Dp) = zoneStart + ((zone - h) / 2).coerceAtLeast(0.dp)
@@ -738,7 +757,7 @@ fun PlayerScreen() {
                         ArtFrame((width - w) / 2 + 14.dp, centerY(h) + 14.dp, w - 28.dp, w - 28.dp, 8.dp)
                     }
                     // Onda: copertina a tutta larghezza in alto che finisce con un bordo ondulato
-                    PlayerLayout.Wave -> ArtFrame(0.dp, 0.dp, width, (textTop ?: (screenHeight * 0.6f)) - 24.dp, 0.dp)
+                    PlayerLayout.Wave -> ArtFrame(0.dp, 0.dp, width, measuredTextTop - 24.dp, 0.dp)
                     PlayerLayout.Cassette -> {
                         // La copertina è l'etichetta della cassetta
                         val w = minOf(width - 48.dp, zone / 0.62f)
@@ -872,7 +891,8 @@ fun PlayerScreen() {
             val shadow =
                 when (layout) {
                     PlayerLayout.Cassette, PlayerLayout.Ticket, PlayerLayout.Wave -> 0.dp
-                    else -> if (tLyrics > 0f || open < 0.6f) 0.dp else 24.dp
+                    // L'ombra cresce insieme all'apertura (prima compariva di colpo a metà volo)
+                    else -> 24.dp * (((open - 0.4f) / 0.6f).coerceIn(0f, 1f) * (1f - tLyrics))
                 }
             val tilt =
                 when (layout) {
@@ -918,6 +938,7 @@ fun PlayerScreen() {
                     Modifier.fillMaxSize(),
                     RoundedCornerShape(0.dp),
                     sizePx = 1080,
+                    previewSizePx = 226,
                     colorFilter = if (saturation < 0.999f) ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(saturation) }) else null,
                 )
                 // Onda: un velo in alto per leggere la barra di stato e i tasti
@@ -958,7 +979,11 @@ fun PlayerScreen() {
                         // Titolo e comandi salgono e compaiono mentre il player si apre (come Fuji)
                         alpha = ((open - 0.35f) / 0.65f).coerceIn(0f, 1f)
                         translationY = (1f - open) * 80.dp.toPx()
-                    }.systemBarsPadding()
+                    }.onGloballyPositioned {
+                        measureCoords[0] = it
+                        measureTextTop()
+                    }
+                    .systemBarsPadding()
                     .padding(horizontal = 24.dp),
             ) {
                 // Barra in alto
@@ -1029,8 +1054,9 @@ fun PlayerScreen() {
                         // Segnaposto invisibile: misura dove inizia il titolo
                         Spacer(
                             Modifier.onGloballyPositioned { c ->
-                                val y = with(density) { (c.positionInRoot().y - rootY).toDp() }
-                                if (open > 0.99f && (textTop == null || abs((textTop!! - y).value) > 1f)) textTop = y
+                                // Posizione rispetto al contenuto non spostato: uguale in ogni istante dell'animazione
+                                measureCoords[1] = c
+                                measureTextTop()
                             },
                         )
                         if (tags.isNotEmpty()) {
@@ -2086,6 +2112,9 @@ class PlayerTransition {
     val progress = androidx.compose.animation.core.Animatable(0f)
     var dragging by mutableStateOf(false)
     var heightPx by mutableFloatStateOf(2000f)
+
+    /** Dove inizia il titolo nel player (misurato una volta, poi riusato): serve a centrare la copertina. */
+    var textTop by mutableStateOf<Dp?>(null)
     val spec = spring<Float>(dampingRatio = 0.86f, stiffness = Spring.StiffnessMediumLow)
 
     /** Il dito si è staccato: decide se aprire o chiudere e ci arriva con la stessa velocità del dito. */

@@ -82,6 +82,7 @@ fun Artwork(
     shape: Shape = MaterialTheme.shapes.medium,
     sizePx: Int = 544,
     colorFilter: androidx.compose.ui.graphics.ColorFilter? = null,
+    previewSizePx: Int? = null,
 ) {
     Box(
         modifier = modifier.clip(shape).background(MaterialTheme.colorScheme.surfaceContainerHigh),
@@ -95,6 +96,23 @@ fun Artwork(
         )
         if (!url.isNullOrBlank()) {
             val context = coil3.compose.LocalPlatformContext.current
+            // Anteprima piccola (già in memoria, la usa il mini player): niente vuoti mentre arriva quella grande
+            if (previewSizePx != null && previewSizePx != sizePx) {
+                AsyncImage(
+                    model =
+                        remember(url, previewSizePx) {
+                            coil3.request.ImageRequest
+                                .Builder(context)
+                                .data(url.resize(previewSizePx, previewSizePx))
+                                .size(previewSizePx, previewSizePx)
+                                .build()
+                        },
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    colorFilter = colorFilter,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
             AsyncImage(
                 // Grandezza fissa: senza, Coil la prende dal riquadro al primo disegno e non la cambia più
                 // (la copertina del player parte piccola dal mini player e resterebbe sgranata)
