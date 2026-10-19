@@ -204,7 +204,7 @@ val ShrinkArtworkOnPauseKey = booleanPreferencesKey("atx_shrink_artwork_on_pause
 val ShowRemainingTimeKey = booleanPreferencesKey("atx_show_remaining_time")
 val ColoredPlayerControlsKey = booleanPreferencesKey("atx_colored_player_controls")
 
-val MiniLayoutKey = stringPreferencesKey("atx_mini_layout")
+val MiniLayoutKey = stringPreferencesKey("atx_mini_layout_v2")
 val MiniPlayerStyleKey = stringPreferencesKey("atx_mini_player_style")
 val MiniProgressKey = stringPreferencesKey("atx_mini_progress")
 val MiniArtworkKey = stringPreferencesKey("atx_mini_artwork")
