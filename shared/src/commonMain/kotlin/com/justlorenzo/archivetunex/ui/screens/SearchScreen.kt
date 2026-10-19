@@ -397,7 +397,7 @@ private fun MoodTile(
 ) {
     val base = color.copy(alpha = 1f)
     val seed = remember(title) { title.fold(7) { acc, c -> acc * 31 + c.code }.let { if (it < 0) -it else it } }
-    val shape = remember(seed) { MoodShapes[seed % MoodShapes.size].toShape() }
+    val shape = MoodShapes[seed % MoodShapes.size].toShape()
     val rotation = (seed % 90).toFloat()
     val content = base.readableOn()
     val source = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
