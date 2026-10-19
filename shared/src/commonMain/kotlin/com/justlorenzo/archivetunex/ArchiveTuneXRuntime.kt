@@ -76,13 +76,22 @@ object ArchiveTuneXRuntime {
         val systemLocale = YouTube.locale
         scope.launch(Dispatchers.IO) {
             dataStore.data
-                .map { prefs -> prefs[ContentLanguageKey] to prefs[ContentCountryKey] }
-                .distinctUntilChanged()
-                .collect { (language, country) ->
+                .map { prefs ->
+                    Triple(prefs[ContentLanguageKey], prefs[ContentCountryKey], prefs[com.justlorenzo.archivetunex.ui.AppLanguageKey])
+                }.distinctUntilChanged()
+                .collect { (language, country, appLanguage) ->
+                    // Se la lingua dei contenuti è "di sistema", YouTube parla la lingua scelta per l'app
+                    // (prima seguiva quella del telefono: app in italiano con titoli in inglese)
+                    val appHl =
+                        when (appLanguage) {
+                            com.justlorenzo.archivetunex.ui.AppLanguage.Italian.name -> "it"
+                            com.justlorenzo.archivetunex.ui.AppLanguage.English.name -> "en"
+                            else -> null
+                        }
                     YouTube.locale =
                         YouTubeLocale(
                             gl = country?.takeIf { it != SYSTEM_DEFAULT } ?: systemLocale.gl,
-                            hl = language?.takeIf { it != SYSTEM_DEFAULT } ?: systemLocale.hl,
+                            hl = language?.takeIf { it != SYSTEM_DEFAULT } ?: appHl ?: systemLocale.hl,
                         )
                 }
         }

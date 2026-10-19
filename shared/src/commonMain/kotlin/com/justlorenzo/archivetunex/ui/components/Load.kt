@@ -79,7 +79,7 @@ fun <T> rememberLoadable(
     maxAgeMs: Long = 15 * 60 * 1000L,
     block: suspend () -> Result<T>,
 ): Loadable<T> {
-    val cacheId = cache?.let { "$it|$key" }
+    val cacheId = cache?.let { "$it|${moe.rukamori.archivetune.innertube.YouTube.locale.hl}|$key" }
     val cached = remember(key) { cacheId?.let { LoadCache.get(it) } }
     @Suppress("UNCHECKED_CAST")
     val state =
