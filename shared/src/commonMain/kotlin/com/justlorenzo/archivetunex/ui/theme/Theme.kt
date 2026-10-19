@@ -112,7 +112,7 @@ fun ArchiveTuneXTheme(
     }
     MaterialExpressiveTheme(
         colorScheme = scheme,
-        typography = AtxTypography,
+        typography = atxTypography(),
         shapes = AtxShapes,
         motionScheme = MotionScheme.expressive(),
         content = content,

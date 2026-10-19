@@ -145,10 +145,10 @@ private fun buildTypography(fontFamily: FontFamily) =
 // quindi AppFontFamily / LyricsFontFamily / AppTypography non sono più costanti.
 val AppFontFamily: FontFamily
     @Composable get() = FontFamily(Font(Res.font.poppins))
-// Testi delle canzoni: font di sistema (su iPhone è già SF Pro). Apple non accetta più app che
+// Testi delle canzoni: Google Sans, come il resto di Nami. Apple non accetta più app che
 // includono i suoi font (avviso ITMS-91182), quindi il file sfprodisplaybold.ttf è stato tolto.
 val LyricsFontFamily: FontFamily
-    @Composable get() = FontFamily.Default
+    @Composable get() = com.justlorenzo.archivetunex.ui.theme.GoogleSans
 val AppTypography: androidx.compose.material3.Typography
     @Composable get() = buildTypography(AppFontFamily)
 val SystemTypography = buildTypography(FontFamily.Default)
