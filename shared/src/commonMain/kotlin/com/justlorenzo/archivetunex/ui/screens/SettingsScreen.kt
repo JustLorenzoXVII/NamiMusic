@@ -29,6 +29,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.PaddingValues
+import com.justlorenzo.archivetunex.ui.components.readableOn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -467,17 +469,28 @@ private fun AppearancePage() {
             )
         }
 
-        SettingsGroup(if (style.themeSource == ThemeSource.Custom) "Colore personalizzato" else "Colore personalizzato (di riserva)") {
-            ColorPicker(style.customColor) { save(CustomColorKey, it.toPreferenceInt()) }
+        if (style.themeSource == ThemeSource.Custom) {
+            SettingsGroup("Il tuo colore") {
+                ColorPicker(style.customColor) { save(CustomColorKey, it.toPreferenceInt()) }
+            }
         }
 
-        SettingsGroup("Stile della tavolozza") {
-            PreviewChoices(
-                options = PaletteStyleChoice.entries,
-                selected = style.paletteStyle,
-                label = { it.label },
-                onSelect = { saveEnum(PaletteStyleKey, it) },
-            ) { palette -> PalettePreview(style.customColor, palette, dark) }
+        // Con i colori di sistema decide il telefono: la tavolozza non serve
+        if (style.themeSource != ThemeSource.System) {
+            SettingsGroup("Stile dei colori") {
+                PreviewChoices(
+                    options = PaletteStyleChoice.entries.filter { it.visible },
+                    selected = style.paletteStyle,
+                    label = { it.label },
+                    onSelect = { saveEnum(PaletteStyleKey, it) },
+                ) { palette -> PalettePreview(style.customColor, palette, dark) }
+                Text(
+                    style.paletteStyle.description.ifBlank { "Scegli quanto devono essere accesi i colori dell'app." },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 16.dp),
+                )
+            }
         }
 
         SettingsGroup("Angoli delle copertine") {
@@ -548,7 +561,7 @@ private fun MiniScreen(
     }
 }
 
-/** Le quattro tinte principali che una tavolozza genera dal colore scelto. */
+/** Una piccola schermata dell'app con i colori che la tavolozza genera: sfondo, card, pulsante ed etichetta. */
 @Composable
 private fun PalettePreview(
     seed: Color,
@@ -556,63 +569,123 @@ private fun PalettePreview(
     dark: Boolean,
 ) {
     val scheme = remember(seed, palette, dark) { dynamicColorScheme(seedColor = seed, isDark = dark, contrastLevel = 0.0, style = palette.toMaterialKolor()) }
-    Row(Modifier.clip(RoundedCornerShape(16.dp))) {
-        listOf(scheme.primary, scheme.secondary, scheme.tertiary, scheme.surfaceContainerHigh).forEach {
-            Box(Modifier.width(26.dp).height(60.dp).background(it))
+    Column(
+        Modifier
+            .width(120.dp)
+            .height(80.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(scheme.background)
+            .border(1.dp, scheme.outlineVariant, RoundedCornerShape(16.dp))
+            .padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        // Card con copertina e due righe di testo
+        Row(
+            Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(scheme.surfaceContainerHigh).padding(5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+            Box(Modifier.size(20.dp).clip(RoundedCornerShape(5.dp)).background(Brush.linearGradient(listOf(scheme.primary, scheme.tertiary))))
+            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Box(Modifier.width(44.dp).height(5.dp).clip(CircleShape).background(scheme.onSurface))
+                Box(Modifier.width(30.dp).height(4.dp).clip(CircleShape).background(scheme.onSurfaceVariant))
+            }
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            // Pulsante principale
+            Box(Modifier.width(42.dp).height(18.dp).clip(CircleShape).background(scheme.primary), contentAlignment = Alignment.Center) {
+                Box(Modifier.width(22.dp).height(4.dp).clip(CircleShape).background(scheme.onPrimary))
+            }
+            // Etichetta
+            Box(Modifier.width(30.dp).height(18.dp).clip(CircleShape).background(scheme.secondaryContainer))
+            Box(Modifier.size(18.dp).clip(MaterialShapes.Cookie9Sided.toShape()).background(scheme.tertiary))
         }
     }
 }
 
-/** Selettore del colore: colori pronti più tonalità, saturazione e luminosità. */
-@OptIn(ExperimentalLayoutApi::class)
+/** Selettore del colore: colori pronti con il nome, oppure "Su misura" con tonalità e tono. */
 @Composable
 private fun ColorPicker(
     color: Color,
     onChange: (Color) -> Unit,
 ) {
+    val presetName = PresetColors.firstOrNull { it.first.toArgb() == color.toArgb() }?.second
+    var customOpen by remember { mutableStateOf(presetName == null) }
     val hsv = remember(color) { color.toHsv() }
     var hue by remember(color) { mutableStateOf(hsv[0]) }
-    var saturation by remember(color) { mutableStateOf(hsv[1]) }
-    var value by remember(color) { mutableStateOf(hsv[2]) }
-    val preview = Color.hsv(hue, saturation, value)
+    // Tono: 0 = pastello (poco saturo, chiaro), 1 = intenso (saturo, un po' più scuro)
+    var tone by remember(color) { mutableStateOf(((hsv[1] - 0.3f) / 0.65f).coerceIn(0f, 1f)) }
+    fun toneColor(h: Float, t: Float) = Color.hsv(h, 0.3f + 0.65f * t, 1f - 0.25f * t)
+    val preview = if (customOpen) toneColor(hue, tone) else color
 
-    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            PresetColors.forEach { preset ->
-                val selected = preset.toArgb() == color.toArgb()
+    Column(Modifier.padding(vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        // Colore scelto in grande, con il nome
+        Row(
+            Modifier.padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Box(Modifier.size(52.dp).clip(MaterialShapes.Cookie9Sided.toShape()).background(preview))
+            Column {
+                Text(if (customOpen) "Su misura" else presetName ?: "Su misura", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
+                Text("Tutta l'app nasce da questo colore", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        // Colori pronti in una fila che scorre
+        androidx.compose.foundation.lazy.LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            items(PresetColors.size) { i ->
+                val (preset, _) = PresetColors[i]
+                val selected = !customOpen && preset.toArgb() == color.toArgb()
                 Box(
                     Modifier
-                        .size(40.dp)
+                        .size(48.dp)
                         .clip(if (selected) MaterialShapes.Cookie9Sided.toShape() else CircleShape)
                         .background(preset)
-                        .clickable { onChange(preset) },
+                        .clickable {
+                            customOpen = false
+                            onChange(preset)
+                        },
                     contentAlignment = Alignment.Center,
-                ) { if (selected) AtxIcon(Res.drawable.check, null, size = 20.dp, tint = Color.White) }
+                ) { if (selected) AtxIcon(Res.drawable.check, null, size = 22.dp, tint = preset.readableOn()) }
+            }
+            item {
+                // "Su misura": cerchio con tutte le tonalità
+                Box(
+                    Modifier
+                        .size(48.dp)
+                        .clip(if (customOpen) MaterialShapes.Cookie9Sided.toShape() else CircleShape)
+                        .background(Brush.sweepGradient((0..6).map { Color.hsv(it * 60f % 360f, 0.7f, 0.95f) }))
+                        .clickable { customOpen = true },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Box(Modifier.size(22.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHigh), contentAlignment = Alignment.Center) {
+                        Text("+", fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurface)
+                    }
+                }
             }
         }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            Box(Modifier.size(52.dp).clip(MaterialShapes.Cookie9Sided.toShape()).background(preview))
-            Column(Modifier.weight(1f)) {
-                Text("Su misura", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text("Sposta i cursori, poi tocca “Usa”", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        // Su misura: solo due cursori, il colore si applica quando lasci il dito
+        androidx.compose.animation.AnimatedVisibility(visible = customOpen) {
+            Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                GradientSlider(
+                    "Tonalità",
+                    hue / 360f,
+                    Brush.horizontalGradient((0..6).map { toneColor(it * 60f % 360f, tone) }),
+                    onChange = { hue = it * 360f },
+                    onDone = { onChange(toneColor(hue, tone)) },
+                )
+                GradientSlider(
+                    "Tono: da pastello a intenso",
+                    tone,
+                    Brush.horizontalGradient(listOf(toneColor(hue, 0f), toneColor(hue, 1f))),
+                    onChange = { tone = it },
+                    onDone = { onChange(toneColor(hue, tone)) },
+                )
             }
-            TextButton(onClick = { onChange(preview) }) { Text("Usa", fontWeight = FontWeight.Bold) }
         }
-        GradientSlider(
-            "Tonalità",
-            hue / 360f,
-            Brush.horizontalGradient((0..6).map { Color.hsv(it * 60f % 360f, 0.9f, 0.95f) }),
-        ) { hue = it * 360f }
-        GradientSlider(
-            "Intensità",
-            saturation,
-            Brush.horizontalGradient(listOf(Color.hsv(hue, 0f, value), Color.hsv(hue, 1f, value))),
-        ) { saturation = it }
-        GradientSlider(
-            "Luminosità",
-            value,
-            Brush.horizontalGradient(listOf(Color.Black, Color.hsv(hue, saturation, 1f))),
-        ) { value = it.coerceAtLeast(0.15f) }
     }
 }
 
@@ -623,6 +696,7 @@ private fun GradientSlider(
     value: Float,
     track: Brush,
     onChange: (Float) -> Unit,
+    onDone: () -> Unit = {},
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -631,6 +705,7 @@ private fun GradientSlider(
             androidx.compose.material3.Slider(
                 value = value,
                 onValueChange = onChange,
+                onValueChangeFinished = onDone,
                 colors =
                     androidx.compose.material3.SliderDefaults.colors(
                         thumbColor = Color.White,

@@ -34,35 +34,32 @@ enum class ThemeSource(
 /** Come la tavolozza Material viene costruita dal colore di partenza. */
 enum class PaletteStyleChoice(
     val label: String,
+    val description: String = "",
+    val visible: Boolean = false,
 ) {
-    TonalSpot("Tonale"),
-    Vibrant("Vivace"),
-    Expressive("Espressiva"),
+    TonalSpot("Morbida", "Tinte delicate del tuo colore: elegante e riposante", true),
+    Vibrant("Vivace", "Colori pieni e saturi: tutto più acceso", true),
+    Expressive("Audace", "Abbina al tuo colore tinte diverse: più personalità", true),
     Fidelity("Fedele"),
     Content("Contenuto"),
     Rainbow("Arcobaleno"),
     FruitSalad("Macedonia"),
-    Neutral("Neutra"),
+    Neutral("Sobria", "Quasi grigia, con solo un tocco del tuo colore", true),
 }
 
-/** Colori pronti per il colore personalizzato. */
+/** Colori pronti per il colore personalizzato, ognuno con il suo nome. */
 val PresetColors =
     listOf(
-        Color(0xFFFF8FB8),
-        Color(0xFFFA4058),
-        Color(0xFFFF7A2F),
-        Color(0xFFF5B800),
-        Color(0xFF8BC34A),
-        Color(0xFF1DB954),
-        Color(0xFF00BFA6),
-        Color(0xFF00A8E8),
-        Color(0xFF3D7BFF),
-        Color(0xFF6C5CE7),
-        Color(0xFF8B5CF6),
-        Color(0xFFD946EF),
-        Color(0xFFFF5FA2),
-        Color(0xFF8D6E63),
-        Color(0xFF607D8B),
+        Color(0xFFFF8FB8) to "Sakura",
+        Color(0xFFE5446D) to "Ciliegia",
+        Color(0xFFFF7A6B) to "Corallo",
+        Color(0xFFF5B23C) to "Ambra",
+        Color(0xFFA6D84A) to "Lime",
+        Color(0xFF4FD1A5) to "Menta",
+        Color(0xFF2FC4B6) to "Laguna",
+        Color(0xFF4AA8FF) to "Cielo",
+        Color(0xFF6C6CF0) to "Indaco",
+        Color(0xFFA88BFA) to "Lavanda",
     )
 
 /** Angoli delle copertine. */
