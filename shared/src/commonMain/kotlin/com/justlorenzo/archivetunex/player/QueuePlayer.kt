@@ -104,6 +104,11 @@ class QueuePlayer(
         set(value) {
             if (field == value) return
             field = value
+            // Accendendo il casuale: il brano attuale è il primo dell'ordine casuale, così dopo di lui
+            // vengono tutti gli altri (prima poteva capitare in fondo e la riproduzione si fermava)
+            if (value && items.size > 1) order = currentFirstShuffle()
+            prefetched = null
+            if (prepared && loadJob?.isActive != true && currentMediaItem != null) prefetchNext()
             dispatch(setOf(Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED)) { it.onShuffleModeEnabledChanged(value) }
         }
 
@@ -310,9 +315,15 @@ class QueuePlayer(
         if (mediaItems.isEmpty()) return
         val at = index.coerceIn(0, items.size)
         val wasEmpty = items.isEmpty()
+        val currentBefore = this.index
         items.addAll(at, mediaItems)
         uids.addAll(at, List(mediaItems.size) { Any() })
-        order = order.cloneAndInsert(at, mediaItems.size)
+        order =
+            if (shuffleModeEnabled && !wasEmpty) {
+                insertAfterCurrent(at, mediaItems.size, currentBefore)
+            } else {
+                order.cloneAndInsert(at, mediaItems.size)
+            }
         if (wasEmpty) {
             this.index = 0
         } else if (at <= this.index) {
@@ -585,6 +596,41 @@ class QueuePlayer(
     // endregion
 
     // region Utilità
+
+    /** Ordine casuale con il brano attuale per primo. */
+    private fun currentFirstShuffle(): ShuffleOrder {
+        val size = items.size
+        val current = index.coerceIn(0, size - 1)
+        val rest = (0 until size).filter { it != current }.shuffled()
+        return ShuffleOrder.DefaultShuffleOrder((listOf(current) + rest).toIntArray(), 0L)
+    }
+
+    /**
+     * Col casuale acceso i brani aggiunti (coda infinita, "aggiungi in coda") vanno in punti a caso
+     * ma sempre DOPO il brano attuale: prima finivano anche prima e non venivano mai suonati.
+     */
+    private fun insertAfterCurrent(
+        at: Int,
+        count: Int,
+        currentBefore: Int,
+    ): ShuffleOrder {
+        val size = items.size
+        val oldOrder = mutableListOf<Int>()
+        var i = order.getFirstIndex()
+        while (i != C.INDEX_UNSET && oldOrder.size < size - count) {
+            oldOrder += if (i >= at) i + count else i
+            i = order.getNextIndex(i)
+        }
+        if (oldOrder.size != size - count) return currentFirstShuffle()
+        val currentNow = if (currentBefore >= at) currentBefore + count else currentBefore
+        val currentPos = oldOrder.indexOf(currentNow).coerceAtLeast(0)
+        val result = oldOrder.toMutableList()
+        (at until at + count).shuffled().forEach { newIndex ->
+            val pos = (currentPos + 1..result.size).random()
+            result.add(pos, newIndex)
+        }
+        return ShuffleOrder.DefaultShuffleOrder(result.toIntArray(), 0L)
+    }
 
     private fun nowMs(): Long =
         kotlin.time.Clock.System.now().toEpochMilliseconds()

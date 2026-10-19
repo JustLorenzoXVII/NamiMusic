@@ -34,6 +34,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.async
 import moe.rukamori.archivetune.compat.AppContext
 import moe.rukamori.archivetune.compat.System
 import moe.rukamori.archivetune.compat.Timber
@@ -158,7 +160,7 @@ class MusicService(
     private suspend fun resolveMedia(item: MediaItem): ResolvedMedia {
         val mediaId = item.mediaId
         // Brano scaricato: si riproduce il file, senza rete.
-        downloadUtil.fileFor(mediaId)?.let { file ->
+        withContext(Dispatchers.IO) { downloadUtil.fileFor(mediaId) }?.let { file ->
             return ResolvedMedia(
                 url = "file://" + file.absolutePath,
                 durationMs = item.metadata?.duration?.takeIf { it > 0 }?.let { it * 1000L },
@@ -199,13 +201,17 @@ class MusicService(
     fun playQueue(
         queue: Queue,
         playWhenReady: Boolean = true,
+        shuffle: Boolean = false,
     ) {
         cancelInfiniteQueueBootstrap()
         suppressAutoPlayback = false
         currentQueue = queue
         queueTitle = null
         val permanentShuffle = dataStore.get(PermanentShuffleKey, false)
-        if (!permanentShuffle) {
+        // "Casuale" su album o playlist: il casuale resta acceso (prima veniva spento qui)
+        if (shuffle) {
+            player.shuffleModeEnabled = true
+        } else if (!permanentShuffle) {
             player.shuffleModeEnabled = false
         }
 
@@ -447,16 +453,58 @@ class MusicService(
                     val hideExplicit = dataStore.get(HideExplicitKey, false)
                     val hideVideo = dataStore.get(HideVideoKey, false)
                     val radioQueue = YouTubeQueue(WatchEndpoint(videoId = seedMediaId), followAutomixPreview = true)
+
+                    // Nami: più spunti, non solo l'ultimo brano. Oltre al brano attuale, due brani della coda
+                    // appena ascoltata (quelli che hai ascoltato fino in fondo più spesso, se ce ne sono)
+                    val queueIds = (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId }
+                    val signals = com.justlorenzo.archivetunex.insights.ListeningSignals.signals.value
+                    val extraSeeds =
+                        queueIds
+                            .filter { it != seedMediaId && !it.trim().isLocalMediaId() }
+                            .sortedByDescending { (signals[it]?.plays ?: 0) * 10 + kotlin.random.Random.nextInt(10) }
+                            .take(2)
+                    val dislikedSongs = com.justlorenzo.archivetunex.insights.ListeningSignals.dislikedSongIds()
+                    val dislikedArtists = com.justlorenzo.archivetunex.insights.ListeningSignals.dislikedArtists()
+
                     val status =
                         withContext(Dispatchers.IO) {
                             radioQueue
                                 .getInitialStatus()
                                 .filterPlaybackContent(hideExplicit, hideVideo)
                         }
-                    val knownIds =
-                        (0 until player.mediaItemCount)
-                            .mapTo(mutableSetOf()) { player.getMediaItemAt(it).mediaId }
-                    val newItems = status.items.filter { knownIds.add(it.mediaId) }.toMutableList()
+                    val extraLists =
+                        withContext(Dispatchers.IO) {
+                            extraSeeds
+                                .map { seed ->
+                                    async {
+                                        runCatching {
+                                            YouTubeQueue(WatchEndpoint(videoId = seed), followAutomixPreview = true)
+                                                .getInitialStatus()
+                                                .filterPlaybackContent(hideExplicit, hideVideo)
+                                                .items
+                                        }.getOrDefault(emptyList())
+                                    }
+                                }.awaitAll()
+                        }
+                    val knownIds = queueIds.toMutableSet()
+                    // A turno da ogni radio, senza brani già sentiti, saltati spesso o troppi dello stesso artista
+                    val perArtist = mutableMapOf<String, Int>()
+                    val candidates = mutableListOf<MediaItem>()
+                    val lists = listOf(status.items) + extraLists
+                    val longest = lists.maxOfOrNull { it.size } ?: 0
+                    for (i in 0 until longest) {
+                        for (list in lists) {
+                            val item = list.getOrNull(i) ?: continue
+                            if (item.mediaId in dislikedSongs) continue
+                            val artist = item.mediaMetadata.artist?.toString().orEmpty()
+                            if (artist.split(", ").any { it in dislikedArtists }) continue
+                            if ((perArtist[artist] ?: 0) >= 2) continue
+                            if (!knownIds.add(item.mediaId)) continue
+                            perArtist[artist] = (perArtist[artist] ?: 0) + 1
+                            candidates += item
+                        }
+                    }
+                    val newItems = candidates.take(30).toMutableList()
                     var loadedPageCount = 1
 
                     while (

@@ -1016,14 +1016,6 @@ private fun MiniPlayerPage() {
         SettingsGroup(tr("Anteprima")) {
             Box(Modifier.fillMaxWidth().padding(vertical = 16.dp)) { MiniPlayerPreview(style) }
         }
-        SettingsGroup(tr("Forma")) {
-            PreviewChoices(
-                options = MiniLayout.entries,
-                selected = style.miniLayout,
-                label = { it.label },
-                onSelect = { saveEnum(MiniLayoutKey, it) },
-            ) { layout -> MiniShapePreview(layout) }
-        }
         SettingsGroup(tr("Colore")) {
             PreviewChoices(
                 options = MiniPlayerStyle.entries,

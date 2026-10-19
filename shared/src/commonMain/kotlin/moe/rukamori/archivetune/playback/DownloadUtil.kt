@@ -95,11 +95,25 @@ class DownloadUtil(
     fun getDownload(songId: String): Flow<Download?> = downloads.map { it[songId] }
 
     /** Il file scaricato del brano, se il download è completo. */
-    fun fileFor(mediaId: String): File? =
-        directory
-            .listFiles { it.name.startsWith("$mediaId.") && !it.name.endsWith(".part") && it.name != "index.json" }
-            ?.firstOrNull()
-            ?.takeIf { it.length() > 0 }
+    /**
+     * Nami: elenco dei file scaricati tenuto in memoria. Prima ogni richiesta rileggeva tutta la cartella
+     * (lento con tanti brani: cambio traccia e avvio ne risentivano). Si rifà solo quando i file cambiano.
+     */
+    @kotlin.concurrent.Volatile private var fileIndex: Map<String, File>? = null
+
+    private fun files(): Map<String, File> =
+        fileIndex ?: (
+            directory
+                .listFiles { !it.name.endsWith(".part") && it.name != "index.json" && it.name.contains('.') }
+                ?.associateBy { it.name.substringBefore('.') }
+                .orEmpty()
+        ).also { fileIndex = it }
+
+    private fun invalidateFiles() {
+        fileIndex = null
+    }
+
+    fun fileFor(mediaId: String): File? = files()[mediaId]?.takeIf { it.length() > 0 }
 
     fun isDownloaded(mediaId: String): Boolean = downloads.value[mediaId]?.state == Download.STATE_COMPLETED && fileFor(mediaId) != null
 
@@ -116,6 +130,7 @@ class DownloadUtil(
         if (currentId == id) currentJob?.cancel()
         queue.remove(id)
         directory.listFiles { it.name.startsWith("$id.") && it.name != "index.json" }?.forEach { it.delete() }
+        invalidateFiles()
         downloads.update { it - id }
         persistIndex()
         scope.launch {
@@ -199,6 +214,7 @@ class DownloadUtil(
             val finalFile = File(directory, "$mediaId.$extension")
             finalFile.delete()
             partFile.renameTo(finalFile)
+            invalidateFiles()
             updateDownload(request, Download.STATE_COMPLETED, bytes = downloaded, length = downloaded)
         } catch (cancellation: CancellationException) {
             val current = downloads.value[mediaId]

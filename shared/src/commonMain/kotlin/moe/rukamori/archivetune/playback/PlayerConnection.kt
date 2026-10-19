@@ -112,8 +112,11 @@ class PlayerConnection(
         }
     }
 
-    fun playQueue(queue: Queue) {
-        service.playQueue(queue)
+    fun playQueue(
+        queue: Queue,
+        shuffle: Boolean = false,
+    ) {
+        service.playQueue(queue, shuffle = shuffle)
     }
 
     fun startRadioSeamlessly() {

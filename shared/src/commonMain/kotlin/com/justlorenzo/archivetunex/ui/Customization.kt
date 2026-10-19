@@ -284,7 +284,8 @@ internal fun Preferences.toAtxStyle(): AtxStyle {
         shrinkArtworkOnPause = this[ShrinkArtworkOnPauseKey] ?: d.shrinkArtworkOnPause,
         showRemainingTime = this[ShowRemainingTimeKey] ?: d.showRemainingTime,
         coloredPlayerControls = this[ColoredPlayerControlsKey] ?: d.coloredPlayerControls,
-        miniLayout = this[MiniLayoutKey].toEnum(d.miniLayout),
+        // Barra fluttuante eliminata: si usa sempre quella classica, unita al mini player
+        miniLayout = MiniLayout.Joined,
         miniPlayer = this[MiniPlayerStyleKey].toEnum(d.miniPlayer),
         miniProgress = this[MiniProgressKey].toEnum(d.miniProgress),
         miniArtwork = this[MiniArtworkKey].toEnum(d.miniArtwork),

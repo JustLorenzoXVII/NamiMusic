@@ -62,9 +62,8 @@ class AtxActions(
         shuffle: Boolean = false,
     ) {
         if (songs.isEmpty()) return
-        player.player.shuffleModeEnabled = shuffle
         val start = if (shuffle) songs.indices.random() else startIndex
-        player.playQueue(ListQueue(title = title, items = songs.map { it.toMediaItem() }, startIndex = start))
+        player.playQueue(ListQueue(title = title, items = songs.map { it.toMediaItem() }, startIndex = start), shuffle = shuffle)
     }
 
     /** Playlist o mix di YouTube Music (es. il pulsante "Radio" di un artista). */

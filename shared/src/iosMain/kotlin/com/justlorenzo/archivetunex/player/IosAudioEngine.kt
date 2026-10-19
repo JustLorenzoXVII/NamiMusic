@@ -63,7 +63,14 @@ internal class IosAudioEngine : AudioEngine {
     private var backgroundTask: UIBackgroundTaskIdentifier = UIBackgroundTaskInvalid
     private var backgroundTaskJob: Job? = null
 
+    /** Copertine già scaricate per la schermata di blocco (cambio brano senza attese). */
+    private val artworkCache = LinkedHashMap<String, MPMediaItemArtwork>()
+    private var artworkUrl: String? = null
+    private var nowPlayingTicks = 0
+
     init {
+        // Parte appena ha abbastanza dati, senza aspettare di accumulare buffer (più reattivo come le app di streaming)
+        player.automaticallyWaitsToMinimizeStalling = false
         val session = AVAudioSession.sharedInstance()
         session.setCategory(AVAudioSessionCategoryPlayback, null)
         session.setActive(true, null)
@@ -137,7 +144,8 @@ internal class IosAudioEngine : AudioEngine {
             return
         }
         this.info = info
-        artwork = null
+        // Copertina già in memoria: compare subito sulla schermata di blocco
+        artwork = info.artworkUrl?.let { artworkCache[it] }
         errorReported = false
         endReported = false
         stuckAtEndChecks = 0
@@ -190,6 +198,13 @@ internal class IosAudioEngine : AudioEngine {
         AVAudioSession.sharedInstance().setActive(true, null)
         player.playImmediatelyAtRate(speed)
         updateNowPlaying()
+        // Controlli ravvicinati subito dopo il play: l'app sa prima che sta suonando
+        scope.launch {
+            repeat(5) {
+                delay(80)
+                checkState()
+            }
+        }
     }
 
     override fun pause() {
@@ -221,7 +236,9 @@ internal class IosAudioEngine : AudioEngine {
             scope.launch {
                 while (isActive) {
                     checkState()
-                    delay(300)
+                    // Ogni ~2 secondi si riallinea anche la schermata di blocco (tempo e play/pausa)
+                    if (++nowPlayingTicks % 8 == 0) updateNowPlaying()
+                    delay(250)
                 }
             }
     }
@@ -324,25 +341,44 @@ internal class IosAudioEngine : AudioEngine {
         nowPlaying[MPMediaItemPropertyArtist] = current.artist
         (current.durationMs ?: durationMs)?.let { nowPlaying[MPMediaItemPropertyPlaybackDuration] = it / 1000.0 }
         nowPlaying[MPNowPlayingInfoPropertyElapsedPlaybackTime] = positionMs / 1000.0
-        nowPlaying[MPNowPlayingInfoPropertyPlaybackRate] = player.rate.toDouble()
+        // Play/pausa sulla schermata di blocco: conta se sta davvero suonando
+        val playing = player.timeControlStatus == AVPlayerTimeControlStatusPlaying
+        nowPlaying[MPNowPlayingInfoPropertyPlaybackRate] = if (playing) speed.toDouble() else 0.0
+        nowPlaying[MPNowPlayingInfoPropertyDefaultPlaybackRate] = 1.0
         artwork?.let { nowPlaying[MPMediaItemPropertyArtwork] = it }
         MPNowPlayingInfoCenter.defaultCenter().nowPlayingInfo = nowPlaying
     }
 
     private fun loadArtwork(url: String?) {
         artworkJob?.cancel()
+        artworkUrl = url
         if (url.isNullOrBlank()) return
+        if (artworkCache.containsKey(url)) return
         artworkJob =
             scope.launch {
-                val image =
-                    withContext(Dispatchers.Default) {
-                        val nsUrl = NSURL.URLWithString(url) ?: return@withContext null
-                        val data = NSData.dataWithContentsOfURL(nsUrl) ?: return@withContext null
-                        UIImage.imageWithData(data)
-                    } ?: return@launch
-                val size = image.size
-                artwork = MPMediaItemArtwork(boundsSize = size) { _ -> image }
-                updateNowPlaying()
+                // Fino a 3 tentativi: con rete lenta la prima richiesta può fallire
+                var image: UIImage? = null
+                for (attempt in 0 until 3) {
+                    image =
+                        withContext(Dispatchers.Default) {
+                            val nsUrl = (if (url.startsWith("file://")) NSURL.fileURLWithPath(url.removePrefix("file://")) else NSURL.URLWithString(url))
+                                ?: return@withContext null
+                            val data = NSData.dataWithContentsOfURL(nsUrl) ?: return@withContext null
+                            UIImage.imageWithData(data)
+                        }
+                    if (image != null) break
+                    delay(1_000L * (attempt + 1))
+                }
+                val loaded = image ?: return@launch
+                val size = loaded.size
+                val item = MPMediaItemArtwork(boundsSize = size) { _ -> loaded }
+                artworkCache[url] = item
+                if (artworkCache.size > 30) artworkCache.remove(artworkCache.keys.first())
+                // Solo se è ancora il brano di questa copertina
+                if (artworkUrl == url) {
+                    artwork = item
+                    updateNowPlaying()
+                }
             }
     }
 

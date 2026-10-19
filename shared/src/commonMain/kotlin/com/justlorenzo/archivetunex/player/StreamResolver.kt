@@ -2,6 +2,7 @@ package com.justlorenzo.archivetunex.player
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
 import moe.rukamori.archivetune.innertube.YouTube
 import moe.rukamori.archivetune.morideobfuscator.youtubei.YoutubeiAudioQuality
 import moe.rukamori.archivetune.morideobfuscator.youtubei.YoutubeiException
@@ -27,7 +28,26 @@ object StreamResolver {
 
     private val resolver = YoutubeiResolver(diagnostics = { message -> println("Youtubei: $message") })
 
-    suspend fun resolve(videoId: String): Result<YoutubeiResolvedStream> =
+    /** Stream già trovati (riascoltare un brano o tornare indietro è immediato), finché l'URL vale. */
+    private val memory = mutableMapOf<String, YoutubeiResolvedStream>()
+    private val memoryLock = kotlinx.coroutines.sync.Mutex()
+
+    private fun nowMs(): Long = kotlin.time.Clock.System.now().toEpochMilliseconds()
+
+    suspend fun resolve(videoId: String): Result<YoutubeiResolvedStream> {
+        memoryLock.withLock { memory[videoId] }?.let { cached ->
+            // Margine di 10 minuti sulla scadenza dell'URL
+            if (cached.expiresAtMs <= 0 || cached.expiresAtMs - nowMs() > 10 * 60 * 1000L) return Result.success(cached)
+        }
+        return resolveFresh(videoId).onSuccess { stream ->
+            memoryLock.withLock {
+                memory[videoId] = stream
+                if (memory.size > 200) memory.remove(memory.keys.first())
+            }
+        }
+    }
+
+    private suspend fun resolveFresh(videoId: String): Result<YoutubeiResolvedStream> =
         try {
             ensureVisitorData(forceRefresh = false)
             Result.success(resolveOnce(videoId))
@@ -51,7 +71,10 @@ object StreamResolver {
 
     /** Dimentica sessioni e URL in cache (cambio account o errori di autenticazione). */
     fun invalidate() {
-        invalidationScope.launch { resolver.invalidateSessions() }
+        invalidationScope.launch {
+            memoryLock.withLock { memory.clear() }
+            resolver.invalidateSessions()
+        }
     }
 
     private val invalidationScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Default)
