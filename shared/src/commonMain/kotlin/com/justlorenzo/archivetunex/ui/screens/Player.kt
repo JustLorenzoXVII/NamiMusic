@@ -131,6 +131,9 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import archivetunex.shared.generated.resources.Res
+import archivetunex.shared.generated.resources.all_inclusive
+import archivetunex.shared.generated.resources.airplay
+import archivetunex.shared.generated.resources.cast
 import archivetunex.shared.generated.resources.drag_handle
 import archivetunex.shared.generated.resources.close
 import archivetunex.shared.generated.resources.clear_all
@@ -934,7 +937,7 @@ fun PlayerScreen() {
                     }
                     Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                         Text(
-                            queueTitle?.uppercase() ?: tr("IN RIPRODUZIONE"),
+                            tr("IN RIPRODUZIONE"),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp,
@@ -949,19 +952,6 @@ fun PlayerScreen() {
                                     .padding(horizontal = 12.dp, vertical = 6.dp),
                         )
                     }
-                    TopBarButton(chip, { connection.toggleLike() }) {
-                        AtxIcon(
-                            if (liked) Res.drawable.favorite else Res.drawable.favorite_border,
-                            if (liked) tr("Togli dai preferiti") else tr("Aggiungi ai preferiti"),
-                            size = 22.dp,
-                            tint = if (liked) pc.accent else pc.text,
-                        )
-                    }
-                    Spacer(Modifier.width(6.dp))
-                    TopBarButton(chip, { navigator.lyricsVisible = !showLyrics }) {
-                        AtxIcon(Res.drawable.lyrics, tr("Testo"), size = 22.dp, tint = if (showLyrics) pc.accent else pc.text)
-                    }
-                    Spacer(Modifier.width(6.dp))
                     TopBarButton(chip, { showMenu = true }) {
                         AtxIcon(Res.drawable.more_vert, tr("Altre opzioni"), size = 22.dp, tint = pc.text)
                     }
@@ -1059,36 +1049,25 @@ fun PlayerScreen() {
                     ClassicControls(style.playButton, isPlaying, pc, onPrevious = connection::seekToPrevious, onPlay = actions::togglePlayPause, onNext = connection::seekToNext)
                 }
 
-                Spacer(Modifier.height(16.dp))
-                // Casuale, coda e ripeti come pillole con il nome
+                Spacer(Modifier.height(18.dp))
+                // Testi, Trasmetti, Preferiti e Coda (come Apple Music): icone semplici distanziate
+                val isAndroid = remember { com.justlorenzo.archivetunex.getPlatform().name.startsWith("Android") }
                 Row(
                     Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    PlayerPill(Res.drawable.shuffle, tr("Casuale"), shuffle, pc) {
-                        connection.player.shuffleModeEnabled = !shuffle
+                    BottomAction(Res.drawable.lyrics, tr("Testo"), showLyrics, pc) { navigator.lyricsVisible = !showLyrics }
+                    BottomAction(if (isAndroid) Res.drawable.cast else Res.drawable.airplay, tr("Trasmetti"), false, pc) {
+                        moe.rukamori.archivetune.utils.oem.SystemMediaControlResolver.openMediaOutputSwitcher(moe.rukamori.archivetune.compat.AppContext)
                     }
-                    PlayerPill(
-                        Res.drawable.queue_music,
-                        nextTitle?.let { trf("Dopo: {0}", it) } ?: tr("Coda"),
-                        false,
+                    BottomAction(
+                        if (liked) Res.drawable.favorite else Res.drawable.favorite_border,
+                        if (liked) tr("Togli dai preferiti") else tr("Aggiungi ai preferiti"),
+                        liked,
                         pc,
-                        Modifier.weight(1f),
-                    ) { navigator.queueVisible = true }
-                    PlayerPill(
-                        if (repeatMode == Player.REPEAT_MODE_ONE) Res.drawable.repeat_one else Res.drawable.repeat,
-                        if (repeatMode == Player.REPEAT_MODE_ONE) tr("Ripeti 1") else tr("Ripeti"),
-                        repeatMode != Player.REPEAT_MODE_OFF,
-                        pc,
-                    ) {
-                        connection.player.repeatMode =
-                            when (repeatMode) {
-                                Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
-                                Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
-                                else -> Player.REPEAT_MODE_OFF
-                            }
-                    }
+                    ) { connection.toggleLike() }
+                    BottomAction(Res.drawable.queue_music, tr("Coda"), false, pc) { navigator.queueVisible = true }
                 }
                 Spacer(Modifier.height(16.dp))
             }
@@ -1096,6 +1075,51 @@ fun PlayerScreen() {
     }
 
     if (showMenu) SongMenuSheet(song, onDismiss = { showMenu = false })
+}
+
+/** Pulsante della coda (Casuale, Ripeti, Automatica): pieno quando è attivo. */
+@Composable
+private fun QueueToggle(
+    icon: DrawableResource,
+    label: String,
+    active: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    val container by animateColorAsState(
+        if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest,
+        label = "queueToggle",
+    )
+    val content = if (active) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+    Row(
+        modifier
+            .height(44.dp)
+            .clip(CircleShape)
+            .background(container)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        AtxIcon(icon, null, size = 18.dp, tint = content)
+        Spacer(Modifier.width(6.dp))
+        Text(label, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = content, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+}
+
+/** Icona della fila in basso (Testi, Trasmetti, Preferiti, Coda): colorata quando è attiva. */
+@Composable
+private fun BottomAction(
+    icon: DrawableResource,
+    description: String,
+    active: Boolean,
+    pc: PlayerColors,
+    onClick: () -> Unit,
+) {
+    val tint by animateColorAsState(if (active) pc.accent else pc.text.copy(alpha = 0.7f), label = "bottomActionTint")
+    IconButton(onClick = onClick, modifier = Modifier.size(52.dp)) {
+        AtxIcon(icon, description, size = 26.dp, tint = tint)
+    }
 }
 
 /** Pulsante tondo della barra in alto, con uno sfondo semitrasparente quando serve. */
@@ -2133,6 +2157,40 @@ fun QueueSheet() {
                     Text(tr("Svuota"), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSecondaryContainer)
                 }
             }
+        }
+        // Casuale, Ripeti e Riproduzione automatica (alla fine continua con brani simili)
+        val shuffle by connection.shuffleModeEnabled.collectAsState()
+        val repeatMode by connection.repeatMode.collectAsState()
+        var autoplay by moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.AutoLoadMoreKey, true)
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            QueueToggle(Res.drawable.shuffle, tr("Casuale"), shuffle, Modifier.weight(1f)) {
+                connection.player.shuffleModeEnabled = !shuffle
+            }
+            QueueToggle(
+                if (repeatMode == Player.REPEAT_MODE_ONE) Res.drawable.repeat_one else Res.drawable.repeat,
+                if (repeatMode == Player.REPEAT_MODE_ONE) tr("Ripeti 1") else tr("Ripeti"),
+                repeatMode != Player.REPEAT_MODE_OFF,
+                Modifier.weight(1f),
+            ) {
+                connection.player.repeatMode =
+                    when (repeatMode) {
+                        Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
+                        Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
+                        else -> Player.REPEAT_MODE_OFF
+                    }
+            }
+            QueueToggle(Res.drawable.all_inclusive, tr("Automatica"), autoplay, Modifier.weight(1f)) { autoplay = !autoplay }
+        }
+        if (autoplay) {
+            Text(
+                tr("Alla fine della coda continua con brani simili."),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 8.dp),
+            )
         }
         LazyColumn(state = listState, modifier = Modifier.fillMaxWidth()) {
             itemsIndexed(windows, key = { index, window -> "${window.uid}-$index" }) { index, window ->

@@ -3,6 +3,9 @@ package com.justlorenzo.archivetunex.ui
 /** Testi dell'interfaccia in inglese (la chiave è il testo italiano usato nel codice). */
 val EnglishStrings: Map<String, String> =
     mapOf(
+        "Trasmetti" to "Cast",
+        "Automatica" to "Autoplay",
+        "Alla fine della coda continua con brani simili." to "When the queue ends, keeps playing similar songs.",
         "Ritratto" to "Portrait",
         "Salvato" to "Saved",
         "Salvata" to "Saved",
