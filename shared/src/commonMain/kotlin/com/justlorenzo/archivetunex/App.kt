@@ -422,7 +422,7 @@ private fun AppContent(navigator: AtxNavigator) {
                             BarTab(Tab.Stats, tr("Statistiche"), Res.drawable.stats),
                             BarTab(Tab.Library, tr("Libreria"), Res.drawable.library_filled),
                         ),
-                    hideMini = playerProgress > 0f,
+                    hideMini = navigator.playerExpanded || playerProgress > 0.01f,
                     onMiniBounds = { miniBounds = it },
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
@@ -467,7 +467,7 @@ private fun AppContent(navigator: AtxNavigator) {
                             .width(miniWidth)
                             .onGloballyPositioned { miniBounds = it.boundsInRoot() }
                             // Mentre il player è aperto (o si sta aprendo) il mini player vero si nasconde
-                            .graphicsLayer { alpha = if (playerProgress > 0f) 0f else 1f },
+                            .graphicsLayer { alpha = if (navigator.playerExpanded || playerProgress > 0.01f) 0f else 1f },
                     )
                 }
                 FloatingTabs(

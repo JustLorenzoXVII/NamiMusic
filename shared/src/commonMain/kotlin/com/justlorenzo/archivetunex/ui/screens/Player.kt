@@ -22,6 +22,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.draggable
@@ -1913,26 +1914,48 @@ fun JoinedBottomBar(
                     .graphicsLayer { alpha = if (hideMini) 0f else 1f },
             ) { JoinedMini(Modifier, interactive = true) }
         }
-        NavigationBar(
-            containerColor = Color.Transparent,
-            tonalElevation = 0.dp,
+        // Schede fatte a mano: stessa larghezza per tutte, icona sopra e testo sotto, altezza fissa.
+        // (La NavigationBar di sistema su iPhone metteva icona e testo affiancati e la quarta scheda usciva dallo schermo.)
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .height(72.dp)
+                .padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             tabs.forEach { item ->
                 val selected = navigator.tab == item.tab
-                NavigationBarItem(
-                    selected = selected,
-                    onClick = { navigator.selectTab(item.tab) },
-                    icon = { AtxIcon(item.icon, item.label, size = 24.dp) },
-                    label = { Text(item.label, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium) },
-                    colors =
-                        NavigationBarItemDefaults.colors(
-                            selectedIconColor = pc.accent,
-                            selectedTextColor = pc.text,
-                            indicatorColor = pc.accent.copy(alpha = 0.2f),
-                            unselectedIconColor = pc.text.copy(alpha = 0.7f),
-                            unselectedTextColor = pc.text.copy(alpha = 0.7f),
-                        ),
+                val indicator by animateColorAsState(
+                    if (selected) pc.accent.copy(alpha = 0.22f) else Color.Transparent,
+                    tween(250),
+                    label = "tabIndicator",
                 )
+                Column(
+                    Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(20.dp))
+                        .clickable { navigator.selectTab(item.tab) }
+                        .padding(vertical = 6.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Box(
+                        Modifier.size(width = 60.dp, height = 32.dp).clip(RoundedCornerShape(16.dp)).background(indicator),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        AtxIcon(item.icon, item.label, size = 24.dp, tint = if (selected) pc.accent else pc.text.copy(alpha = 0.7f))
+                    }
+                    Text(
+                        item.label,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                        color = if (selected) pc.text else pc.text.copy(alpha = 0.7f),
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
     }
@@ -2190,10 +2213,16 @@ fun PlayerMorph(
         val target = if (navigator.playerExpanded) 1f else 0f
         if (transition.dragging || (progress.isRunning && progress.targetValue == target)) return@LaunchedEffect
         progress.animateTo(target, transition.spec)
+        // Fine animazione: esattamente chiuso o aperto (la molla può fermarsi a un soffio dal valore)
+        progress.snapTo(target)
     }
     val p = progress.value.coerceIn(0f, 1f)
     androidx.compose.runtime.SideEffect { onProgress(p) }
-    if (p <= 0f && !navigator.playerExpanded) return
+    // Rimasto aperto di un soffio senza che nessuno lo stia muovendo: lo si chiude del tutto
+    LaunchedEffect(p <= 0.01f && !navigator.playerExpanded && !transition.dragging) {
+        if (p > 0f && p <= 0.01f && !navigator.playerExpanded && !transition.dragging && !progress.isRunning) progress.snapTo(0f)
+    }
+    if (p <= 0.01f && !navigator.playerExpanded) return
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val density = LocalDensity.current
