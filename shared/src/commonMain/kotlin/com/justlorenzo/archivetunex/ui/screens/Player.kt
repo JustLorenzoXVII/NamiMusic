@@ -162,6 +162,7 @@ import com.justlorenzo.archivetunex.ui.PlayerLayout
 import com.justlorenzo.archivetunex.ui.Route
 import com.justlorenzo.archivetunex.ui.SliderStyleChoice
 import com.justlorenzo.archivetunex.ui.components.Artwork
+import com.justlorenzo.archivetunex.ui.components.scrollingText
 import com.justlorenzo.archivetunex.ui.components.AtxIcon
 import com.justlorenzo.archivetunex.ui.components.SongMenuSheet
 import com.justlorenzo.archivetunex.ui.components.SongRow
@@ -441,7 +442,8 @@ fun MiniPlayer(
                         color = content,
                         maxLines = 1,
                         // I titoli lunghi scorrono invece di essere tagliati
-                        modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE, initialDelayMillis = 2000),
+                        modifier =
+                            Modifier.scrollingText(),
                     )
                     if (style.miniShowArtist) {
                         Text(
@@ -449,7 +451,8 @@ fun MiniPlayer(
                             style = MaterialTheme.typography.bodyMedium,
                             color = content.copy(alpha = 0.7f),
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                            softWrap = false,
+                            modifier = Modifier.scrollingText(),
                         )
                     }
                 }
@@ -973,7 +976,8 @@ fun PlayerScreen() {
                                 fontWeight = FontWeight.SemiBold,
                                 color = pc.accent,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
+                                softWrap = false,
+                                modifier = Modifier.scrollingText(),
                             )
                         }
                         LikeButton(liked, pc) { connection.toggleLike() }
@@ -1015,16 +1019,16 @@ fun PlayerScreen() {
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
-                            if (!poster) TitleWithBadge(cleanTitle, song.explicit, MaterialTheme.typography.headlineMedium, pc, maxLines = 2)
+                            if (!poster) TitleWithBadge(cleanTitle, song.explicit, MaterialTheme.typography.headlineMedium, pc, maxLines = 1)
                             Text(
                                 song.artists.joinToString { it.name },
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 color = pc.accent,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
+                                softWrap = false,
                                 modifier =
-                                    Modifier.clickable(enabled = song.artists.firstOrNull()?.id != null) {
+                                    Modifier.scrollingText().clickable(enabled = song.artists.firstOrNull()?.id != null) {
                                         song.artists.firstOrNull()?.id?.let {
                                             close()
                                             navigator.open(Route.Artist(it))
@@ -1037,9 +1041,9 @@ fun PlayerScreen() {
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = pc.text.copy(alpha = 0.6f),
                                     maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
+                                    softWrap = false,
                                     modifier =
-                                        Modifier.clickable {
+                                        Modifier.scrollingText().clickable {
                                             close()
                                             navigator.open(Route.Album(album.id))
                                         },
@@ -1136,18 +1140,19 @@ private fun TitleWithBadge(
     maxLines: Int,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
+        // Sempre una riga sola, stessa grandezza per tutti i titoli: se è lungo scorre
         Text(
             title,
             style = textStyle,
             fontWeight = FontWeight.Black,
             color = pc.text,
-            maxLines = maxLines,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f, fill = false),
+            maxLines = 1,
+            softWrap = false,
+            modifier = Modifier.weight(1f, fill = false).scrollingText(),
         )
         if (explicit) {
             Spacer(Modifier.width(8.dp))
-            ExplicitBadge(if (maxLines > 1) 20.dp else 14.dp, pc.text.copy(alpha = 0.85f), pc.background)
+            ExplicitBadge(if (textStyle.fontSize.value > 20f) 20.dp else 14.dp, pc.text.copy(alpha = 0.85f), pc.background)
         }
     }
 }
@@ -1977,8 +1982,9 @@ private fun JoinedMini(
                         fontWeight = FontWeight.Bold,
                         color = pc.text,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false),
+                        softWrap = false,
+                        modifier =
+                            Modifier.scrollingText().weight(1f, fill = false),
                     )
                     if (song.explicit) {
                         Spacer(Modifier.width(6.dp))
@@ -1992,8 +1998,9 @@ private fun JoinedMini(
                             style = MaterialTheme.typography.bodySmall,
                             color = pc.text.copy(alpha = 0.7f),
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f, fill = false),
+                            softWrap = false,
+                            modifier =
+                                Modifier.scrollingText().weight(1f, fill = false),
                         )
                         MiniTime(progress, pc.text.copy(alpha = 0.55f))
                     }

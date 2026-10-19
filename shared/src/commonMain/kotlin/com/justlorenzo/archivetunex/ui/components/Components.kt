@@ -1,5 +1,6 @@
 package com.justlorenzo.archivetunex.ui.components
 
+import androidx.compose.foundation.basicMarquee
 import com.justlorenzo.archivetunex.ui.tr
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -367,3 +368,15 @@ fun EmptyState(
         Spacer(Modifier.height(8.dp))
     }
 }
+
+/**
+ * Testo su una riga che, se non ci sta, scorre fino alla fine, torna all'inizio, si ferma un attimo
+ * e ricomincia (come nelle app di musica). Se il testo ci sta, resta fermo.
+ */
+fun Modifier.scrollingText(): Modifier =
+    basicMarquee(
+        iterations = Int.MAX_VALUE,
+        initialDelayMillis = 2000,
+        repeatDelayMillis = 2000,
+        velocity = 40.dp,
+    )
