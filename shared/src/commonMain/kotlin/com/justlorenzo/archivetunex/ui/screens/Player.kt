@@ -57,6 +57,9 @@ import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
@@ -1852,19 +1855,19 @@ fun JoinedBottomBar(
                     .graphicsLayer { alpha = if (hideMini) 0f else 1f },
             ) { JoinedMini(Modifier, interactive = true) }
         }
-        androidx.compose.material3.NavigationBar(
+        NavigationBar(
             containerColor = Color.Transparent,
             tonalElevation = 0.dp,
         ) {
             tabs.forEach { item ->
                 val selected = navigator.tab == item.tab
-                androidx.compose.material3.NavigationBarItem(
+                NavigationBarItem(
                     selected = selected,
                     onClick = { navigator.selectTab(item.tab) },
                     icon = { AtxIcon(item.icon, item.label, size = 24.dp) },
                     label = { Text(item.label, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium) },
                     colors =
-                        androidx.compose.material3.NavigationBarItemDefaults.colors(
+                        NavigationBarItemDefaults.colors(
                             selectedIconColor = pc.accent,
                             selectedTextColor = pc.text,
                             indicatorColor = pc.accent.copy(alpha = 0.2f),
