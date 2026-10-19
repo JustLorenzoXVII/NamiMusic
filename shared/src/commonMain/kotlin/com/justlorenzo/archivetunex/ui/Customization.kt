@@ -263,7 +263,7 @@ data class AtxStyle(
     val miniShowArtist: Boolean = true,
 )
 
-private fun Preferences.toAtxStyle(): AtxStyle {
+internal fun Preferences.toAtxStyle(): AtxStyle {
     val d = AtxStyle()
     return AtxStyle(
         themeSource = this[ThemeSourceKey].toEnum(d.themeSource),
@@ -293,9 +293,9 @@ private fun Preferences.toAtxStyle(): AtxStyle {
 fun Color.toPreferenceInt(): Int = toArgb()
 
 @Composable
-fun rememberAtxStyle(): AtxStyle {
+fun rememberAtxStyle(initial: AtxStyle = AtxStyle()): AtxStyle {
     val flow = remember { AppContext.dataStore.data.map { it.toAtxStyle() }.distinctUntilChanged() }
-    val style by flow.collectAsState(AtxStyle())
+    val style by flow.collectAsState(initial)
     return style
 }
 

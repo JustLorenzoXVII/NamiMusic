@@ -1,5 +1,11 @@
 package com.justlorenzo.archivetunex
 
+import androidx.compose.ui.graphics.Color
+import com.justlorenzo.archivetunex.ui.toAtxStyle
+import moe.rukamori.archivetune.extensions.toEnum
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first
 import com.justlorenzo.archivetunex.ui.tr
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedContent
@@ -122,6 +128,28 @@ fun App() {
             }.build()
     }
 
+    // Le impostazioni salvate si leggono PRIMA di disegnare l'app: così il primo fotogramma ha già
+    // tema, colori, lingua e stile giusti (prima si vedevano quelli predefiniti e poi cambiavano di colpo).
+    // Intanto resta il colore della schermata di avvio; su Android la splash aspetta [AppStartup.ready].
+    val startupPrefs by androidx.compose.runtime.produceState<androidx.datastore.preferences.core.Preferences?>(null) {
+        value = moe.rukamori.archivetune.compat.AppContext.dataStore.data.first()
+    }
+    val prefs = startupPrefs
+    if (prefs == null) {
+        Box(Modifier.fillMaxSize().background(Color(0xFF2B1230)))
+        return
+    }
+    LoadedApp(prefs)
+}
+
+/** Lo stato dell'avvio: pronto quando l'app ha letto le impostazioni e disegna con quelle giuste. */
+object AppStartup {
+    @kotlin.concurrent.Volatile
+    var ready: Boolean = false
+}
+
+@Composable
+private fun LoadedApp(prefs: androidx.datastore.preferences.core.Preferences) {
     val navigator = remember { AtxNavigator() }
     val actions =
         remember {
@@ -131,11 +159,19 @@ fun App() {
                 downloads = ArchiveTuneXRuntime.downloadUtil,
             )
         }
-    val darkMode by rememberEnumPreference(DarkModeKey, DarkMode.AUTO)
-    // Lingua dell'interfaccia: cambiandola l'app si ridisegna subito
-    val appLanguage by rememberEnumPreference(com.justlorenzo.archivetunex.ui.AppLanguageKey, com.justlorenzo.archivetunex.ui.AppLanguage.System)
+    val dataStore = moe.rukamori.archivetune.compat.AppContext.dataStore
+    // Valori iniziali presi dalle impostazioni già lette: niente "salto" al primo fotogramma
+    val darkMode by remember { dataStore.data.map { it[DarkModeKey].toEnum(DarkMode.AUTO) }.distinctUntilChanged() }
+        .collectAsState(prefs[DarkModeKey].toEnum(DarkMode.AUTO))
+    // Lingua dell'interfaccia: impostata subito, e cambiandola l'app si ridisegna
+    val appLanguage by remember {
+        dataStore.data.map { it[com.justlorenzo.archivetunex.ui.AppLanguageKey].toEnum(com.justlorenzo.archivetunex.ui.AppLanguage.System) }.distinctUntilChanged()
+    }.collectAsState(prefs[com.justlorenzo.archivetunex.ui.AppLanguageKey].toEnum(com.justlorenzo.archivetunex.ui.AppLanguage.System))
+    remember { com.justlorenzo.archivetunex.ui.I18n.language = appLanguage }
     // La chiave del LaunchedEffect legge la lingua durante il disegno: quando cambia, l'effetto riparte
     LaunchedEffect(appLanguage) { com.justlorenzo.archivetunex.ui.I18n.language = appLanguage }
+    // Primo fotogramma pronto: la splash di Android può sparire
+    androidx.compose.runtime.SideEffect { AppStartup.ready = true }
     val systemDark = isSystemInDarkTheme()
     val dark =
         when (darkMode) {
@@ -145,7 +181,7 @@ fun App() {
         }
     LaunchedEffect(dark) { SystemBars.setDarkContent(!dark) }
 
-    val style = rememberAtxStyle()
+    val style = rememberAtxStyle(remember { prefs.toAtxStyle() })
     // "Colori della copertina": tutta l'app prende i colori del brano in riproduzione
     val nowPlaying by actions.player.mediaMetadata.collectAsState()
     val albumColors = rememberArtworkColors(if (style.themeSource == ThemeSource.Album) nowPlaying?.thumbnailUrl else null)
