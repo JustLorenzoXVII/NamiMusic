@@ -3,6 +3,9 @@ package com.justlorenzo.archivetunex.ui
 /** Testi dell'interfaccia in inglese (la chiave è il testo italiano usato nel codice). */
 val EnglishStrings: Map<String, String> =
     mapOf(
+        "Svuota" to "Clear",
+        "Togli dalla coda" to "Remove from queue",
+        "Sposta" to "Move",
         "Home" to "Home",
         "Cerca" to "Search",
         "Libreria" to "Library",

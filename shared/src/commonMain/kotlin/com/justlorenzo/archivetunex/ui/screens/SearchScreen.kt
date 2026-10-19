@@ -1,5 +1,10 @@
 package com.justlorenzo.archivetunex.ui.screens
 
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.material3.toShape
+import androidx.compose.material3.MaterialShapes
 import com.justlorenzo.archivetunex.ui.tr
 import com.justlorenzo.archivetunex.ui.trf
 import androidx.compose.foundation.clickable
@@ -362,7 +367,25 @@ private fun SearchHome(
     }
 }
 
-/** Riquadro di un genere: colore pieno di YouTube Music, testo grande. */
+/** Le forme Expressive usate come decorazione dei riquadri dei generi. */
+private val MoodShapes =
+    listOf(
+        MaterialShapes.Cookie9Sided,
+        MaterialShapes.Clover4Leaf,
+        MaterialShapes.Sunny,
+        MaterialShapes.Flower,
+        MaterialShapes.Gem,
+        MaterialShapes.SoftBurst,
+        MaterialShapes.Puffy,
+        MaterialShapes.Cookie6Sided,
+        MaterialShapes.Pentagon,
+        MaterialShapes.Burst,
+    )
+
+/**
+ * Riquadro di un genere: colore di YouTube Music con sfumatura, una grande forma Expressive
+ * che spunta dall'angolo (diversa per ogni genere), angoli asimmetrici e un rimbalzo quando lo premi.
+ */
 @Composable
 private fun MoodTile(
     title: String,
@@ -371,25 +394,64 @@ private fun MoodTile(
     onClick: () -> Unit,
 ) {
     val base = color.copy(alpha = 1f)
+    val seed = remember(title) { title.fold(7) { acc, c -> acc * 31 + c.code }.let { if (it < 0) -it else it } }
+    val shape = remember(seed) { MoodShapes[seed % MoodShapes.size].toShape() }
+    val rotation = (seed % 90).toFloat()
+    val content = base.readableOn()
+    val source = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val pressed by source.collectIsPressedAsState()
+    val scale by androidx.compose.animation.core.animateFloatAsState(
+        if (pressed) 0.94f else 1f,
+        androidx.compose.animation.core.spring(dampingRatio = 0.5f, stiffness = 600f),
+        label = "moodScale",
+    )
+    // Angoli: grandi da una parte e piccoli dall'altra, alternati da un genere all'altro
+    val tileShape =
+        if (seed % 2 == 0) {
+            RoundedCornerShape(topStart = 30.dp, topEnd = 10.dp, bottomStart = 10.dp, bottomEnd = 30.dp)
+        } else {
+            RoundedCornerShape(topStart = 10.dp, topEnd = 30.dp, bottomStart = 30.dp, bottomEnd = 10.dp)
+        }
     androidx.compose.foundation.layout.Box(
         modifier
-            .height(84.dp)
-            .clip(RoundedCornerShape(22.dp))
+            .height(96.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }.clip(tileShape)
             .background(
                 androidx.compose.ui.graphics.Brush.linearGradient(
-                    listOf(base, base.copy(alpha = 0.65f).compositeOver(Color.Black)),
+                    listOf(base, base.copy(alpha = 0.6f).compositeOver(Color.Black)),
                 ),
-            ).clickable(onClick = onClick)
-            .padding(14.dp),
+            ).clickable(interactionSource = source, indication = androidx.compose.foundation.LocalIndication.current, onClick = onClick),
     ) {
+        // La forma decorativa che esce dall'angolo in alto a destra
+        androidx.compose.foundation.layout.Box(
+            Modifier
+                .align(Alignment.TopEnd)
+                .offset(x = 26.dp, y = (-22).dp)
+                .size(104.dp)
+                .graphicsLayer { rotationZ = rotation }
+                .clip(shape)
+                .background(content.copy(alpha = 0.16f)),
+        )
+        androidx.compose.foundation.layout.Box(
+            Modifier
+                .align(Alignment.TopEnd)
+                .offset(x = (-30).dp, y = 14.dp)
+                .size(18.dp)
+                .graphicsLayer { rotationZ = -rotation }
+                .clip(shape)
+                .background(content.copy(alpha = 0.22f)),
+        )
         Text(
             title,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Black,
-            color = base.readableOn(),
+            color = content,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.align(Alignment.BottomStart),
+            modifier = Modifier.align(Alignment.BottomStart).padding(16.dp),
         )
     }
 }

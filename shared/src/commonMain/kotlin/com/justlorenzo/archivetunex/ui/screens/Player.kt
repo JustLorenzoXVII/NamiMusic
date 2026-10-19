@@ -130,6 +130,10 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import archivetunex.shared.generated.resources.Res
+import archivetunex.shared.generated.resources.drag_handle
+import archivetunex.shared.generated.resources.close
+import archivetunex.shared.generated.resources.clear_all
+import androidx.compose.ui.input.pointer.pointerInput
 import archivetunex.shared.generated.resources.expand_more
 import archivetunex.shared.generated.resources.favorite
 import archivetunex.shared.generated.resources.favorite_border
@@ -2209,7 +2213,10 @@ private fun morphShape(
     RoundedCornerShape(radius)
 }
 
-/** Coda di riproduzione: tocca un brano per saltarci. */
+/**
+ * Coda di riproduzione: tocca un brano per saltarci, trascina la maniglia per riordinare,
+ * la X per toglierlo, "Svuota" per lasciare solo il brano in riproduzione.
+ */
 @Composable
 fun QueueSheet() {
     val actions = LocalActions.current
@@ -2219,29 +2226,142 @@ fun QueueSheet() {
     val currentIndex by connection.currentWindowIndex.collectAsState()
     val sheetState = rememberModalBottomSheetState()
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = currentIndex.coerceAtLeast(0))
+    val density = LocalDensity.current
+    val haptics = LocalHapticFeedback.current
+    val rowHeight = 68.dp
+    val rowPx = with(density) { rowHeight.toPx() }
+
+    // Trascinamento: quale brano, dove si trova il dito e su quale posizione cadrebbe
+    var dragFrom by remember { mutableStateOf<Int?>(null) }
+    var dragOffset by remember { mutableFloatStateOf(0f) }
+    val dragTarget =
+        dragFrom?.let { from -> (from + kotlin.math.round(dragOffset / rowPx).toInt()).coerceIn(0, (windows.size - 1).coerceAtLeast(0)) }
 
     ModalBottomSheet(onDismissRequest = { navigator.queueVisible = false }, sheetState = sheetState) {
-        Text(
-            tr("In coda"),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Black,
-            modifier = Modifier.padding(start = 20.dp, bottom = 8.dp),
-        )
-        LazyColumn(state = listState, modifier = Modifier.fillMaxWidth()) {
-            itemsIndexed(windows) { index, window ->
-                val item = window.mediaItem.metadata ?: return@itemsIndexed
-                SongRow(
-                    songId = item.id,
-                    title = item.title,
-                    subtitle = item.artists.joinToString { it.name },
-                    artworkUrl = item.thumbnailUrl,
-                    isCurrent = index == currentIndex,
-                    onClick = {
-                        connection.player.seekToDefaultPosition(window.firstPeriodIndex)
-                        connection.player.prepare()
-                        connection.player.playWhenReady = true
-                    },
+        Row(
+            Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(tr("In coda"), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black)
+                Text(
+                    trf("{0} brani", windows.size),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+            // Svuota: resta solo il brano in riproduzione
+            if (windows.size > 1) {
+                Row(
+                    Modifier
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.secondaryContainer)
+                        .clickable {
+                            val player = connection.player
+                            val current = player.currentMediaItemIndex
+                            if (current + 1 < player.mediaItemCount) player.removeMediaItems(current + 1, player.mediaItemCount)
+                            if (current > 0) player.removeMediaItems(0, current)
+                        }.padding(horizontal = 14.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    AtxIcon(Res.drawable.clear_all, null, size = 18.dp, tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                    Text(tr("Svuota"), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                }
+            }
+        }
+        LazyColumn(state = listState, modifier = Modifier.fillMaxWidth()) {
+            itemsIndexed(windows, key = { index, window -> "${window.uid}-$index" }) { index, window ->
+                val item = window.mediaItem.metadata ?: return@itemsIndexed
+                val isDragged = dragFrom == index
+                // Gli altri brani si spostano per fare posto a quello trascinato
+                val shift =
+                    when {
+                        isDragged || dragFrom == null || dragTarget == null -> 0f
+                        dragFrom!! < dragTarget && index in (dragFrom!! + 1)..dragTarget -> -rowPx
+                        dragFrom!! > dragTarget && index in dragTarget until dragFrom!! -> rowPx
+                        else -> 0f
+                    }
+                val animatedShift by animateFloatAsState(shift, spring(stiffness = Spring.StiffnessMediumLow), label = "queueShift")
+                val isCurrent = index == currentIndex
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(rowHeight)
+                        .graphicsLayer {
+                            translationY = if (isDragged) dragOffset else animatedShift
+                            shadowElevation = if (isDragged) 12.dp.toPx() else 0f
+                        }.background(
+                            when {
+                                isDragged -> MaterialTheme.colorScheme.surfaceContainerHighest
+                                isCurrent -> MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                else -> Color.Transparent
+                            },
+                        ).clickable {
+                            connection.player.seekToDefaultPosition(window.firstPeriodIndex)
+                            connection.player.prepare()
+                            connection.player.playWhenReady = true
+                        }.padding(start = 20.dp, end = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
+                ) {
+                    Artwork(item.thumbnailUrl, Modifier.size(48.dp), RoundedCornerShape(12.dp), sizePx = 160)
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            item.title,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            item.artists.joinToString { it.name },
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    // Togli dalla coda (non il brano in riproduzione)
+                    if (!isCurrent) {
+                        IconButton(onClick = { connection.player.removeMediaItem(index) }) {
+                            AtxIcon(Res.drawable.close, tr("Togli dalla coda"), size = 20.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                    // Maniglia: trascinala per spostare il brano
+                    Box(
+                        Modifier
+                            .size(44.dp)
+                            .pointerInput(index, windows.size) {
+                                androidx.compose.foundation.gestures.detectDragGestures(
+                                    onDragStart = {
+                                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        dragFrom = index
+                                        dragOffset = 0f
+                                    },
+                                    onDrag = { change, amount ->
+                                        change.consume()
+                                        dragOffset += amount.y
+                                    },
+                                    onDragEnd = {
+                                        val from = dragFrom
+                                        val to = dragTarget
+                                        if (from != null && to != null && from != to) connection.player.moveMediaItem(from, to)
+                                        dragFrom = null
+                                        dragOffset = 0f
+                                    },
+                                    onDragCancel = {
+                                        dragFrom = null
+                                        dragOffset = 0f
+                                    },
+                                )
+                            },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        AtxIcon(Res.drawable.drag_handle, tr("Sposta"), size = 22.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
             }
         }
         Spacer(Modifier.height(24.dp))
