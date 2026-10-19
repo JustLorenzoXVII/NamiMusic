@@ -23,6 +23,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -2334,7 +2335,7 @@ fun QueueSheet() {
                         Modifier
                             .size(44.dp)
                             .pointerInput(index, windows.size) {
-                                androidx.compose.foundation.gestures.detectDragGestures(
+                                detectDragGestures(
                                     onDragStart = {
                                         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                         dragFrom = index
