@@ -134,7 +134,8 @@ fun App() {
     val darkMode by rememberEnumPreference(DarkModeKey, DarkMode.AUTO)
     // Lingua dell'interfaccia: cambiandola l'app si ridisegna subito
     val appLanguage by rememberEnumPreference(com.justlorenzo.archivetunex.ui.AppLanguageKey, com.justlorenzo.archivetunex.ui.AppLanguage.System)
-    androidx.compose.runtime.SideEffect { com.justlorenzo.archivetunex.ui.I18n.language = appLanguage }
+    // La chiave del LaunchedEffect legge la lingua durante il disegno: quando cambia, l'effetto riparte
+    LaunchedEffect(appLanguage) { com.justlorenzo.archivetunex.ui.I18n.language = appLanguage }
     val systemDark = isSystemInDarkTheme()
     val dark =
         when (darkMode) {
