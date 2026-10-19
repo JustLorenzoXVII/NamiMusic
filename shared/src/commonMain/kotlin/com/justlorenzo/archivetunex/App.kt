@@ -1,5 +1,6 @@
 package com.justlorenzo.archivetunex
 
+import com.justlorenzo.archivetunex.ui.tr
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
@@ -131,6 +132,9 @@ fun App() {
             )
         }
     val darkMode by rememberEnumPreference(DarkModeKey, DarkMode.AUTO)
+    // Lingua dell'interfaccia: cambiandola l'app si ridisegna subito
+    val appLanguage by rememberEnumPreference(com.justlorenzo.archivetunex.ui.AppLanguageKey, com.justlorenzo.archivetunex.ui.AppLanguage.System)
+    androidx.compose.runtime.SideEffect { com.justlorenzo.archivetunex.ui.I18n.language = appLanguage }
     val systemDark = isSystemInDarkTheme()
     val dark =
         when (darkMode) {
@@ -220,9 +224,9 @@ private fun AppContent(navigator: AtxNavigator) {
                 JoinedBottomBar(
                     tabs =
                         listOf(
-                            BarTab(Tab.Home, "Home", Res.drawable.atx_home),
-                            BarTab(Tab.Search, "Cerca", Res.drawable.search),
-                            BarTab(Tab.Library, "Libreria", Res.drawable.library_filled),
+                            BarTab(Tab.Home, tr("Home"), Res.drawable.atx_home),
+                            BarTab(Tab.Search, tr("Cerca"), Res.drawable.search),
+                            BarTab(Tab.Library, tr("Libreria"), Res.drawable.library_filled),
                         ),
                     hideMini = playerProgress > 0f,
                     onMiniBounds = { miniBounds = it },
@@ -324,9 +328,9 @@ private fun FloatingTabs(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            TabPill(navigator, Tab.Home, "Home", Res.drawable.atx_home)
-            TabPill(navigator, Tab.Search, "Cerca", Res.drawable.search)
-            TabPill(navigator, Tab.Library, "Libreria", Res.drawable.library_filled)
+            TabPill(navigator, Tab.Home, tr("Home"), Res.drawable.atx_home)
+            TabPill(navigator, Tab.Search, tr("Cerca"), Res.drawable.search)
+            TabPill(navigator, Tab.Library, tr("Libreria"), Res.drawable.library_filled)
         }
     }
 }

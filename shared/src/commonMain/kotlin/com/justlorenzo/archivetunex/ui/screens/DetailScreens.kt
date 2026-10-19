@@ -1,5 +1,7 @@
 package com.justlorenzo.archivetunex.ui.screens
 
+import com.justlorenzo.archivetunex.ui.tr
+import com.justlorenzo.archivetunex.ui.trf
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -116,7 +118,7 @@ fun AlbumScreen(browseId: String) {
                             artworkUrl = albumItem.thumbnail,
                             title = albumItem.title,
                             subtitle = albumItem.artists?.joinToString { it.name },
-                            detail = listOfNotNull(albumItem.year?.toString(), "${songs.size} brani").joinToString(" · "),
+                            detail = listOfNotNull(albumItem.year?.toString(), trf("{0} brani", songs.size)).joinToString(" · "),
                         ) {
                             androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 PlayShuffleButtons(
@@ -132,7 +134,7 @@ fun AlbumScreen(browseId: String) {
                                         }
                                     },
                                     modifier = Modifier.padding(horizontal = 0.dp),
-                                ) { Text(if (isSaved) "Salvato in libreria" else "Salva in libreria") }
+                                ) { Text(if (isSaved) tr("Salvato in libreria") else tr("Salva in libreria")) }
                             }
                         }
                     }
@@ -151,7 +153,7 @@ fun AlbumScreen(browseId: String) {
                     if (state.value.otherVersions.isNotEmpty()) {
                         item(key = "versions") {
                             val navigator = LocalNavigator.current
-                            SectionHeader("Altre versioni")
+                            SectionHeader(tr("Altre versioni"))
                             LazyRow(contentPadding = PaddingValues(horizontal = 16.dp)) {
                                 items(state.value.otherVersions) { other ->
                                     ItemCard(other, onClick = { openItem(other, actions, navigator) })
@@ -202,7 +204,7 @@ fun PlaylistScreen(playlistId: String) {
                             artworkUrl = playlist.thumbnail,
                             title = playlist.title,
                             subtitle = playlist.author?.name,
-                            detail = playlist.songCountText ?: "${songs.size} brani",
+                            detail = playlist.songCountText ?: trf("{0} brani", songs.size),
                         ) {
                             androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 PlayShuffleButtons(
@@ -216,11 +218,11 @@ fun PlaylistScreen(playlistId: String) {
                                     } else {
                                         actions.saveYouTubePlaylist(playlist, songs)
                                     }
-                                }) { Text(if (savedPlaylist != null) "Salvata in libreria" else "Salva in libreria") }
+                                }) { Text(if (savedPlaylist != null) tr("Salvata in libreria") else tr("Salva in libreria")) }
                             }
                         }
                     }
-                    if (songs.isEmpty()) item(key = "empty") { EmptyState("Questa playlist è vuota.") }
+                    if (songs.isEmpty()) item(key = "empty") { EmptyState(tr("Questa playlist è vuota.")) }
                     itemsIndexed(songs) { index, song ->
                         SongRow(
                             songId = song.id,
@@ -262,7 +264,7 @@ fun LocalPlaylistScreen(
                     artworkUrl = songs.firstOrNull()?.thumbnailUrl,
                     title = name,
                     subtitle = null,
-                    detail = "${songs.size} brani",
+                    detail = trf("{0} brani", songs.size),
                 ) {
                     androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         PlayShuffleButtons(
@@ -271,13 +273,13 @@ fun LocalPlaylistScreen(
                             onDownload = { actions.downloadAll(songs) },
                         )
                         androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedButton(onClick = { renaming = true }) { Text("Rinomina") }
-                            OutlinedButton(onClick = { deleting = true }) { Text("Elimina") }
+                            OutlinedButton(onClick = { renaming = true }) { Text(tr("Rinomina")) }
+                            OutlinedButton(onClick = { deleting = true }) { Text(tr("Elimina")) }
                         }
                     }
                 }
             }
-            if (songs.isEmpty()) item(key = "empty") { EmptyState("Questa playlist è vuota. Aggiungi brani dal menu ⋮ di un brano.") }
+            if (songs.isEmpty()) item(key = "empty") { EmptyState(tr("Questa playlist è vuota. Aggiungi brani dal menu ⋮ di un brano.")) }
             itemsIndexed(songs) { index, song ->
                 SongRow(
                     songId = song.id,
@@ -311,9 +313,9 @@ fun LocalPlaylistScreen(
     }
     if (deleting) {
         ConfirmDialog(
-            title = "Eliminare \u201c$name\u201d?",
-            text = "La playlist viene tolta dalla libreria del telefono. I brani scaricati restano.",
-            confirmLabel = "Elimina",
+            title = trf("Eliminare “{0}”?", name),
+            text = tr("La playlist viene tolta dalla libreria del telefono. I brani scaricati restano."),
+            confirmLabel = tr("Elimina"),
             onDismiss = { deleting = false },
             onConfirm = {
                 playlist?.playlist?.let(actions::deletePlaylist)
@@ -349,10 +351,10 @@ fun ArtistScreen(browseId: String) {
                         ) {
                             androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 (artistItem.shuffleEndpoint ?: artistItem.playEndpoint)?.let { endpoint ->
-                                    androidx.compose.material3.Button(onClick = { actions.playEndpoint(endpoint) }) { Text("Riproduci") }
+                                    androidx.compose.material3.Button(onClick = { actions.playEndpoint(endpoint) }) { Text(tr("Riproduci")) }
                                 }
                                 artistItem.radioEndpoint?.let { endpoint ->
-                                    FilledTonalButton(onClick = { actions.playEndpoint(endpoint) }) { Text("Radio") }
+                                    FilledTonalButton(onClick = { actions.playEndpoint(endpoint) }) { Text(tr("Radio")) }
                                 }
                                 OutlinedButton(onClick = {
                                     actions.database.transaction {
@@ -366,7 +368,7 @@ fun ArtistScreen(browseId: String) {
                                             ).also { insert(it) }
                                         update(entity.toggleLike())
                                     }
-                                }) { Text(if (isFollowed) "Segui già" else "Segui") }
+                                }) { Text(if (isFollowed) tr("Segui già") else tr("Segui")) }
                             }
                         }
                     }

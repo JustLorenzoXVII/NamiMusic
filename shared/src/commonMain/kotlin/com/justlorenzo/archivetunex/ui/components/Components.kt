@@ -1,5 +1,6 @@
 package com.justlorenzo.archivetunex.ui.components
 
+import com.justlorenzo.archivetunex.ui.tr
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -92,8 +93,18 @@ fun Artwork(
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         if (!url.isNullOrBlank()) {
+            val context = coil3.compose.LocalPlatformContext.current
             AsyncImage(
-                model = remember(url, sizePx) { url.resize(sizePx, sizePx) },
+                // Grandezza fissa: senza, Coil la prende dal riquadro al primo disegno e non la cambia più
+                // (la copertina del player parte piccola dal mini player e resterebbe sgranata)
+                model =
+                    remember(url, sizePx) {
+                        coil3.request.ImageRequest
+                            .Builder(context)
+                            .data(url.resize(sizePx, sizePx))
+                            .size(sizePx, sizePx)
+                            .build()
+                    },
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 colorFilter = colorFilter,
@@ -125,7 +136,7 @@ fun SectionHeader(
         )
         if (onMore != null) {
             IconButton(onClick = onMore) {
-                AtxIcon(Res.drawable.navigate_next, "Altro")
+                AtxIcon(Res.drawable.navigate_next, tr("Altro"))
             }
         }
     }
@@ -143,7 +154,7 @@ fun DownloadBadge(
         Download.STATE_COMPLETED ->
             AtxIcon(
                 Res.drawable.check,
-                contentDescription = "Scaricato",
+                contentDescription = tr("Scaricato"),
                 size = 16.dp,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = modifier,
@@ -202,7 +213,7 @@ fun SongRow(
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 DownloadBadge(songId)
                 if (explicit) {
-                    AtxIcon(Res.drawable.explicit, "Esplicito", size = 16.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    AtxIcon(Res.drawable.explicit, tr("Esplicito"), size = 16.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Text(
                     subtitle,
@@ -215,7 +226,7 @@ fun SongRow(
         }
         if (onMore != null) {
             IconButton(onClick = onMore) {
-                AtxIcon(Res.drawable.more_vert, "Altre opzioni", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                AtxIcon(Res.drawable.more_vert, tr("Altre opzioni"), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -226,9 +237,9 @@ fun YTItem.subtitle(): String =
     when (this) {
         is SongItem -> listOfNotNull(artists.joinToString { it.name }.takeIf(String::isNotBlank), album?.name).joinToString(" · ")
         is AlbumItem -> listOfNotNull(artists?.joinToString { it.name }?.takeIf(String::isNotBlank), year?.toString()).joinToString(" · ")
-        is PlaylistItem -> listOfNotNull("Playlist", author?.name, songCountText).joinToString(" · ")
-        is ArtistItem -> subscriberCountText ?: "Artista"
-        is PodcastItem -> listOfNotNull("Podcast", author?.name).joinToString(" · ")
+        is PlaylistItem -> listOfNotNull(tr("Playlist"), author?.name, songCountText).joinToString(" · ")
+        is ArtistItem -> subscriberCountText ?: tr("Artista")
+        is PodcastItem -> listOfNotNull(tr("Podcast"), author?.name).joinToString(" · ")
         is EpisodeItem -> listOfNotNull(podcast?.name, dateText).joinToString(" · ")
     }
 
@@ -333,7 +344,7 @@ fun ErrorBox(
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Button(onClick = onRetry) { Text("Riprova") }
+        Button(onClick = onRetry) { Text(tr("Riprova")) }
     }
 }
 

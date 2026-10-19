@@ -1,5 +1,7 @@
 package com.justlorenzo.archivetunex.ui.components
 
+import com.justlorenzo.archivetunex.ui.tr
+import com.justlorenzo.archivetunex.ui.trf
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -50,19 +52,19 @@ fun CreatePlaylistDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Nuova playlist") },
+        title = { Text(tr("Nuova playlist")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Nome") },
+                    label = { Text(tr("Nome")) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 if (account != null) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Crea anche su YouTube Music", modifier = Modifier.weight(1f))
+                        Text(tr("Crea anche su YouTube Music"), modifier = Modifier.weight(1f))
                         Switch(checked = onYouTube, onCheckedChange = { onYouTube = it })
                     }
                 }
@@ -75,9 +77,9 @@ fun CreatePlaylistDialog(
                     actions.createPlaylist(name.trim(), onYouTube = account != null && onYouTube, firstSong = firstSong)
                     onDismiss()
                 },
-            ) { Text("Crea") }
+            ) { Text(tr("Crea")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Annulla") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Annulla")) } },
     )
 }
 
@@ -96,7 +98,7 @@ fun AddToPlaylistSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Text(
-            "Aggiungi a playlist",
+            tr("Aggiungi a playlist"),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(start = 20.dp, bottom = 8.dp),
@@ -112,7 +114,7 @@ fun AddToPlaylistSheet(
                         Modifier.size(52.dp),
                         contentAlignment = Alignment.Center,
                     ) { AtxIcon(Res.drawable.add, null, size = 28.dp, tint = MaterialTheme.colorScheme.primary) }
-                    Text("Nuova playlist", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+                    Text(tr("Nuova playlist"), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
                 }
             }
             items(playlists, key = { it.id }) { playlist ->
@@ -135,7 +137,7 @@ fun AddToPlaylistSheet(
                     Column(Modifier.weight(1f)) {
                         Text(playlist.playlist.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Text(
-                            "${playlist.songCount} brani" + if (playlist.playlist.browseId != null) " · YouTube Music" else "",
+                            trf("{0} brani", playlist.songCount) + if (playlist.playlist.browseId != null) " · YouTube Music" else "",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -167,7 +169,7 @@ fun RenamePlaylistDialog(
     var name by remember { mutableStateOf(currentName) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Rinomina playlist") },
+        title = { Text(tr("Rinomina playlist")) },
         text = {
             OutlinedTextField(
                 value = name,
@@ -180,9 +182,9 @@ fun RenamePlaylistDialog(
             TextButton(enabled = name.isNotBlank(), onClick = {
                 onRename(name.trim())
                 onDismiss()
-            }) { Text("Salva") }
+            }) { Text(tr("Salva")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Annulla") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Annulla")) } },
     )
 }
 
@@ -205,6 +207,6 @@ fun ConfirmDialog(
                 onDismiss()
             }) { Text(confirmLabel, color = MaterialTheme.colorScheme.error) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Annulla") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Annulla")) } },
     )
 }

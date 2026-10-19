@@ -1,5 +1,6 @@
 package com.justlorenzo.archivetunex.ui.screens
 
+import com.justlorenzo.archivetunex.ui.tr
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -77,9 +78,9 @@ import moe.rukamori.archivetune.models.toMediaMetadata
 
 private fun greeting(): String =
     when (LocalDateTime.now().hour) {
-        in 5..12 -> "Buongiorno"
-        in 13..17 -> "Buon pomeriggio"
-        else -> "Buonasera"
+        in 5..12 -> tr("Buongiorno")
+        in 13..17 -> tr("Buon pomeriggio")
+        else -> tr("Buonasera")
     }
 
 @Composable
@@ -104,7 +105,7 @@ fun HomeScreen() {
         ) {
             item(key = "header") {
                 ScreenTitle(
-                    title = account?.name?.substringBefore(' ') ?: "Ascolta ora",
+                    title = account?.name?.substringBefore(' ') ?: tr("Ascolta ora"),
                     overline = greeting(),
                 ) { AccountButton(account) { navigator.accountVisible = true } }
             }
@@ -146,7 +147,7 @@ fun HomeScreen() {
 
             if (recent.isNotEmpty()) {
                 item(key = "recent") {
-                    SectionHeader("Ascoltati di recente")
+                    SectionHeader(tr("Ascoltati di recente"))
                     LazyRow(
                         contentPadding = PaddingValues(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -234,7 +235,7 @@ private fun HeroCard(
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
-                "PER TE ADESSO",
+                tr("PER TE ADESSO"),
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.5.sp,
@@ -265,7 +266,7 @@ private fun HeroCard(
                 .background(onAccent),
             contentAlignment = Alignment.Center,
         ) {
-            AtxIcon(Res.drawable.play, "Riproduci", size = 30.dp, tint = accent)
+            AtxIcon(Res.drawable.play, tr("Riproduci"), size = 30.dp, tint = accent)
         }
     }
 }

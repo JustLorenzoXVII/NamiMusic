@@ -2,6 +2,8 @@
 
 package com.justlorenzo.archivetunex.ui.screens
 
+import com.justlorenzo.archivetunex.ui.tr
+import com.justlorenzo.archivetunex.ui.trf
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -161,10 +163,10 @@ import org.jetbrains.compose.resources.DrawableResource
 private val AudioQuality.label: String
     get() =
         when (this) {
-            AudioQuality.HIGHEST -> "Massima"
-            AudioQuality.HIGH -> "Alta"
-            AudioQuality.AUTO -> "Automatica"
-            AudioQuality.LOW -> "Bassa (risparmia dati)"
+            AudioQuality.HIGHEST -> tr("Massima")
+            AudioQuality.HIGH -> tr("Alta")
+            AudioQuality.AUTO -> tr("Automatica")
+            AudioQuality.LOW -> tr("Bassa (risparmia dati)")
         }
 
 private fun <T> save(
@@ -225,7 +227,7 @@ private fun SettingsScaffold(
         IconButton(
             onClick = { if (isHome) navigator.settingsVisible = false else navigator.settingsPage = null },
             modifier = Modifier.padding(4.dp),
-        ) { AtxIcon(if (isHome) Res.drawable.close else Res.drawable.arrow_back, if (isHome) "Chiudi" else "Indietro") }
+        ) { AtxIcon(if (isHome) Res.drawable.close else Res.drawable.arrow_back, if (isHome) tr("Chiudi") else tr("Indietro")) }
         Column(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -411,20 +413,20 @@ private fun <T> PreviewChoices(
 @Composable
 private fun SettingsHome() {
     val navigator = LocalNavigator.current
-    SettingsScaffold("Impostazioni", overline = "Nami", isHome = true) {
-        SettingsGroup("Personalizza") {
-            NavRow(Res.drawable.palette, Color(0xFFFF8FB8), "Aspetto", "Tema, colore d'accento, copertine, schede") { navigator.settingsPage = SettingsPage.Appearance }
-            NavRow(Res.drawable.play, Color(0xFF8B5CF6), "Player", "Sfondo, barra, pulsante Play, dettagli") { navigator.settingsPage = SettingsPage.Player }
-            NavRow(Res.drawable.sliders, Color(0xFF00A88F), "Mini player", "Stile, avanzamento, pulsanti") { navigator.settingsPage = SettingsPage.MiniPlayer }
+    SettingsScaffold(tr("Impostazioni"), overline = "Nami", isHome = true) {
+        SettingsGroup(tr("Personalizza")) {
+            NavRow(Res.drawable.palette, Color(0xFFFF8FB8), tr("Aspetto"), tr("Lingua, tema, colori, copertine")) { navigator.settingsPage = SettingsPage.Appearance }
+            NavRow(Res.drawable.play, Color(0xFF8B5CF6), tr("Player"), tr("Sfondo, barra, pulsante Play, dettagli")) { navigator.settingsPage = SettingsPage.Player }
+            NavRow(Res.drawable.sliders, Color(0xFF00A88F), tr("Mini player"), tr("Stile, avanzamento, pulsanti")) { navigator.settingsPage = SettingsPage.MiniPlayer }
         }
-        SettingsGroup("Musica") {
-            NavRow(Res.drawable.tune, Color(0xFFFF7A2F), "Riproduzione", "Qualità audio") { navigator.settingsPage = SettingsPage.Playback }
-            NavRow(Res.drawable.language, Color(0xFF3D7BFF), "Contenuti", "Lingua e paese di YouTube Music") { navigator.settingsPage = SettingsPage.Content }
-            NavRow(Res.drawable.storage, Color(0xFF1DB954), "Download e spazio", "Spazio occupato, elimina i download") { navigator.settingsPage = SettingsPage.Storage }
+        SettingsGroup(tr("Musica")) {
+            NavRow(Res.drawable.tune, Color(0xFFFF7A2F), tr("Riproduzione"), tr("Qualità audio")) { navigator.settingsPage = SettingsPage.Playback }
+            NavRow(Res.drawable.language, Color(0xFF3D7BFF), tr("Contenuti"), tr("Lingua e paese di YouTube Music")) { navigator.settingsPage = SettingsPage.Content }
+            NavRow(Res.drawable.storage, Color(0xFF1DB954), tr("Download e spazio"), tr("Spazio occupato, elimina i download")) { navigator.settingsPage = SettingsPage.Storage }
         }
-        SettingsGroup("Altro") {
-            NavRow(Res.drawable.security, Color(0xFF6B7280), "Privacy", "Cronologia delle ricerche") { navigator.settingsPage = SettingsPage.Privacy }
-            NavRow(Res.drawable.info, Color(0xFF6B7280), "Informazioni", "Versione e registro errori") { navigator.settingsPage = SettingsPage.About }
+        SettingsGroup(tr("Altro")) {
+            NavRow(Res.drawable.security, Color(0xFF6B7280), tr("Privacy"), tr("Cronologia delle ricerche")) { navigator.settingsPage = SettingsPage.Privacy }
+            NavRow(Res.drawable.info, Color(0xFF6B7280), tr("Informazioni"), tr("Versione e registro errori")) { navigator.settingsPage = SettingsPage.About }
         }
     }
 }
@@ -435,10 +437,24 @@ private fun AppearancePage() {
     var darkMode by rememberEnumPreference(DarkModeKey, DarkMode.AUTO)
     val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
 
-    SettingsScaffold("Aspetto", overline = "Personalizza") {
-        SettingsGroup("Tema") {
+    var appLanguage by rememberEnumPreference(com.justlorenzo.archivetunex.ui.AppLanguageKey, com.justlorenzo.archivetunex.ui.AppLanguage.System)
+
+    SettingsScaffold(tr("Aspetto"), overline = tr("Personalizza")) {
+        SettingsGroup(tr("Lingua")) {
             SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(16.dp)) {
-                val options = listOf(DarkMode.AUTO to "Sistema", DarkMode.OFF to "Chiaro", DarkMode.ON to "Scuro")
+                val options = com.justlorenzo.archivetunex.ui.AppLanguage.entries
+                options.forEachIndexed { index, language ->
+                    SegmentedButton(
+                        selected = appLanguage == language,
+                        onClick = { appLanguage = language },
+                        shape = SegmentedButtonDefaults.itemShape(index, options.size),
+                    ) { Text(tr(language.label)) }
+                }
+            }
+        }
+        SettingsGroup(tr("Tema")) {
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(16.dp)) {
+                val options = listOf(DarkMode.AUTO to tr("Sistema"), DarkMode.OFF to tr("Chiaro"), DarkMode.ON to tr("Scuro"))
                 options.forEachIndexed { index, (mode, label) ->
                     SegmentedButton(
                         selected = darkMode == mode,
@@ -447,10 +463,10 @@ private fun AppearancePage() {
                     ) { Text(label) }
                 }
             }
-            SwitchRow("Nero puro", "Nel tema scuro lo sfondo è nero (schermi OLED)", style.pureBlack) { save(PureBlackKey, it) }
+            SwitchRow(tr("Nero puro"), tr("Nel tema scuro lo sfondo è nero (schermi OLED)"), style.pureBlack) { save(PureBlackKey, it) }
         }
 
-        SettingsGroup("Colori dell'app") {
+        SettingsGroup(tr("Colori dell'app")) {
             PreviewChoices(
                 options = ThemeSource.entries,
                 selected = style.themeSource,
@@ -459,9 +475,9 @@ private fun AppearancePage() {
             ) { source -> ThemeSourcePreview(source, style.customColor, dark) }
             Text(
                 when (style.themeSource) {
-                    ThemeSource.System -> "Su Android 12 o successivi usa i colori dello sfondo del telefono. Su iPhone, che non li ha, usa il colore personalizzato."
-                    ThemeSource.Album -> "Sfondi, pulsanti e schede cambiano con la copertina del brano che stai ascoltando."
-                    ThemeSource.Custom -> "Tutta l'app, sfondi compresi, nasce dal colore che scegli qui sotto."
+                    ThemeSource.System -> tr("Su Android 12 o successivi usa i colori dello sfondo del telefono. Su iPhone, che non li ha, usa il colore personalizzato.")
+                    ThemeSource.Album -> tr("Sfondi, pulsanti e schede cambiano con la copertina del brano che stai ascoltando.")
+                    ThemeSource.Custom -> tr("Tutta l'app, sfondi compresi, nasce dal colore che scegli qui sotto.")
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -470,14 +486,14 @@ private fun AppearancePage() {
         }
 
         if (style.themeSource == ThemeSource.Custom) {
-            SettingsGroup("Il tuo colore") {
+            SettingsGroup(tr("Il tuo colore")) {
                 ColorPicker(style.customColor) { save(CustomColorKey, it.toPreferenceInt()) }
             }
         }
 
         // Con i colori di sistema decide il telefono: la tavolozza non serve
         if (style.themeSource != ThemeSource.System) {
-            SettingsGroup("Stile dei colori") {
+            SettingsGroup(tr("Stile dei colori")) {
                 PreviewChoices(
                     options = PaletteStyleChoice.entries.filter { it.visible },
                     selected = style.paletteStyle,
@@ -485,7 +501,7 @@ private fun AppearancePage() {
                     onSelect = { saveEnum(PaletteStyleKey, it) },
                 ) { palette -> PalettePreview(style.customColor, palette, dark) }
                 Text(
-                    style.paletteStyle.description.ifBlank { "Scegli quanto devono essere accesi i colori dell'app." },
+                    style.paletteStyle.description.ifBlank { tr("Scegli quanto devono essere accesi i colori dell'app.") },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 16.dp),
@@ -493,7 +509,7 @@ private fun AppearancePage() {
             }
         }
 
-        SettingsGroup("Angoli delle copertine") {
+        SettingsGroup(tr("Angoli delle copertine")) {
             PreviewChoices(
                 options = ArtworkCorners.entries,
                 selected = style.corners,
@@ -509,7 +525,7 @@ private fun AppearancePage() {
         }
         // Vale solo per le schede fluttuanti: con la barra unita (stile Fuji) i nomi ci sono sempre
         if (style.miniLayout != com.justlorenzo.archivetunex.ui.MiniLayout.Joined) {
-            SettingsGroup("Schede in basso") {
+            SettingsGroup(tr("Schede in basso")) {
                 PreviewChoices(
                     options = TabLabels.entries,
                     selected = style.tabLabels,
@@ -519,7 +535,7 @@ private fun AppearancePage() {
             }
         }
         SettingsGroup {
-            SwitchRow("Home colorata", "Le card della Home prendono i colori delle copertine", style.coloredHome) { save(ColoredHomeKey, it) }
+            SwitchRow(tr("Home colorata"), tr("Le card della Home prendono i colori delle copertine"), style.coloredHome) { save(ColoredHomeKey, it) }
         }
     }
 }
@@ -630,8 +646,8 @@ private fun ColorPicker(
         ) {
             Box(Modifier.size(52.dp).clip(MaterialShapes.Cookie9Sided.toShape()).background(preview))
             Column {
-                Text(if (customOpen) "Su misura" else presetName ?: "Su misura", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
-                Text("Tutta l'app nasce da questo colore", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(if (customOpen) tr("Su misura") else presetName?.let(::tr) ?: tr("Su misura"), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
+                Text(tr("Tutta l'app nasce da questo colore"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         // Colori pronti in una fila che scorre
@@ -674,14 +690,14 @@ private fun ColorPicker(
         androidx.compose.animation.AnimatedVisibility(visible = customOpen) {
             Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 GradientSlider(
-                    "Tonalità",
+                    tr("Tonalità"),
                     hue / 360f,
                     Brush.horizontalGradient((0..6).map { toneColor(it * 60f % 360f, tone) }),
                     onChange = { hue = it * 360f },
                     onDone = { onChange(toneColor(hue, tone)) },
                 )
                 GradientSlider(
-                    "Tono: da pastello a intenso",
+                    tr("Tono: da pastello a intenso"),
                     tone,
                     Brush.horizontalGradient(listOf(toneColor(hue, 0f), toneColor(hue, 1f))),
                     onChange = { tone = it },
@@ -769,8 +785,8 @@ private fun TabsPreview(labels: TabLabels) {
 @Composable
 private fun PlayerPage() {
     val style = LocalAtxStyle.current
-    SettingsScaffold("Player", overline = "Personalizza") {
-        SettingsGroup("Disposizione") {
+    SettingsScaffold(tr("Player"), overline = tr("Personalizza")) {
+        SettingsGroup(tr("Disposizione")) {
             PreviewChoices(
                 options = PlayerLayout.entries,
                 selected = style.playerLayout,
@@ -780,7 +796,7 @@ private fun PlayerPage() {
         }
         // Il Poster ha già il suo sfondo (il colore della copertina): lì la scelta non serve
         if (style.playerLayout != PlayerLayout.Poster) {
-            SettingsGroup("Sfondo · ${style.playerLayout.label}") {
+            SettingsGroup(tr("Sfondo") + " · " + style.playerLayout.label) {
                 PreviewChoices(
                     options = PlayerBackground.entries,
                     selected = style.playerBackground,
@@ -789,7 +805,7 @@ private fun PlayerPage() {
                 ) { background -> PlayerBackgroundPreview(background, style.playerLayout) }
             }
         }
-        SettingsGroup("Barra di avanzamento") {
+        SettingsGroup(tr("Barra di avanzamento")) {
             PreviewChoices(
                 options = SliderStyleChoice.entries,
                 selected = style.slider,
@@ -797,7 +813,7 @@ private fun PlayerPage() {
                 onSelect = { saveEnum(SliderStyleKey, it) },
             ) { slider -> SliderPreview(slider) }
         }
-        SettingsGroup("Comandi") {
+        SettingsGroup(tr("Comandi")) {
             PreviewChoices(
                 options = PlayButtonShape.entries,
                 selected = style.playButton,
@@ -821,14 +837,14 @@ private fun PlayerPage() {
                 ) { AtxIcon(Res.drawable.play, null, size = 30.dp, tint = MaterialTheme.colorScheme.onPrimary) }
             }
         }
-        SettingsGroup("Dettagli") {
-            SwitchRow("Comandi colorati", "Pulsanti e barra prendono il colore della copertina", style.coloredPlayerControls) {
+        SettingsGroup(tr("Dettagli")) {
+            SwitchRow(tr("Comandi colorati"), tr("Pulsanti e barra prendono il colore della copertina"), style.coloredPlayerControls) {
                 save(ColoredPlayerControlsKey, it)
             }
-            SwitchRow("Copertina che si rimpicciolisce", "In pausa la copertina si fa più piccola (stili Copertina e Pila)", style.shrinkArtworkOnPause) {
+            SwitchRow(tr("Copertina che si rimpicciolisce"), tr("In pausa la copertina si fa più piccola (stili Copertina e Pila)"), style.shrinkArtworkOnPause) {
                 save(ShrinkArtworkOnPauseKey, it)
             }
-            SwitchRow("Tempo rimanente", "A destra il tempo che manca invece della durata", style.showRemainingTime) {
+            SwitchRow(tr("Tempo rimanente"), tr("A destra il tempo che manca invece della durata"), style.showRemainingTime) {
                 save(ShowRemainingTimeKey, it)
             }
         }
@@ -976,11 +992,11 @@ private fun SliderPreview(slider: SliderStyleChoice) {
 @Composable
 private fun MiniPlayerPage() {
     val style = LocalAtxStyle.current
-    SettingsScaffold("Mini player", overline = "Personalizza") {
-        SettingsGroup("Anteprima") {
+    SettingsScaffold(tr("Mini player"), overline = tr("Personalizza")) {
+        SettingsGroup(tr("Anteprima")) {
             Box(Modifier.fillMaxWidth().padding(vertical = 16.dp)) { MiniPlayerPreview(style) }
         }
-        SettingsGroup("Forma") {
+        SettingsGroup(tr("Forma")) {
             PreviewChoices(
                 options = MiniLayout.entries,
                 selected = style.miniLayout,
@@ -988,7 +1004,7 @@ private fun MiniPlayerPage() {
                 onSelect = { saveEnum(MiniLayoutKey, it) },
             ) { layout -> MiniShapePreview(layout) }
         }
-        SettingsGroup("Colore") {
+        SettingsGroup(tr("Colore")) {
             PreviewChoices(
                 options = MiniPlayerStyle.entries,
                 selected = style.miniPlayer,
@@ -996,7 +1012,7 @@ private fun MiniPlayerPage() {
                 onSelect = { saveEnum(MiniPlayerStyleKey, it) },
             ) { mini -> Box(Modifier.fillMaxWidth().height(36.dp).clip(RoundedCornerShape(12.dp)).background(miniBrush(mini))) }
         }
-        SettingsGroup("Copertina") {
+        SettingsGroup(tr("Copertina")) {
             PreviewChoices(
                 options = MiniArtwork.entries,
                 selected = style.miniArtwork,
@@ -1004,7 +1020,7 @@ private fun MiniPlayerPage() {
                 onSelect = { saveEnum(MiniArtworkKey, it) },
             ) { artwork -> MiniArtworkPreview(artwork, 48.dp) }
         }
-        SettingsGroup("Avanzamento") {
+        SettingsGroup(tr("Avanzamento")) {
             PreviewChoices(
                 options = MiniProgress.entries,
                 selected = style.miniProgress,
@@ -1012,7 +1028,7 @@ private fun MiniPlayerPage() {
                 onSelect = { saveEnum(MiniProgressKey, it) },
             ) { progress -> MiniProgressPreview(progress) }
         }
-        SettingsGroup("Pulsanti") {
+        SettingsGroup(tr("Pulsanti")) {
             PreviewChoices(
                 options = MiniButtons.entries,
                 selected = style.miniButtons,
@@ -1026,8 +1042,8 @@ private fun MiniPlayerPage() {
                 }
             }
         }
-        SettingsGroup("Dettagli") {
-            SwitchRow("Mostra l'artista", "Sotto il titolo del brano", style.miniShowArtist) { save(MiniShowArtistKey, it) }
+        SettingsGroup(tr("Dettagli")) {
+            SwitchRow(tr("Mostra l'artista"), tr("Sotto il titolo del brano"), style.miniShowArtist) { save(MiniShowArtistKey, it) }
         }
     }
 }
@@ -1167,8 +1183,8 @@ private fun MiniPlayerPreview(style: com.justlorenzo.archivetunex.ui.AtxStyle) {
                 }
             }
             Column(Modifier.weight(1f)) {
-                Text("Titolo del brano", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = content)
-                if (style.miniShowArtist) Text("Artista", style = MaterialTheme.typography.bodyMedium, color = content.copy(alpha = 0.7f))
+                Text(tr("Titolo del brano"), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = content)
+                if (style.miniShowArtist) Text(tr("Artista"), style = MaterialTheme.typography.bodyMedium, color = content.copy(alpha = 0.7f))
             }
             if (style.miniButtons == MiniButtons.All) AtxIcon(Res.drawable.skip_previous, null, size = 26.dp, tint = content)
             AtxIcon(Res.drawable.play, null, size = 30.dp, tint = content)
@@ -1194,14 +1210,14 @@ private data class PreviewGeometry(
 private fun PlaybackPage() {
     var audioQuality by rememberEnumPreference(AudioQualityKey, AudioQuality.HIGHEST)
     var choosing by remember { mutableStateOf(false) }
-    SettingsScaffold("Riproduzione", overline = "Musica") {
+    SettingsScaffold(tr("Riproduzione"), overline = tr("Musica")) {
         SettingsGroup {
-            ValueRow(Res.drawable.tune, "Qualità audio", audioQuality.label) { choosing = true }
+            ValueRow(Res.drawable.tune, tr("Qualità audio"), audioQuality.label) { choosing = true }
         }
     }
     if (choosing) {
         ChoiceDialog(
-            title = "Qualità audio",
+            title = tr("Qualità audio"),
             options = listOf(AudioQuality.HIGHEST, AudioQuality.HIGH, AudioQuality.AUTO, AudioQuality.LOW).map { it to it.label },
             selected = audioQuality,
             onSelect = { audioQuality = it },
@@ -1215,25 +1231,25 @@ private fun ContentPage() {
     var contentLanguage by rememberPreference(ContentLanguageKey, SYSTEM_DEFAULT)
     var contentCountry by rememberPreference(ContentCountryKey, SYSTEM_DEFAULT)
     var dialog by remember { mutableStateOf<String?>(null) }
-    SettingsScaffold("Contenuti", overline = "Musica") {
+    SettingsScaffold(tr("Contenuti"), overline = tr("Musica")) {
         SettingsGroup {
-            ValueRow(Res.drawable.language, "Lingua dei contenuti", LanguageCodeToName[contentLanguage] ?: "Predefinita del sistema") { dialog = "language" }
-            ValueRow(Res.drawable.location_on, "Paese dei contenuti", CountryCodeToName[contentCountry] ?: "Predefinito del sistema") { dialog = "country" }
+            ValueRow(Res.drawable.language, tr("Lingua dei contenuti"), LanguageCodeToName[contentLanguage] ?: tr("Predefinita del sistema")) { dialog = "language" }
+            ValueRow(Res.drawable.location_on, tr("Paese dei contenuti"), CountryCodeToName[contentCountry] ?: tr("Predefinito del sistema")) { dialog = "country" }
         }
     }
     when (dialog) {
         "language" ->
             ChoiceDialog(
-                title = "Lingua dei contenuti",
-                options = listOf(SYSTEM_DEFAULT to "Predefinita del sistema") + LanguageCodeToName.entries.map { it.key to it.value },
+                title = tr("Lingua dei contenuti"),
+                options = listOf(SYSTEM_DEFAULT to tr("Predefinita del sistema")) + LanguageCodeToName.entries.map { it.key to it.value },
                 selected = contentLanguage,
                 onSelect = { contentLanguage = it },
                 onDismiss = { dialog = null },
             )
         "country" ->
             ChoiceDialog(
-                title = "Paese dei contenuti",
-                options = listOf(SYSTEM_DEFAULT to "Predefinito del sistema") + CountryCodeToName.entries.map { it.key to it.value },
+                title = tr("Paese dei contenuti"),
+                options = listOf(SYSTEM_DEFAULT to tr("Predefinito del sistema")) + CountryCodeToName.entries.map { it.key to it.value },
                 selected = contentCountry,
                 onSelect = { contentCountry = it },
                 onDismiss = { dialog = null },
@@ -1253,22 +1269,22 @@ private fun StoragePage() {
                 File(AppContext.filesDir, "downloads").listFiles()?.sumOf { if (it.isFile) it.length() else 0L } ?: 0L
             }
     }
-    SettingsScaffold("Download e spazio", overline = "Musica") {
+    SettingsScaffold(tr("Download e spazio"), overline = tr("Musica")) {
         SettingsGroup {
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(formatBytes(usedBytes), style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Black)
-                Text("occupati da ${downloads.size} brani scaricati", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(trf("occupati da {0} brani scaricati", downloads.size), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         SettingsGroup {
-            ValueRow(Res.drawable.delete, "Elimina tutti i download", "Libera spazio sul telefono") { confirm = true }
+            ValueRow(Res.drawable.delete, tr("Elimina tutti i download"), tr("Libera spazio sul telefono")) { confirm = true }
         }
     }
     if (confirm) {
         ConfirmDialog(
-            title = "Eliminare tutti i download?",
-            text = "I brani scaricati vengono tolti dal telefono. Potrai riscaricarli quando vuoi.",
-            confirmLabel = "Elimina",
+            title = tr("Eliminare tutti i download?"),
+            text = tr("I brani scaricati vengono tolti dal telefono. Potrai riscaricarli quando vuoi."),
+            confirmLabel = tr("Elimina"),
             onDismiss = { confirm = false },
             onConfirm = { actions.downloads.removeAllDownloads() },
         )
@@ -1279,16 +1295,16 @@ private fun StoragePage() {
 private fun PrivacyPage() {
     val actions = LocalActions.current
     var confirm by remember { mutableStateOf(false) }
-    SettingsScaffold("Privacy", overline = "Altro") {
+    SettingsScaffold(tr("Privacy"), overline = tr("Altro")) {
         SettingsGroup {
-            ValueRow(Res.drawable.delete_history, "Cancella cronologia ricerche", "Le ricerche recenti spariscono dalla scheda Cerca") { confirm = true }
+            ValueRow(Res.drawable.delete_history, tr("Cancella cronologia ricerche"), tr("Le ricerche recenti spariscono dalla scheda Cerca")) { confirm = true }
         }
     }
     if (confirm) {
         ConfirmDialog(
-            title = "Cancellare la cronologia delle ricerche?",
-            text = "Le ricerche recenti non compariranno più nella scheda Cerca.",
-            confirmLabel = "Cancella",
+            title = tr("Cancellare la cronologia delle ricerche?"),
+            text = tr("Le ricerche recenti non compariranno più nella scheda Cerca."),
+            confirmLabel = tr("Cancella"),
             onDismiss = { confirm = false },
             onConfirm = { actions.database.query { clearSearchHistory() } },
         )
@@ -1298,10 +1314,10 @@ private fun PrivacyPage() {
 @Composable
 private fun AboutPage() {
     val navigator = LocalNavigator.current
-    SettingsScaffold("Informazioni", overline = "Altro") {
+    SettingsScaffold(tr("Informazioni"), overline = tr("Altro")) {
         SettingsGroup {
-            ValueRow(Res.drawable.info, "Nami", "Motore ArchiveTune ${BuildConfig.VERSION_NAME}") {}
-            ValueRow(Res.drawable.manage_search, "Registro errori", "Per capire cosa non funziona") {
+            ValueRow(Res.drawable.info, "Nami", trf("Motore ArchiveTune {0}", BuildConfig.VERSION_NAME)) {}
+            ValueRow(Res.drawable.manage_search, tr("Registro errori"), tr("Per capire cosa non funziona")) {
                 navigator.settingsVisible = false
                 navigator.logsVisible = true
             }
@@ -1353,6 +1369,6 @@ private fun <T> ChoiceDialog(
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Chiudi") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Chiudi")) } },
     )
 }

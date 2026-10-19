@@ -1,5 +1,6 @@
 package com.justlorenzo.archivetunex.ui.components
 
+import com.justlorenzo.archivetunex.ui.tr
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,7 +53,7 @@ fun PlayShuffleButtons(
             contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
         ) {
             AtxIcon(Res.drawable.play, null, size = 20.dp)
-            Text("Riproduci", modifier = Modifier.padding(start = 8.dp))
+            Text(tr("Riproduci"), modifier = Modifier.padding(start = 8.dp))
         }
         FilledTonalButton(
             onClick = onShuffle,
@@ -60,11 +61,11 @@ fun PlayShuffleButtons(
             contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
         ) {
             AtxIcon(Res.drawable.shuffle, null, size = 20.dp)
-            Text("Casuale", modifier = Modifier.padding(start = 8.dp))
+            Text(tr("Casuale"), modifier = Modifier.padding(start = 8.dp))
         }
         if (onDownload != null) {
             FilledTonalIconButton(onClick = onDownload) {
-                AtxIcon(Res.drawable.download, "Scarica tutto")
+                AtxIcon(Res.drawable.download, tr("Scarica tutto"))
             }
         }
     }
@@ -76,7 +77,7 @@ fun BackButton(modifier: Modifier = Modifier) {
     val navigator = LocalNavigator.current
     Box(modifier.statusBarsPadding().padding(start = 4.dp, top = 4.dp)) {
         IconButton(onClick = { navigator.back() }) {
-            AtxIcon(Res.drawable.arrow_back, "Indietro")
+            AtxIcon(Res.drawable.arrow_back, tr("Indietro"))
         }
     }
 }

@@ -2,6 +2,7 @@
 
 package com.justlorenzo.archivetunex.ui.screens
 
+import com.justlorenzo.archivetunex.ui.tr
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -90,11 +91,11 @@ fun PlayerLyrics(
         LyricsRenderScreenState.Loading ->
             LyricsMessage(modifier, textColor) {
                 LoadingIndicator(color = textColor, modifier = Modifier.size(56.dp))
-                Text("Cerco il testo…", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = textColor.copy(alpha = 0.8f))
+                Text(tr("Cerco il testo…"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = textColor.copy(alpha = 0.8f))
             }
         LyricsRenderScreenState.Empty ->
             LyricsMessage(modifier, textColor) {
-                Text("Nessun testo per questo brano", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = textColor.copy(alpha = 0.8f))
+                Text(tr("Nessun testo per questo brano"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = textColor.copy(alpha = 0.8f))
             }
         is LyricsRenderScreenState.Success ->
             // Sfumatura in alto e in basso: le righe entrano ed escono dolcemente
@@ -136,7 +137,7 @@ fun PlayerLyrics(
             }
         else ->
             LyricsMessage(modifier, textColor) {
-                Text("Testo non disponibile", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = textColor.copy(alpha = 0.8f))
+                Text(tr("Testo non disponibile"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = textColor.copy(alpha = 0.8f))
             }
     }
 }

@@ -1,5 +1,7 @@
 package com.justlorenzo.archivetunex.ui.screens
 
+import com.justlorenzo.archivetunex.ui.tr
+import com.justlorenzo.archivetunex.ui.trf
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -72,11 +74,11 @@ fun DownloadsScreen() {
             .flatMapLatest { ids -> actions.database.songsByIds(ids) }
     }.collectAsState(emptyList())
     SongCollection(
-        title = "Scaricati",
-        overline = "Sul telefono",
+        title = tr("Scaricati"),
+        overline = tr("Sul telefono"),
         colors = listOf(Color(0xFFFF8FB8), Color(0xFF7A3B6E)),
         songs = songs,
-        emptyText = "I brani che scarichi appaiono qui e si ascoltano anche senza connessione.",
+        emptyText = tr("I brani che scarichi appaiono qui e si ascoltano anche senza connessione."),
         emptyIcon = Res.drawable.download,
     )
 }
@@ -87,11 +89,11 @@ fun LikedScreen() {
     val actions = LocalActions.current
     val songs by remember { actions.database.likedSongsByCreateDateAsc().map { it.reversed() } }.collectAsState(emptyList())
     SongCollection(
-        title = "Preferiti",
-        overline = "I tuoi cuori",
+        title = tr("Preferiti"),
+        overline = tr("I tuoi cuori"),
         colors = listOf(Color(0xFF7B5CFF), Color(0xFF3A1F9E)),
         songs = songs,
-        emptyText = "Tocca il cuore nel player per aggiungere un brano ai preferiti.",
+        emptyText = tr("Tocca il cuore nel player per aggiungere un brano ai preferiti."),
         emptyIcon = Res.drawable.favorite,
     )
 }
@@ -129,7 +131,7 @@ private fun SongCollection(
                     )
                     Text(title, style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Black, letterSpacing = (-1.5).sp)
                     Text(
-                        "${songs.size} brani",
+                        trf("{0} brani", songs.size),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

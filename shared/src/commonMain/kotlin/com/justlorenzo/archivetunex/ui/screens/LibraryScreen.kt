@@ -1,5 +1,7 @@
 package com.justlorenzo.archivetunex.ui.screens
 
+import com.justlorenzo.archivetunex.ui.tr
+import com.justlorenzo.archivetunex.ui.trf
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -71,11 +73,13 @@ import moe.rukamori.archivetune.innertube.YouTube
 import org.jetbrains.compose.resources.DrawableResource
 
 private enum class LibrarySection(
-    val label: String,
+    private val rawLabel: String,
 ) {
     Playlists("Playlist"),
     Albums("Album"),
-    Artists("Artisti"),
+    Artists("Artisti");
+
+    val label: String get() = tr(rawLabel)
 }
 
 /** Una card della griglia della libreria. */
@@ -117,7 +121,7 @@ fun LibraryScreen() {
                         LibraryCard(
                             key = "pl-${playlist.id}",
                             title = playlist.playlist.name,
-                            subtitle = "${playlist.songCount} brani",
+                            subtitle = trf("{0} brani", playlist.songCount),
                             artworkUrl = playlist.thumbnails.firstOrNull() ?: playlist.playlist.thumbnailUrl,
                         ) {
                             val browseId = playlist.playlist.browseId
@@ -151,7 +155,7 @@ fun LibraryScreen() {
                     LibraryCard(
                         key = "ar-${artist.artist.id}",
                         title = artist.artist.name,
-                        subtitle = "Artista",
+                        subtitle = tr("Artista"),
                         artworkUrl = artist.artist.thumbnailUrl,
                         round = true,
                     ) { navigator.open(Route.Artist(artist.artist.id)) }
@@ -160,7 +164,7 @@ fun LibraryScreen() {
 
     LazyColumn(Modifier.fillMaxSize(), contentPadding = BottomContentPadding) {
         item(key = "header") {
-            ScreenTitle("Libreria", overline = "La tua musica") {
+            ScreenTitle(tr("Libreria"), overline = tr("La tua musica")) {
                 AccountButton(account) { navigator.accountVisible = true }
             }
         }
@@ -170,14 +174,14 @@ fun LibraryScreen() {
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 PinnedTile(
-                    title = "Scaricati",
+                    title = tr("Scaricati"),
                     count = downloadCount,
                     icon = Res.drawable.download,
                     colors = listOf(Color(0xFFFF8FB8), Color(0xFF7A3B6E)),
                     modifier = Modifier.weight(1f),
                 ) { navigator.open(Route.Downloads) }
                 PinnedTile(
-                    title = "Preferiti",
+                    title = tr("Preferiti"),
                     count = likedCount,
                     icon = Res.drawable.favorite,
                     colors = listOf(Color(0xFF7B5CFF), Color(0xFF3A1F9E)),
@@ -208,7 +212,7 @@ fun LibraryScreen() {
                         FilterChip(
                             selected = false,
                             onClick = { creating = true },
-                            label = { Text("Nuova", fontWeight = FontWeight.SemiBold) },
+                            label = { Text(tr("Nuova"), fontWeight = FontWeight.SemiBold) },
                             leadingIcon = { AtxIcon(Res.drawable.add, null, size = 18.dp) },
                             shape = RoundedCornerShape(20.dp),
                         )
@@ -222,12 +226,12 @@ fun LibraryScreen() {
                     when (section) {
                         LibrarySection.Playlists ->
                             if (account == null) {
-                                "Crea una playlist con “Nuova”, o collega l'account YouTube per vedere le tue."
+                                tr("Crea una playlist con “Nuova”, o collega l'account YouTube per vedere le tue.")
                             } else {
-                                "Nessuna playlist ancora. Creane una con “Nuova”."
+                                tr("Nessuna playlist ancora. Creane una con “Nuova”.")
                             }
-                        LibrarySection.Albums -> "Gli album che salvi in libreria appaiono qui."
-                        LibrarySection.Artists -> "Gli artisti che segui appaiono qui."
+                        LibrarySection.Albums -> tr("Gli album che salvi in libreria appaiono qui.")
+                        LibrarySection.Artists -> tr("Gli artisti che segui appaiono qui.")
                     },
                     icon =
                         when (section) {
@@ -313,7 +317,7 @@ private fun PinnedTile(
         ) { AtxIcon(icon, null, tint = Color.White) }
         Column(Modifier.align(Alignment.BottomStart)) {
             Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = Color.White, letterSpacing = (-0.3).sp)
-            Text("$count brani", style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.85f))
+            Text(trf("{0} brani", count), style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.85f))
         }
     }
 }

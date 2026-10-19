@@ -2,6 +2,8 @@
 
 package com.justlorenzo.archivetunex.ui.screens
 
+import com.justlorenzo.archivetunex.ui.tr
+import com.justlorenzo.archivetunex.ui.trf
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -448,15 +450,15 @@ fun MiniPlayer(
                 }
                 if (style.miniButtons == MiniButtons.All) {
                     IconButton(onClick = connection::seekToPrevious) {
-                        AtxIcon(Res.drawable.skip_previous, "Brano precedente", size = 26.dp, tint = content)
+                        AtxIcon(Res.drawable.skip_previous, tr("Brano precedente"), size = 26.dp, tint = content)
                     }
                 }
                 IconButton(onClick = actions::togglePlayPause) {
-                    AtxIcon(if (isPlaying) Res.drawable.pause else Res.drawable.play, if (isPlaying) "Pausa" else "Riproduci", size = 30.dp, tint = content)
+                    AtxIcon(if (isPlaying) Res.drawable.pause else Res.drawable.play, if (isPlaying) tr("Pausa") else tr("Riproduci"), size = 30.dp, tint = content)
                 }
                 if (style.miniButtons != MiniButtons.PlayOnly) {
                     IconButton(onClick = connection::seekToNext) {
-                        AtxIcon(Res.drawable.skip_next, "Brano successivo", size = 28.dp, tint = content)
+                        AtxIcon(Res.drawable.skip_next, tr("Brano successivo"), size = 28.dp, tint = content)
                     }
                 }
             }
@@ -923,11 +925,11 @@ fun PlayerScreen() {
                     // Nel Poster la barra sta sopra la copertina: icone e titolo su "bolle" leggibili
                     val chip = if (poster && !showLyrics) pc.background.copy(alpha = 0.55f) else Color.Transparent
                     TopBarButton(chip, ::close) {
-                        AtxIcon(Res.drawable.expand_more, "Chiudi player", size = 30.dp, tint = pc.text)
+                        AtxIcon(Res.drawable.expand_more, tr("Chiudi player"), size = 30.dp, tint = pc.text)
                     }
                     Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                         Text(
-                            queueTitle?.uppercase() ?: "IN RIPRODUZIONE",
+                            queueTitle?.uppercase() ?: tr("IN RIPRODUZIONE"),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp,
@@ -943,11 +945,11 @@ fun PlayerScreen() {
                         )
                     }
                     TopBarButton(chip, { navigator.lyricsVisible = !showLyrics }) {
-                        AtxIcon(Res.drawable.lyrics, "Testo", size = 22.dp, tint = if (showLyrics) pc.accent else pc.text)
+                        AtxIcon(Res.drawable.lyrics, tr("Testo"), size = 22.dp, tint = if (showLyrics) pc.accent else pc.text)
                     }
                     Spacer(Modifier.width(6.dp))
                     TopBarButton(chip, { showMenu = true }) {
-                        AtxIcon(Res.drawable.more_vert, "Altre opzioni", size = 22.dp, tint = pc.text)
+                        AtxIcon(Res.drawable.more_vert, tr("Altre opzioni"), size = 22.dp, tint = pc.text)
                     }
                 }
 
@@ -1075,19 +1077,19 @@ fun PlayerScreen() {
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    PlayerPill(Res.drawable.shuffle, "Casuale", shuffle, pc) {
+                    PlayerPill(Res.drawable.shuffle, tr("Casuale"), shuffle, pc) {
                         connection.player.shuffleModeEnabled = !shuffle
                     }
                     PlayerPill(
                         Res.drawable.queue_music,
-                        nextTitle?.let { "Dopo: $it" } ?: "Coda",
+                        nextTitle?.let { trf("Dopo: {0}", it) } ?: tr("Coda"),
                         false,
                         pc,
                         Modifier.weight(1f),
                     ) { navigator.queueVisible = true }
                     PlayerPill(
                         if (repeatMode == Player.REPEAT_MODE_ONE) Res.drawable.repeat_one else Res.drawable.repeat,
-                        if (repeatMode == Player.REPEAT_MODE_ONE) "Ripeti 1" else "Ripeti",
+                        if (repeatMode == Player.REPEAT_MODE_ONE) tr("Ripeti 1") else tr("Ripeti"),
                         repeatMode != Player.REPEAT_MODE_OFF,
                         pc,
                     ) {
@@ -1170,7 +1172,7 @@ private fun LikeButton(
     IconButton(onClick = onClick) {
         AtxIcon(
             if (liked) Res.drawable.favorite else Res.drawable.favorite_border,
-            if (liked) "Togli dai preferiti" else "Aggiungi ai preferiti",
+            if (liked) tr("Togli dai preferiti") else tr("Aggiungi ai preferiti"),
             size = 28.dp,
             tint = if (liked) pc.accent else pc.text,
         )
@@ -1324,7 +1326,7 @@ private fun ConnectedControls(
     ) {
         GroupPiece(
             Res.drawable.skip_previous,
-            "Brano precedente",
+            tr("Brano precedente"),
             RoundedCornerShape(topStart = 38.dp, bottomStart = 38.dp, topEnd = prevInner, bottomEnd = prevInner),
             sideColor,
             accent,
@@ -1335,7 +1337,7 @@ private fun ConnectedControls(
         )
         GroupPiece(
             if (isPlaying) Res.drawable.pause else Res.drawable.play,
-            if (isPlaying) "Pausa" else "Riproduci",
+            if (isPlaying) tr("Pausa") else tr("Riproduci"),
             RoundedCornerShape(playRadius.coerceAtLeast(0.dp)),
             accent,
             onAccent,
@@ -1346,7 +1348,7 @@ private fun ConnectedControls(
         )
         GroupPiece(
             Res.drawable.skip_next,
-            "Brano successivo",
+            tr("Brano successivo"),
             RoundedCornerShape(topStart = nextInner, bottomStart = nextInner, topEnd = 38.dp, bottomEnd = 38.dp),
             sideColor,
             accent,
@@ -1401,7 +1403,7 @@ private fun ClassicControls(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = onPrevious, modifier = Modifier.size(64.dp)) {
-            AtxIcon(Res.drawable.skip_previous, "Brano precedente", size = 40.dp, tint = pc.text)
+            AtxIcon(Res.drawable.skip_previous, tr("Brano precedente"), size = 40.dp, tint = pc.text)
         }
         Box(
             Modifier
@@ -1414,14 +1416,14 @@ private fun ClassicControls(
         ) {
             AtxIcon(
                 if (isPlaying) Res.drawable.pause else Res.drawable.play,
-                if (isPlaying) "Pausa" else "Riproduci",
+                if (isPlaying) tr("Pausa") else tr("Riproduci"),
                 size = 40.dp,
                 tint = pc.onAccent,
                 modifier = Modifier.rotate(if (spin) -rotation else 0f),
             )
         }
         IconButton(onClick = onNext, modifier = Modifier.size(64.dp)) {
-            AtxIcon(Res.drawable.skip_next, "Brano successivo", size = 40.dp, tint = pc.text)
+            AtxIcon(Res.drawable.skip_next, tr("Brano successivo"), size = 40.dp, tint = pc.text)
         }
     }
 }
@@ -1994,7 +1996,7 @@ private fun JoinedMini(
             }
             if (style.miniButtons == MiniButtons.All) {
                 IconButton(onClick = connection::seekToPrevious) {
-                    AtxIcon(Res.drawable.skip_previous, "Brano precedente", tint = pc.accent)
+                    AtxIcon(Res.drawable.skip_previous, tr("Brano precedente"), tint = pc.accent)
                 }
             }
             Box(
@@ -2005,11 +2007,11 @@ private fun JoinedMini(
                     .clickable(onClick = actions::togglePlayPause),
                 contentAlignment = Alignment.Center,
             ) {
-                AtxIcon(if (isPlaying) Res.drawable.pause else Res.drawable.play, if (isPlaying) "Pausa" else "Riproduci", tint = pc.onAccent)
+                AtxIcon(if (isPlaying) Res.drawable.pause else Res.drawable.play, if (isPlaying) tr("Pausa") else tr("Riproduci"), tint = pc.onAccent)
             }
             if (style.miniButtons != MiniButtons.PlayOnly) {
                 IconButton(onClick = connection::seekToNext) {
-                    AtxIcon(Res.drawable.skip_next, "Brano successivo", tint = pc.accent)
+                    AtxIcon(Res.drawable.skip_next, tr("Brano successivo"), tint = pc.accent)
                 }
             }
         }
@@ -2220,7 +2222,7 @@ fun QueueSheet() {
 
     ModalBottomSheet(onDismissRequest = { navigator.queueVisible = false }, sheetState = sheetState) {
         Text(
-            "In coda",
+            tr("In coda"),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Black,
             modifier = Modifier.padding(start = 20.dp, bottom = 8.dp),

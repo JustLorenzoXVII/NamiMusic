@@ -1,5 +1,7 @@
 package com.justlorenzo.archivetunex.ui.screens
 
+import com.justlorenzo.archivetunex.ui.tr
+import com.justlorenzo.archivetunex.ui.trf
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.height
@@ -78,14 +80,16 @@ import moe.rukamori.archivetune.models.MediaMetadata
 import moe.rukamori.archivetune.models.toMediaMetadata
 
 private enum class SearchKind(
-    val label: String,
+    private val rawLabel: String,
     val filter: SearchFilter,
 ) {
     Songs("Brani", SearchFilter.FILTER_SONG),
     Albums("Album", SearchFilter.FILTER_ALBUM),
     Artists("Artisti", SearchFilter.FILTER_ARTIST),
     Playlists("Playlist", SearchFilter.FILTER_FEATURED_PLAYLIST),
-    Videos("Video", SearchFilter.FILTER_VIDEO),
+    Videos("Video", SearchFilter.FILTER_VIDEO);
+
+    val label: String get() = tr(rawLabel)
 }
 
 @Composable
@@ -122,7 +126,7 @@ fun SearchScreen() {
     }
 
     Column(Modifier.fillMaxSize()) {
-        ScreenTitle("Cerca", overline = "YouTube Music")
+        ScreenTitle(tr("Cerca"), overline = "YouTube Music")
         Column(
             Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 8.dp, bottom = 4.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -133,14 +137,14 @@ fun SearchScreen() {
                     text = it
                     if (it.isBlank()) submitted = ""
                 },
-                placeholder = { Text("Brani, artisti, album, playlist") },
+                placeholder = { Text(tr("Brani, artisti, album, playlist")) },
                 leadingIcon = { AtxIcon(Res.drawable.search, null) },
                 trailingIcon = {
                     if (text.isNotEmpty()) {
                         IconButton(onClick = {
                             text = ""
                             submitted = ""
-                        }) { AtxIcon(Res.drawable.close, "Cancella") }
+                        }) { AtxIcon(Res.drawable.close, tr("Cancella")) }
                     }
                 },
                 singleLine = true,
@@ -204,7 +208,7 @@ private fun QueryRow(
         AtxIcon(icon, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(text, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
         IconButton(onClick = onFill) {
-            AtxIcon(Res.drawable.arrow_top_left, "Modifica la ricerca", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            AtxIcon(Res.drawable.arrow_top_left, tr("Modifica la ricerca"), tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -240,7 +244,7 @@ private fun SearchResults(
             is LoadState.Failed -> item(key = "error") { ErrorBox(state.message, results::reload) }
             is LoadState.Ready -> {
                 if (state.value.items.isEmpty()) {
-                    item(key = "empty") { EmptyState("Nessun risultato per “$query”.", icon = Res.drawable.search) }
+                    item(key = "empty") { EmptyState(trf("Nessun risultato per “{0}”.", query), icon = Res.drawable.search) }
                 }
                 items(state.value.items) { item ->
                     if (item is SongItem) {
@@ -318,12 +322,12 @@ private fun SearchHome(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        "Ricerche recenti",
+                        tr("Ricerche recenti"),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
                         modifier = Modifier.weight(1f),
                     )
-                    TextButton(onClick = onClearHistory) { Text("Cancella") }
+                    TextButton(onClick = onClearHistory) { Text(tr("Cancella")) }
                 }
             }
             items(history, key = { it.id }) { entry ->

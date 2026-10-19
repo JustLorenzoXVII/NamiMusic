@@ -1,5 +1,6 @@
 package com.justlorenzo.archivetunex.ui.components
 
+import com.justlorenzo.archivetunex.ui.tr
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -42,7 +43,7 @@ fun rememberAccount(): AccountSummary? {
                         null
                     } else {
                         AccountSummary(
-                            name = prefs[AccountNameKey]?.takeIf(String::isNotBlank) ?: "Account YouTube",
+                            name = prefs[AccountNameKey]?.takeIf(String::isNotBlank) ?: tr("Account YouTube"),
                             email = prefs[AccountEmailKey],
                         )
                     }
@@ -73,7 +74,7 @@ fun AccountButton(
                     style = MaterialTheme.typography.titleMedium,
                 )
             } else {
-                AtxIcon(Res.drawable.person, "Account", size = 22.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                AtxIcon(Res.drawable.person, tr("Account"), size = 22.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

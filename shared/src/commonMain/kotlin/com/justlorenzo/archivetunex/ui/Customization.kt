@@ -24,17 +24,19 @@ import moe.rukamori.archivetune.utils.dataStore
 
 /** Da dove prende i colori l'app (sfondi compresi, non solo l'accento). */
 enum class ThemeSource(
-    val label: String,
+    private val rawLabel: String,
 ) {
     System("Colori di sistema"),
     Album("Colori della copertina"),
-    Custom("Colore personalizzato"),
+    Custom("Colore personalizzato");
+
+    val label: String get() = tr(rawLabel)
 }
 
 /** Come la tavolozza Material viene costruita dal colore di partenza. */
 enum class PaletteStyleChoice(
-    val label: String,
-    val description: String = "",
+    private val rawLabel: String,
+    private val rawDescription: String = "",
     val visible: Boolean = false,
 ) {
     TonalSpot("Morbida", "Tinte delicate del tuo colore: elegante e riposante", true),
@@ -44,7 +46,10 @@ enum class PaletteStyleChoice(
     Content("Contenuto"),
     Rainbow("Arcobaleno"),
     FruitSalad("Macedonia"),
-    Neutral("Sobria", "Quasi grigia, con solo un tocco del tuo colore", true),
+    Neutral("Sobria", "Quasi grigia, con solo un tocco del tuo colore", true);
+
+    val label: String get() = tr(rawLabel)
+    val description: String get() = tr(rawDescription)
 }
 
 /** Colori pronti per il colore personalizzato, ognuno con il suo nome. */
@@ -64,21 +69,25 @@ val PresetColors =
 
 /** Angoli delle copertine. */
 enum class ArtworkCorners(
-    val label: String,
+    private val rawLabel: String,
     val radius: Dp,
 ) {
     Small("Squadrati", 8.dp),
     Medium("Arrotondati", 20.dp),
-    Large("Molto arrotondati", 36.dp),
+    Large("Molto arrotondati", 36.dp);
+
+    val label: String get() = tr(rawLabel)
 }
 
 /** Nomi delle schede in basso. */
 enum class TabLabels(
-    val label: String,
+    private val rawLabel: String,
 ) {
     Selected("Solo quella attiva"),
     Always("Sempre"),
-    Never("Mai"),
+    Never("Mai");
+
+    val label: String get() = tr(rawLabel)
 }
 
 // endregion
@@ -87,43 +96,51 @@ enum class TabLabels(
 
 /** Disposizione del player a schermo intero. */
 enum class PlayerLayout(
-    val label: String,
+    private val rawLabel: String,
 ) {
     Card("Copertina"),
     Vinyl("Vinile"),
     Stack("Pila"),
     Cassette("Cassetta"),
-    Poster("Poster"),
+    Poster("Poster");
+
+    val label: String get() = tr(rawLabel)
 }
 
 /** Sfondo del player a schermo intero. */
 enum class PlayerBackground(
-    val label: String,
+    private val rawLabel: String,
 ) {
     Glow("Bagliore"),
     Gradient("Sfumatura"),
     Blur("Copertina sfocata"),
-    Plain("Tema"),
+    Plain("Tema");
+
+    val label: String get() = tr(rawLabel)
 }
 
 /** Barra di avanzamento del player. */
 enum class SliderStyleChoice(
-    val label: String,
+    private val rawLabel: String,
 ) {
     Wavy("Ondulata"),
     Thick("Spessa"),
-    Classic("Classica"),
+    Classic("Classica");
+
+    val label: String get() = tr(rawLabel)
 }
 
 /** Pulsanti del player: gruppo connesso (come Fuji) o Play a forma scelta. */
 enum class PlayButtonShape(
-    val label: String,
+    private val rawLabel: String,
 ) {
     Group("Gruppo connesso"),
     CookieSpin("Biscotto che ruota"),
     Cookie("Biscotto"),
     Circle("Cerchio"),
-    Squircle("Quadrato arrotondato"),
+    Squircle("Quadrato arrotondato");
+
+    val label: String get() = tr(rawLabel)
 }
 
 // endregion
@@ -132,59 +149,70 @@ enum class PlayButtonShape(
 
 /** Forma e posizione del mini player. */
 enum class MiniLayout(
-    val label: String,
+    private val rawLabel: String,
 ) {
     Joined("Unito alla barra"),
     Floating("Fluttuante"),
     Pill("Pillola"),
-    Large("Grande"),
+    Large("Grande");
+
+    val label: String get() = tr(rawLabel)
 }
 
 /** Colore del mini player. */
 enum class MiniPlayerStyle(
-    val label: String,
+    private val rawLabel: String,
 ) {
     Tinted("Tinta copertina"),
     Gradient("Sfumatura"),
     Accent("Colore pieno"),
-    Neutral("Neutro"),
+    Neutral("Neutro");
+
+    val label: String get() = tr(rawLabel)
 }
 
 /** Come il mini player mostra l'avanzamento. */
 enum class MiniProgress(
-    val label: String,
+    private val rawLabel: String,
 ) {
     Line("Linea"),
     Wave("Onda"),
     Frame("Cornice"),
     Fill("Riempimento"),
     Ring("Anello"),
-    None("Nessuno"),
+    None("Nessuno");
+
+    val label: String get() = tr(rawLabel)
 }
 
 /** Forma della copertina nel mini player. */
 enum class MiniArtwork(
-    val label: String,
+    private val rawLabel: String,
 ) {
     Rounded("Arrotondata"),
     Circle("Cerchio"),
     Cookie("Biscotto"),
-    Vinyl("Vinile che gira"),
+    Vinyl("Vinile che gira");
+
+    val label: String get() = tr(rawLabel)
 }
 
 /** Pulsanti del mini player. */
 enum class MiniButtons(
-    val label: String,
+    private val rawLabel: String,
 ) {
     PlayOnly("Solo Play"),
     PlayNext("Play e successivo"),
-    All("Tutti e tre"),
+    All("Tutti e tre");
+
+    val label: String get() = tr(rawLabel)
 }
 
 // endregion
 
 // region Chiavi (preferenze di ArchiveTuneX, separate da quelle di ArchiveTune)
 
+val AppLanguageKey = stringPreferencesKey("atx_app_language")
 val ThemeSourceKey = stringPreferencesKey("atx_theme_source")
 val CustomColorKey = intPreferencesKey("atx_custom_color")
 val PaletteStyleKey = stringPreferencesKey("atx_palette_style")

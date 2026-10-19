@@ -1,5 +1,6 @@
 package com.justlorenzo.archivetunex.ui.components
 
+import com.justlorenzo.archivetunex.ui.tr
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -55,14 +56,14 @@ fun <T> rememberLoadable(
                     onFailure = { error ->
                         if (error is CancellationException) throw error
                         Timber.tag("ArchiveTuneX").e(error, "Caricamento non riuscito")
-                        LoadState.Failed("Impossibile caricare i contenuti. Controlla la connessione.")
+                        LoadState.Failed(tr("Impossibile caricare i contenuti. Controlla la connessione."))
                     },
                 )
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 Timber.tag("ArchiveTuneX").e(e, "Caricamento non riuscito")
-                LoadState.Failed("Impossibile caricare i contenuti. Controlla la connessione.")
+                LoadState.Failed(tr("Impossibile caricare i contenuti. Controlla la connessione."))
             }
     }
     return remember(key) { Loadable(state, counter) }

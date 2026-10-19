@@ -1,5 +1,6 @@
 package com.justlorenzo.archivetunex.ui.components
 
+import com.justlorenzo.archivetunex.ui.tr
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -84,50 +85,50 @@ fun SongMenuSheet(
         }
         HorizontalDivider(Modifier.padding(vertical = 8.dp), color = MaterialTheme.colorScheme.outlineVariant)
 
-        MenuEntry(Res.drawable.playlist_play, "Riproduci dopo") {
+        MenuEntry(Res.drawable.playlist_play, tr("Riproduci dopo")) {
             actions.playNext(song)
             onDismiss()
         }
-        MenuEntry(Res.drawable.queue_music, "Aggiungi in coda") {
+        MenuEntry(Res.drawable.queue_music, tr("Aggiungi in coda")) {
             actions.addToQueue(song)
             onDismiss()
         }
-        MenuEntry(Res.drawable.playlist_add, "Aggiungi a playlist") { addingToPlaylist = true }
+        MenuEntry(Res.drawable.playlist_add, tr("Aggiungi a playlist")) { addingToPlaylist = true }
         if (onRemoveFromPlaylist != null) {
-            MenuEntry(Res.drawable.remove, "Rimuovi dalla playlist") {
+            MenuEntry(Res.drawable.remove, tr("Rimuovi dalla playlist")) {
                 onRemoveFromPlaylist()
                 onDismiss()
             }
         }
-        MenuEntry(Res.drawable.radio, "Avvia radio") {
+        MenuEntry(Res.drawable.radio, tr("Avvia radio")) {
             actions.playSong(song)
             onDismiss()
         }
         when (download?.state) {
             Download.STATE_COMPLETED ->
-                MenuEntry(Res.drawable.delete, "Rimuovi dal dispositivo") {
+                MenuEntry(Res.drawable.delete, tr("Rimuovi dal dispositivo")) {
                     actions.removeDownload(song.id)
                     onDismiss()
                 }
             Download.STATE_DOWNLOADING, Download.STATE_QUEUED, Download.STATE_RESTARTING ->
-                MenuEntry(Res.drawable.delete, "Annulla download") {
+                MenuEntry(Res.drawable.delete, tr("Annulla download")) {
                     actions.removeDownload(song.id)
                     onDismiss()
                 }
             else ->
-                MenuEntry(Res.drawable.download, "Scarica") {
+                MenuEntry(Res.drawable.download, tr("Scarica")) {
                     actions.download(song)
                     onDismiss()
                 }
         }
         song.album?.let { album ->
-            MenuEntry(Res.drawable.album, "Vai all'album") {
+            MenuEntry(Res.drawable.album, tr("Vai all'album")) {
                 navigator.open(Route.Album(album.id))
                 onDismiss()
             }
         }
         song.artists.firstOrNull { it.id != null }?.let { artist ->
-            MenuEntry(Res.drawable.artist, "Vai all'artista") {
+            MenuEntry(Res.drawable.artist, tr("Vai all'artista")) {
                 navigator.open(Route.Artist(artist.id!!))
                 onDismiss()
             }

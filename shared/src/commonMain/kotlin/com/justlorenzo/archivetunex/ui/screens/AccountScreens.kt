@@ -1,5 +1,6 @@
 package com.justlorenzo.archivetunex.ui.screens
 
+import com.justlorenzo.archivetunex.ui.tr
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.CircleShape
@@ -166,7 +167,7 @@ fun AccountSheet() {
                     }
                     Column {
                         Text(
-                            account?.name ?: "Ospite",
+                            account?.name ?: tr("Ospite"),
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Black,
                             color = onPrimary,
@@ -174,7 +175,7 @@ fun AccountSheet() {
                             overflow = TextOverflow.Ellipsis,
                         )
                         Text(
-                            account?.email ?: "Non collegato a YouTube Music",
+                            account?.email ?: tr("Non collegato a YouTube Music"),
                             style = MaterialTheme.typography.bodyMedium,
                             color = onPrimary.copy(alpha = 0.8f),
                             maxLines = 1,
@@ -194,7 +195,7 @@ fun AccountSheet() {
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             AtxIcon(Res.drawable.login, null, size = 18.dp, tint = primary)
-                            Text("Accedi con Google", color = primary, fontWeight = FontWeight.Bold)
+                            Text(tr("Accedi con Google"), color = primary, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -202,27 +203,27 @@ fun AccountSheet() {
 
             // ---------- I tuoi numeri ----------
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                StatTile(likedCount, "Preferiti", Res.drawable.favorite, Modifier.weight(1f)) { openLibrary(Route.Liked) }
-                StatTile(playlistCount, "Playlist", Res.drawable.playlist_play, Modifier.weight(1f)) { openLibrary(null) }
-                StatTile(downloadedCount, "Scaricati", Res.drawable.download, Modifier.weight(1f)) { openLibrary(Route.Downloads) }
+                StatTile(likedCount, tr("Preferiti"), Res.drawable.favorite, Modifier.weight(1f)) { openLibrary(Route.Liked) }
+                StatTile(playlistCount, tr("Playlist"), Res.drawable.playlist_play, Modifier.weight(1f)) { openLibrary(null) }
+                StatTile(downloadedCount, tr("Scaricati"), Res.drawable.download, Modifier.weight(1f)) { openLibrary(Route.Downloads) }
             }
 
             // ---------- Voci ----------
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                SheetRow(Res.drawable.settings, "Impostazioni", "Aspetto, player, riproduzione e altro", RowPosition.First) {
+                SheetRow(Res.drawable.settings, tr("Impostazioni"), tr("Aspetto, player, riproduzione e altro"), RowPosition.First) {
                     navigator.openSettings()
                 }
                 SheetRow(
                     Res.drawable.manage_search,
-                    "Registro errori",
-                    "Per capire cosa non va",
+                    tr("Registro errori"),
+                    tr("Per capire cosa non va"),
                     if (account != null) RowPosition.Middle else RowPosition.Last,
                 ) {
                     navigator.accountVisible = false
                     navigator.logsVisible = true
                 }
                 if (account != null) {
-                    SheetRow(Res.drawable.logout, "Esci dall'account", null, RowPosition.Last, danger = true) { confirmLogout = true }
+                    SheetRow(Res.drawable.logout, tr("Esci dall'account"), null, RowPosition.Last, danger = true) { confirmLogout = true }
                 }
             }
         }
@@ -230,9 +231,9 @@ fun AccountSheet() {
 
     if (confirmLogout) {
         ConfirmDialog(
-            title = "Uscire dall'account?",
-            text = "La Home e le playlist torneranno quelle senza account. I brani scaricati restano.",
-            confirmLabel = "Esci",
+            title = tr("Uscire dall'account?"),
+            text = tr("La Home e le playlist torneranno quelle senza account. I brani scaricati restano."),
+            confirmLabel = tr("Esci"),
             onDismiss = { confirmLogout = false },
             onConfirm = {
                 App.Companion.forgetAccount(AppContext)
@@ -335,9 +336,9 @@ fun LoginOverlay() {
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(Modifier.fillMaxSize().statusBarsPadding()) {
             Row(Modifier.fillMaxWidth().padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = { navigator.loginVisible = false }) { AtxIcon(Res.drawable.close, "Chiudi") }
+                IconButton(onClick = { navigator.loginVisible = false }) { AtxIcon(Res.drawable.close, tr("Chiudi")) }
                 Text(
-                    "Accedi con Google",
+                    tr("Accedi con Google"),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f),
@@ -358,7 +359,7 @@ fun LoginOverlay() {
             }
             if (state is LoginScreenState.Error) {
                 Text(
-                    "Accesso non riuscito. Riprova.",
+                    tr("Accesso non riuscito. Riprova."),
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(16.dp).navigationBarsPadding(),
                 )
@@ -378,12 +379,12 @@ fun LogsOverlay() {
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(Modifier.fillMaxSize().statusBarsPadding()) {
             Row(Modifier.fillMaxWidth().padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = { navigator.logsVisible = false }) { AtxIcon(Res.drawable.close, "Chiudi") }
-                Text("Registro errori", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                IconButton(onClick = { navigator.logsVisible = false }) { AtxIcon(Res.drawable.close, tr("Chiudi")) }
+                Text(tr("Registro errori"), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                 TextButton(onClick = {
                     clipboard.setText(AnnotatedString(logs.joinToString("\n") { GlobalLog.format(it) }))
                     copied = true
-                }) { Text(if (copied) "Copiato" else "Copia") }
+                }) { Text(if (copied) tr("Copiato") else tr("Copia")) }
             }
             SelectionContainer(Modifier.weight(1f)) {
                 LazyColumn(Modifier.fillMaxSize().padding(horizontal = 12.dp)) {
