@@ -1938,8 +1938,11 @@ fun JoinedBottomBar(
                 Column(
                     Modifier
                         .weight(1f)
-                        .clip(RoundedCornerShape(20.dp))
-                        .clickable { navigator.selectTab(item.tab) }
+                        // Niente alone su tutta la scheda al tocco: si accende solo la pillola dietro l'icona
+                        .clickable(
+                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                            indication = null,
+                        ) { navigator.selectTab(item.tab) }
                         .padding(vertical = 6.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(4.dp),
