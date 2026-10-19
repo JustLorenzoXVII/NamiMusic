@@ -117,6 +117,14 @@ fun LocalPlaylistScreen(
     // Copia locale: gli spostamenti e le rimozioni si vedono subito, poi arriva il database
     var entries by remember { mutableStateOf<List<PlaylistSong>>(emptyList()) }
     LaunchedEffect(dbEntries) { entries = dbEntries }
+    // Se è sincronizzata con YouTube Music, all'apertura si riallinea (ordine e voci)
+    var refreshed by remember { mutableStateOf(false) }
+    LaunchedEffect(playlist?.playlist?.id) {
+        val entity = playlist?.playlist ?: return@LaunchedEffect
+        if (refreshed) return@LaunchedEffect
+        refreshed = true
+        runCatching { actions.refreshOwnPlaylist(entity) }
+    }
 
     val songs = remember(entries) { entries.map { it.song.toMediaMetadata() } }
     val name = playlist?.playlist?.name ?: title

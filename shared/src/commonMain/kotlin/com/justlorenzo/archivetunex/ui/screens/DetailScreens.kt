@@ -45,6 +45,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.justlorenzo.archivetunex.ui.LocalActions
 import com.justlorenzo.archivetunex.ui.LocalNavigator
+import com.justlorenzo.archivetunex.ui.Route
+import androidx.compose.runtime.LaunchedEffect
 import com.justlorenzo.archivetunex.ui.components.BackButton
 import com.justlorenzo.archivetunex.ui.components.ConfirmDialog
 import com.justlorenzo.archivetunex.ui.components.RenamePlaylistDialog
@@ -209,6 +211,16 @@ fun PlaylistScreen(playlistId: String) {
             is LoadState.Ready -> {
                 val (info, songItems) = state.value
                 val playlist = info.playlist
+                // Una tua playlist: si apre la versione modificabile (aggiungi, togli, riordina, rinomina)
+                if (playlist.isEditable) {
+                    val navigator = LocalNavigator.current
+                    LaunchedEffect(playlist.id) {
+                        val localId = runCatching { actions.syncOwnPlaylist(playlist, songItems) }.getOrNull()
+                        if (localId != null) navigator.replace(Route.LocalPlaylist(localId, playlist.title))
+                    }
+                    LoadingBox(Modifier.padding(top = 120.dp))
+                    return@DetailScaffold
+                }
                 val songs = remember(songItems) { songItems.map(SongItem::toMediaMetadata) }
                 LazyColumn(Modifier.fillMaxSize(), contentPadding = detailPadding()) {
                     item(key = "header") {

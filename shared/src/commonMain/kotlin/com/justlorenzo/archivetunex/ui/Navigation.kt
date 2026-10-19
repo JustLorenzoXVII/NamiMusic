@@ -79,6 +79,13 @@ class AtxNavigator {
         stacks.getValue(tab).add(route)
     }
 
+    /** Sostituisce la pagina aperta con un'altra (senza lasciarla nella cronologia). */
+    fun replace(route: Route) {
+        val stack = stacks.getValue(tab)
+        if (stack.isNotEmpty()) stack.removeAt(stack.lastIndex)
+        stack.add(route)
+    }
+
     /** Indietro: chiude prima ciò che è sopra (coda, player, login), poi la pagina aperta. */
     fun back(): Boolean {
         when {

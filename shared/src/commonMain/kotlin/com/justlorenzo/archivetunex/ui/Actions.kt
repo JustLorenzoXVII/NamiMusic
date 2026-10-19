@@ -19,6 +19,7 @@ import moe.rukamori.archivetune.compat.toUri
 import moe.rukamori.archivetune.db.MusicDatabase
 import moe.rukamori.archivetune.extensions.toMediaItem
 import moe.rukamori.archivetune.innertube.models.SongItem
+import moe.rukamori.archivetune.innertube.models.distinctByPlaylistEntry
 import moe.rukamori.archivetune.innertube.models.WatchEndpoint
 import moe.rukamori.archivetune.models.MediaMetadata
 import moe.rukamori.archivetune.models.toMediaMetadata
@@ -145,7 +146,12 @@ class AtxActions(
         database.addSongToPlaylist(playlist, listOf(song.id))
         val browseId = playlist.playlist.browseId
         if (browseId != null && playlist.playlist.isEditable) {
-            YouTube.addToPlaylist(browseId, song.id)
+            // YouTube restituisce l'id della voce: serve per poterla poi togliere o spostare anche lì
+            val setVideoId = YouTube.addToPlaylist(browseId, song.id).getOrThrow()
+            database
+                .getPlaylistSongs(playlistId)
+                .lastOrNull { it.map.songId == song.id && it.map.setVideoId == null }
+                ?.let { database.update(it.map.copy(setVideoId = setVideoId)) }
         }
     }
 
@@ -224,6 +230,60 @@ class AtxActions(
         songs.forEach { database.insert(it) }
         val playlist = database.playlist(entity.id).first() ?: return@launchSafely
         database.addSongToPlaylist(playlist, songs.map { it.id })
+    }
+
+    /** Scarica tutti i brani di una playlist di YouTube Music (a pagine, fino a un limite). */
+    suspend fun fetchFullPlaylist(browseId: String): Result<Pair<PlaylistItem, List<SongItem>>> =
+        YouTube.playlist(browseId).mapCatching { first ->
+            val songs = first.songs.toMutableList()
+            var continuation = first.songsContinuation ?: first.continuation
+            var pages = 0
+            while (continuation != null && pages < 20) {
+                val next = YouTube.playlistContinuation(continuation, browseId).getOrNull() ?: break
+                songs += next.songs
+                continuation = next.continuation
+                pages++
+            }
+            first.playlist to songs.distinctByPlaylistEntry()
+        }
+
+    /**
+     * Copia nel telefono una TUA playlist di YouTube Music, con l'ordine e gli id delle voci,
+     * così si può modificare e ogni modifica va anche su YouTube Music. Restituisce l'id locale.
+     */
+    suspend fun syncOwnPlaylist(
+        item: PlaylistItem,
+        songs: List<SongItem>,
+    ): String {
+        val existing = database.playlistByBrowseId(item.id).first()?.playlist
+        val entity =
+            existing?.copy(isEditable = true, remoteSongCount = songs.size)
+                ?: PlaylistEntity(
+                    name = item.title,
+                    browseId = item.id,
+                    isEditable = true,
+                    thumbnailUrl = item.thumbnail,
+                    remoteSongCount = songs.size,
+                    bookmarkedAt = LocalDateTime.now(),
+                )
+        if (existing == null) database.insert(entity) else database.update(entity)
+        val metadata = songs.map { it.toMediaMetadata() }
+        metadata.forEach { database.insert(it) }
+        database.withTransaction {
+            clearPlaylist(entity.id)
+            songs.forEachIndexed { index, song ->
+                insert(PlaylistSongMap(playlistId = entity.id, songId = song.id, position = index, setVideoId = song.setVideoId))
+            }
+        }
+        return entity.id
+    }
+
+    /** Riallinea una tua playlist sincronizzata con quello che c'è su YouTube Music. */
+    suspend fun refreshOwnPlaylist(playlist: PlaylistEntity) {
+        val browseId = playlist.browseId ?: return
+        if (!playlist.isEditable) return
+        val (item, songs) = fetchFullPlaylist(browseId).getOrNull() ?: return
+        syncOwnPlaylist(item, songs)
     }
 
     fun unsaveYouTubePlaylist(browseId: String) =
