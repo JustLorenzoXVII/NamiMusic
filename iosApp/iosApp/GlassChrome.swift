@@ -308,7 +308,11 @@ private extension SwiftUI.View {
     @ViewBuilder
     func glassCapsule(enabled: Bool = true) -> some SwiftUI.View {
         if #available(iOS 26.0, *) {
-            self.glassEffect(.regular.interactive(), in: SwiftUI.Capsule(), isEnabled: enabled)
+            if enabled {
+                self.glassEffect(.regular.interactive(), in: SwiftUI.Capsule())
+            } else {
+                self
+            }
         } else {
             self
                 .background(.ultraThinMaterial.opacity(enabled ? 1 : 0), in: SwiftUI.Capsule())
