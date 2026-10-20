@@ -2,6 +2,7 @@
 
 package com.justlorenzo.archivetunex.ui.ios
 
+import androidx.compose.material3.SegmentedButton
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDpAsState
@@ -254,7 +255,8 @@ fun AtxSlider(
     val fraction = ((value - valueRange.start) / span).coerceIn(0f, 1f)
     BoxWithConstraints(modifier.fillMaxWidth().height(36.dp)) {
         val density = LocalDensity.current
-        val widthPx = with(density) { maxWidth.toPx() }
+        val trackWidth = maxWidth
+        val widthPx = with(density) { trackWidth.toPx() }
         val thumbPx = with(density) { 28.dp.toPx() }
         fun valueAt(x: Float): Float {
             var f = ((x - thumbPx / 2f) / (widthPx - thumbPx)).coerceIn(0f, 1f)
@@ -284,14 +286,14 @@ fun AtxSlider(
             Box(
                 Modifier
                     .padding(start = 14.dp)
-                    .width((maxWidth - 28.dp) * fraction)
+                    .width((trackWidth - 28.dp) * fraction)
                     .height(4.dp)
                     .clip(CircleShape)
                     .background(activeColor),
             )
             Box(
                 Modifier
-                    .offset(x = (maxWidth - 28.dp) * fraction)
+                    .offset(x = (trackWidth - 28.dp) * fraction)
                     .size(28.dp)
                     .shadow(4.dp, CircleShape)
                     .background(Color.White, CircleShape),
@@ -315,7 +317,7 @@ fun AtxSegmented(
     if (!iosStyle) {
         androidx.compose.material3.SingleChoiceSegmentedButtonRow(modifier.fillMaxWidth()) {
             options.forEachIndexed { index, label ->
-                androidx.compose.material3.SegmentedButton(
+                SegmentedButton(
                     selected = index == selectedIndex,
                     onClick = { onSelect(index) },
                     shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(index, options.size),
