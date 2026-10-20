@@ -1,0 +1,56 @@
+Calculating task graph as no cached configuration is available for tasks: :shared:compileKotlinIosArm64
+> Task :innertube:kmpPartiallyResolvedDependenciesChecker
+> Task :innertube:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :innertube:exportCrossCompilationMetadataForIosArm64ApiElements
+> Task :shared:checkIosArm64MainComposeLibrariesCompatibility
+> Task :shared:kmpPartiallyResolvedDependenciesChecker
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+
+> Task :innertube:downloadKotlinNativeDistribution
+Kotlin/Native bundle directory /home/runner/.konan/kotlin-native-prebuilt-linux-x86_64-2.4.20 is not empty. Native bundle files will be overwritten.
+
+> Task :shared:downloadKotlinNativeDistribution
+> Task :shared:convertXmlValueResourcesForAppleMain NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForAppleMain NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForAppleMain NO-SOURCE
+> Task :shared:generateResourceAccessorsForAppleMain NO-SOURCE
+> Task :shared:convertXmlValueResourcesForCommonMain UP-TO-DATE
+> Task :shared:copyNonXmlValueResourcesForCommonMain UP-TO-DATE
+> Task :shared:prepareComposeResourcesTaskForCommonMain UP-TO-DATE
+> Task :shared:generateResourceAccessorsForCommonMain UP-TO-DATE
+> Task :shared:convertXmlValueResourcesForIosArm64Main NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForIosArm64Main NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForIosArm64Main NO-SOURCE
+> Task :shared:generateResourceAccessorsForIosArm64Main NO-SOURCE
+> Task :shared:convertXmlValueResourcesForIosMain NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForIosMain NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForIosMain NO-SOURCE
+> Task :shared:generateResourceAccessorsForIosMain NO-SOURCE
+> Task :shared:convertXmlValueResourcesForNativeMain NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForNativeMain NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForNativeMain NO-SOURCE
+> Task :shared:generateResourceAccessorsForNativeMain NO-SOURCE
+> Task :shared:generateActualResourceCollectorsForIosArm64Main
+> Task :shared:generateComposeResClass UP-TO-DATE
+> Task :shared:generateExpectResourceCollectorsForCommonMain UP-TO-DATE
+> Task :innertube:compileKotlinIosArm64
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/innertube/src/commonMain/kotlin/moe/rukamori/archivetune/innertube/pages/PodcastPage.kt:64:21 Unnecessary safe call on a non-null receiver of type 'BrowseResponse.Contents'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/innertube/src/commonMain/kotlin/moe/rukamori/archivetune/innertube/pages/PodcastPage.kt:133:17 Unnecessary safe call on a non-null receiver of type 'Runs'.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/innertube/src/commonMain/kotlin/moe/rukamori/archivetune/innertube/pages/SearchSummaryPage.kt:178:37 Unnecessary safe call on a non-null receiver of type 'List<List<Run>>'.
+
+> Task :shared:kspKotlinIosArm64 FROM-CACHE
+> Task :shared:copyRoomSchemas NO-SOURCE
+> Task :shared:compileKotlinIosArm64
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/build/generated/ksp/iosArm64/iosArm64Main/kotlin/moe/rukamori/archivetune/db/InternalDatabaseConstructor.kt:5:8 'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta. Consider using the '-Xexpect-actual-classes' flag to suppress this warning. Also see: https://youtrack.jetbrains.com/issue/KT-61573
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/compat/JavaCompat.kt:6:1 'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta. Consider using the '-Xexpect-actual-classes' flag to suppress this warning. Also see: https://youtrack.jetbrains.com/issue/KT-61573
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/db/MusicDatabase.kt:139:1 'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta. Consider using the '-Xexpect-actual-classes' flag to suppress this warning. Also see: https://youtrack.jetbrains.com/issue/KT-61573
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/theme/CustomFontLoader.kt:17:1 'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta. Consider using the '-Xexpect-actual-classes' flag to suppress this warning. Also see: https://youtrack.jetbrains.com/issue/KT-61573
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/theme/Theme.kt:204:5 'constructor(primary: Color, onPrimary: Color, primaryContainer: Color, onPrimaryContainer: Color, inversePrimary: Color, secondary: Color, onSecondary: Color, secondaryContainer: Color, onSecondaryContainer: Color, tertiary: Color, onTertiary: Color, tertiaryContainer: Color, onTertiaryContainer: Color, background: Color, onBackground: Color, surface: Color, onSurface: Color, surfaceVariant: Color, onSurfaceVariant: Color, surfaceTint: Color, inverseSurface: Color, inverseOnSurface: Color, error: Color, onError: Color, errorContainer: Color, onErrorContainer: Color, outline: Color, outlineVariant: Color, scrim: Color, surfaceBright: Color, surfaceDim: Color, surfaceContainer: Color, surfaceContainerHigh: Color, surfaceContainerHighest: Color, surfaceContainerLow: Color, surfaceContainerLowest: Color): ColorScheme' is deprecated. Use constructor with additional 'fixed' container roles.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/ui/theme/Theme.kt:330:12 'constructor(primary: Color, onPrimary: Color, primaryContainer: Color, onPrimaryContainer: Color, inversePrimary: Color, secondary: Color, onSecondary: Color, secondaryContainer: Color, onSecondaryContainer: Color, tertiary: Color, onTertiary: Color, tertiaryContainer: Color, onTertiaryContainer: Color, background: Color, onBackground: Color, surface: Color, onSurface: Color, surfaceVariant: Color, onSurfaceVariant: Color, surfaceTint: Color, inverseSurface: Color, inverseOnSurface: Color, error: Color, onError: Color, errorContainer: Color, onErrorContainer: Color, outline: Color, outlineVariant: Color, scrim: Color, surfaceBright: Color, surfaceDim: Color, surfaceContainer: Color, surfaceContainerHigh: Color, surfaceContainerHighest: Color, surfaceContainerLow: Color, surfaceContainerLowest: Color): ColorScheme' is deprecated. Use constructor with additional 'fixed' container roles.
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/iosMain/kotlin/moe/rukamori/archivetune/compat/Compat.ios.kt:5:1 'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta. Consider using the '-Xexpect-actual-classes' flag to suppress this warning. Also see: https://youtrack.jetbrains.com/issue/KT-61573
+w: file:///home/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/iosMain/kotlin/moe/rukamori/archivetune/ui/theme/Theme.ios.kt:11:1 'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta. Consider using the '-Xexpect-actual-classes' flag to suppress this warning. Also see: https://youtrack.jetbrains.com/issue/KT-61573
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/ios-1792520825280.json
+
+BUILD SUCCESSFUL in 2m
+16 actionable tasks: 9 executed, 1 from cache, 6 up-to-date
+Configuration cache entry stored.

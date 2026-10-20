@@ -1,0 +1,101 @@
+Starting a Gradle Daemon (subsequent builds will be faster)
+Calculating task graph as no cached configuration is available for tasks: :androidApp:assembleDebug
+> Task :androidApp:preBuild UP-TO-DATE
+> Task :innertube:androidPreBuild UP-TO-DATE
+> Task :innertube:preAndroidMainBuild UP-TO-DATE
+> Task :androidApp:preDebugBuild UP-TO-DATE
+> Task :androidApp:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :innertube:generateAndroidMainEmptyResourceFiles
+> Task :shared:androidPreBuild UP-TO-DATE
+> Task :shared:preAndroidMainBuild UP-TO-DATE
+> Task :shared:generateAndroidMainEmptyResourceFiles
+> Task :androidApp:generateDebugResources FROM-CACHE
+> Task :androidApp:packageDebugResources FROM-CACHE
+> Task :innertube:kmpPartiallyResolvedDependenciesChecker
+> Task :innertube:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :androidApp:processDebugNavigationResources FROM-CACHE
+> Task :androidApp:parseDebugLocalResources FROM-CACHE
+> Task :androidApp:generateDebugRFile FROM-CACHE
+> Task :shared:kmpPartiallyResolvedDependenciesChecker
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :shared:convertXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForAndroidMain NO-SOURCE
+> Task :shared:generateResourceAccessorsForAndroidMain NO-SOURCE
+> Task :innertube:compileAndroidMain FROM-CACHE
+> Task :innertube:bundleAndroidMainClassesToCompileJar
+> Task :shared:generateComposeResClass
+> Task :shared:generateExpectResourceCollectorsForCommonMain
+> Task :androidApp:javaPreCompileDebug FROM-CACHE
+> Task :androidApp:generateDebugAssets UP-TO-DATE
+> Task :shared:generateAndroidMainAssets UP-TO-DATE
+> Task :androidApp:generateDebugGlobalSynthetics FROM-CACHE
+> Task :innertube:processAndroidMainJavaRes
+> Task :shared:convertXmlValueResourcesForCommonMain
+> Task :shared:copyNonXmlValueResourcesForCommonMain
+> Task :shared:prepareComposeResourcesTaskForCommonMain
+> Task :androidApp:checkDebugDuplicateClasses
+> Task :shared:copyAndroidMainComposeResourcesToAndroidAssets
+> Task :shared:packageAndroidMainResources FROM-CACHE
+> Task :shared:parseAndroidMainLocalResources FROM-CACHE
+> Task :shared:generateAndroidMainRFile FROM-CACHE
+> Task :shared:mergeAndroidMainAssets
+> Task :androidApp:mergeDebugAssets
+> Task :androidApp:compressDebugAssets FROM-CACHE
+> Task :androidApp:desugarDebugFileDependencies FROM-CACHE
+> Task :shared:generateResourceAccessorsForCommonMain
+> Task :shared:generateActualResourceCollectorsForAndroidMain
+> Task :androidApp:mergeExtDexDebug FROM-CACHE
+> Task :shared:kspAndroidMain FROM-CACHE
+> Task :shared:copyRoomSchemas NO-SOURCE
+> Task :innertube:bundleLibRuntimeToDirAndroidMain
+> Task :innertube:writeAndroidMainAarMetadata
+> Task :shared:writeAndroidMainAarMetadata
+> Task :androidApp:checkDebugAarMetadata
+> Task :androidApp:mapDebugSourceSetPaths
+> Task :androidApp:compileDebugNavigationResources FROM-CACHE
+> Task :shared:compileAndroidMain FROM-CACHE
+> Task :shared:bundleAndroidMainClassesToCompileJar
+> Task :androidApp:mergeDebugResources FROM-CACHE
+> Task :shared:processAndroidMainJavaRes
+> Task :androidApp:compileDebugKotlin FROM-CACHE
+> Task :androidApp:compileDebugJavaWithJavac NO-SOURCE
+> Task :androidApp:processDebugJavaRes
+> Task :shared:bundleLibRuntimeToDirAndroidMain
+> Task :androidApp:mergeLibDexDebug FROM-CACHE
+> Task :androidApp:createDebugCompatibleScreenManifests
+> Task :androidApp:extractDeepLinksDebug FROM-CACHE
+> Task :innertube:processAndroidMainManifest FROM-CACHE
+> Task :shared:processAndroidMainManifest FROM-CACHE
+> Task :androidApp:processDebugMainManifest FROM-CACHE
+> Task :androidApp:processDebugManifest FROM-CACHE
+> Task :androidApp:processDebugManifestForPackage FROM-CACHE
+> Task :shared:mapAndroidMainSourceSetPaths
+> Task :shared:compileAndroidMainLibraryResources FROM-CACHE
+> Task :androidApp:processDebugResources FROM-CACHE
+> Task :androidApp:dexBuilderDebug FROM-CACHE
+> Task :androidApp:mergeProjectDexDebug FROM-CACHE
+> Task :androidApp:mergeDebugJniLibFolders
+> Task :innertube:mergeAndroidMainJniLibFolders
+> Task :innertube:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :innertube:copyAndroidMainJniLibsProjectOnly
+> Task :shared:mergeAndroidMainJniLibFolders
+> Task :shared:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :shared:copyAndroidMainJniLibsProjectOnly
+> Task :androidApp:mergeDebugNativeLibs
+
+> Task :androidApp:stripDebugDebugSymbols
+Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so, libdatastore_shared_counter.so, libquickjs.so, libsqliteJni.so. Run with --info option to learn more.
+
+> Task :androidApp:mergeDebugJavaResource
+> Task :androidApp:writeDebugAppMetadata
+> Task :androidApp:writeDebugSigningConfigVersions
+> Task :androidApp:validateSigningDebug
+> Task :androidApp:packageDebug
+> Task :androidApp:assembleDebug
+> Task :androidApp:createDebugApkListingFileRedirect
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/android-1792520786153.json
+
+BUILD SUCCESSFUL in 47s
+71 actionable tasks: 41 executed, 30 from cache
+Configuration cache entry stored.
