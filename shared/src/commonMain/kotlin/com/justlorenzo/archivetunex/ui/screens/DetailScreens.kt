@@ -90,16 +90,19 @@ internal fun DetailScaffold(
     // In alto una sfumatura del colore della copertina, che sfuma nello sfondo
     val accent = animatedArtworkColor(rememberArtworkColors(accentUrl), MaterialTheme.colorScheme.background)
     val background = MaterialTheme.colorScheme.background
-    Box(Modifier.fillMaxSize()) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(520.dp)
-                .background(Brush.verticalGradient(listOf(accent.tint(background, 0.6f), accent.tint(background, 0.2f), background))),
-        )
-        content()
-        BackButton()
-    }
+    // Tema iOS: i pulsanti in alto sono di vetro e riflettono la copertina e la lista che scorre sotto
+    com.justlorenzo.archivetunex.ui.components.GlassPage(
+        modifier = Modifier.fillMaxSize(),
+        background = {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(520.dp)
+                    .background(Brush.verticalGradient(listOf(accent.tint(background, 0.6f), accent.tint(background, 0.2f), background))),
+            )
+        },
+        overlay = { BackButton() },
+    ) { content() }
 }
 
 /** Lista di brani di YouTube Music (album o playlist) con menu. */

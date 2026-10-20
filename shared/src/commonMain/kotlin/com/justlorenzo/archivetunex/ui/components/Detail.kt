@@ -97,9 +97,19 @@ fun PlayShuffleButtons(
     shuffleLabel: String = tr("Casuale"),
     shuffleIcon: DrawableResource = Res.drawable.shuffle,
 ) {
+    val ios = glassEnabled
+    androidx.compose.foundation.layout.Column(modifier.fillMaxWidth()) {
+    // Tema iOS: Riproduci e Casuale sono due capsule grigie larghe, come in Apple Music
+    if (ios && (onPlay != null || onShuffle != null)) {
+        Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            if (onPlay != null) IosActionCapsule(Res.drawable.play, playLabel, onPlay, Modifier.weight(1f))
+            if (onShuffle != null) IosActionCapsule(shuffleIcon, shuffleLabel, onShuffle, Modifier.weight(1f))
+        }
+    }
     Row(
-        modifier.fillMaxWidth().padding(top = 4.dp),
+        Modifier.fillMaxWidth().padding(top = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = if (ios) Arrangement.Center else Arrangement.Start,
     ) {
         // Azioni secondarie: solo icone, discrete
         if (toggle != null) {
@@ -143,6 +153,7 @@ fun PlayShuffleButtons(
                 AtxIcon(Res.drawable.delete, tr("Elimina"), size = 26.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
+        if (!ios) {
         Spacer(Modifier.weight(1f))
         // Azioni principali: Casuale e Play
         if (onShuffle != null) {
@@ -160,6 +171,38 @@ fun PlayShuffleButtons(
                 onClick = onPlay,
             ) { AtxIcon(Res.drawable.play, playLabel, size = 32.dp, tint = MaterialTheme.colorScheme.onPrimary) }
         }
+        }
+    }
+    }
+}
+
+/** Capsula grigia con icona e testo nel colore d'accento (pulsanti di Apple Music). */
+@Composable
+private fun IosActionCapsule(
+    icon: DrawableResource,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val source = remember { MutableInteractionSource() }
+    val pressed by source.collectIsPressedAsState()
+    val scale by animateFloatAsState(if (pressed) 0.96f else 1f, spring(dampingRatio = 0.6f, stiffness = 700f), label = "capsule")
+    Row(
+        modifier
+            .height(50.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                alpha = if (pressed) 0.7f else 1f
+            }.clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .clickable(interactionSource = source, indication = null, onClick = onClick),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        AtxIcon(icon, null, size = 20.dp, tint = MaterialTheme.colorScheme.primary)
+        Spacer(Modifier.width(8.dp))
+        Text(label, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold, fontSize = 17.sp)
     }
 }
 
@@ -196,6 +239,16 @@ private fun PressableCircle(
 @Composable
 fun BackButton(modifier: Modifier = Modifier) {
     val navigator = LocalNavigator.current
+    if (glassEnabled) {
+        // Tema iOS: tondo di vetro che galleggia sopra la copertina, come in Apple Music
+        GlassIconButton(
+            Res.drawable.arrow_back,
+            tr("Indietro"),
+            onClick = { navigator.back() },
+            modifier = modifier.statusBarsPadding().padding(start = 16.dp, top = 6.dp),
+        )
+        return
+    }
     Box(modifier.statusBarsPadding().padding(start = 4.dp, top = 4.dp)) {
         IconButton(onClick = { navigator.back() }) {
             AtxIcon(Res.drawable.arrow_back, tr("Indietro"))

@@ -650,7 +650,8 @@ private fun LiquidGlassBar(
     // Sopra il player, le impostazioni e i fogli a tutto schermo la barra si nasconde
     val covered =
         hidden || navigator.settingsVisible || navigator.loginVisible || navigator.logsVisible ||
-            navigator.queueVisible || navigator.accountVisible || navigator.lyricsVisible
+            navigator.queueVisible || navigator.accountVisible || navigator.lyricsVisible ||
+            com.justlorenzo.archivetunex.ui.components.OpenSheets.count > 0
     val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     // Come le app di Apple: la barra scende un po' dentro lo spazio della barretta Home
     val bottomPadding = if (navBottom > 0.dp) (navBottom - 13.dp).coerceAtLeast(12.dp) else 12.dp

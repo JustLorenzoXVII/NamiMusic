@@ -1,5 +1,6 @@
 package com.justlorenzo.archivetunex.ui.screens
 
+import com.justlorenzo.archivetunex.ui.components.glassSource
 import com.justlorenzo.archivetunex.ui.tr
 import com.justlorenzo.archivetunex.ui.trf
 import androidx.compose.foundation.background
@@ -113,14 +114,14 @@ private fun SongCollection(
     val background = MaterialTheme.colorScheme.background
     val top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
 
-    Box(Modifier.fillMaxSize()) {
+    com.justlorenzo.archivetunex.ui.components.GlassScope { Box(Modifier.fillMaxSize()) {
         Box(
             Modifier
                 .fillMaxWidth()
                 .height(420.dp)
                 .background(Brush.verticalGradient(listOf(colors.first().tint(background, 0.7f), colors.last().tint(background, 0.25f), background))),
         )
-        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(top = top + 64.dp, bottom = BottomContentPadding.calculateBottomPadding())) {
+        LazyColumn(Modifier.fillMaxSize().glassSource(), contentPadding = PaddingValues(top = top + 64.dp, bottom = BottomContentPadding.calculateBottomPadding())) {
             item(key = "header") {
                 Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
@@ -158,7 +159,7 @@ private fun SongCollection(
             }
         }
         BackButton()
-    }
+    } }
     menuSong?.let { SongMenuSheet(it, onDismiss = { menuSong = null }) }
 }
 
@@ -174,8 +175,8 @@ fun BrowseScreen(
     val page = rememberLoadable(browseId to params, cache = "browse") { YouTube.browse(browseId, params) }
     val top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
 
-    Box(Modifier.fillMaxSize()) {
-        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(top = top + 56.dp, bottom = BottomContentPadding.calculateBottomPadding())) {
+    com.justlorenzo.archivetunex.ui.components.GlassScope { Box(Modifier.fillMaxSize()) {
+        LazyColumn(Modifier.fillMaxSize().glassSource(), contentPadding = PaddingValues(top = top + 56.dp, bottom = BottomContentPadding.calculateBottomPadding())) {
             item(key = "title") {
                 Text(
                     (page.value as? LoadState.Ready)?.value?.title ?: title,
@@ -217,5 +218,5 @@ fun BrowseScreen(
             }
         }
         BackButton()
-    }
+    } }
 }

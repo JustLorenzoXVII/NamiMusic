@@ -27,6 +27,7 @@ kotlinx-datetime = "0.7.1"
 kotlinx-serialization = "1.9.0"
 material3 = "1.12.0-alpha03"
 coil = "3.5.0"
+haze = "2.0.1"
 navigation = "2.10.0-alpha02"
 koin = "4.1.1"
 shimmer = "1.5.0"
@@ -71,6 +72,8 @@ room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
+haze-glass = { module = "dev.chrisbanes.haze:haze-glass", version.ref = "haze" }
 coil-svg = { module = "io.coil-kt.coil3:coil-svg", version.ref = "coil" }
 coil-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation" }

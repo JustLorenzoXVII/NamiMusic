@@ -567,7 +567,7 @@ private fun AddSongsSheet(
         loading = false
     }
 
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+    com.justlorenzo.archivetunex.ui.components.AtxModalSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Text(
             tr("Aggiungi brani"),
             style = MaterialTheme.typography.titleLarge,

@@ -59,7 +59,7 @@ fun SongMenuSheet(
     val download by remember(song.id) { actions.downloads.getDownload(song.id) }.collectAsState(null)
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    if (!addingToPlaylist) ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+    if (!addingToPlaylist) com.justlorenzo.archivetunex.ui.components.AtxModalSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,

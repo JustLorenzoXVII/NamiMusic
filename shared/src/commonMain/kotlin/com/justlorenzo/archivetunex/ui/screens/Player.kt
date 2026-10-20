@@ -2,6 +2,8 @@
 
 package com.justlorenzo.archivetunex.ui.screens
 
+import dev.chrisbanes.haze.hazeSource
+import com.justlorenzo.archivetunex.ui.components.glassSurface
 import com.justlorenzo.archivetunex.ui.tr
 import com.justlorenzo.archivetunex.ui.trf
 import androidx.compose.animation.animateColorAsState
@@ -561,6 +563,9 @@ fun PlayerScreen(underArtwork: @Composable () -> Unit = {}) {
     val song = metadata ?: return
     val style = LocalAtxStyle.current
     val layout = style.playerLayout
+    // Tema iOS: i pulsanti del player sono di vetro e riflettono lo sfondo con la copertina sfocata
+    val hazeState = dev.chrisbanes.haze.rememberHazeState()
+    val playerGlass = if (style.liquidGlass) hazeState else null
     // Tema iOS: il player prende sempre i colori della copertina, su sfondo scuro sfocato (come Apple Music)
     val playerBackground = if (style.liquidGlass) PlayerBackground.Blur else style.playerBackground
     val scope = rememberCoroutineScope()
@@ -695,7 +700,12 @@ fun PlayerScreen(underArtwork: @Composable () -> Unit = {}) {
             val width = maxWidth
 
             // ================= Sfondi =================
-            Box(Modifier.fillMaxSize().graphicsLayer { alpha = open }) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { alpha = open }
+                    .then(if (playerGlass != null) Modifier.hazeSource(playerGlass) else Modifier),
+            ) {
             when (playerBackground) {
                 PlayerBackground.Glow ->
                     Box(
@@ -999,7 +1009,7 @@ fun PlayerScreen(underArtwork: @Composable () -> Unit = {}) {
                 ) {
                     // Nell'Onda la barra sta sopra la copertina: icone e titolo su "bolle" leggibili
                     val chip = if (poster && !showLyrics) pc.background.copy(alpha = 0.55f) else Color.Transparent
-                    TopBarButton(chip, ::close) {
+                    TopBarButton(chip, ::close, glass = playerGlass) {
                         AtxIcon(Res.drawable.expand_more, tr("Chiudi player"), size = 30.dp, tint = pc.text)
                     }
                     Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
@@ -1019,7 +1029,7 @@ fun PlayerScreen(underArtwork: @Composable () -> Unit = {}) {
                                     .padding(horizontal = 12.dp, vertical = 6.dp),
                         )
                     }
-                    TopBarButton(chip, { showMenu = true }) {
+                    TopBarButton(chip, { showMenu = true }, glass = playerGlass) {
                         AtxIcon(Res.drawable.more_vert, tr("Altre opzioni"), size = 22.dp, tint = pc.text)
                     }
                 }
@@ -1125,8 +1135,8 @@ fun PlayerScreen(underArtwork: @Composable () -> Unit = {}) {
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    BottomAction(Res.drawable.lyrics, tr("Testo"), showLyrics, pc) { navigator.lyricsVisible = !showLyrics }
-                    BottomAction(if (isAndroid) Res.drawable.cast else Res.drawable.airplay, tr("Trasmetti"), false, pc) {
+                    BottomAction(Res.drawable.lyrics, tr("Testo"), showLyrics, pc, glass = playerGlass) { navigator.lyricsVisible = !showLyrics }
+                    BottomAction(if (isAndroid) Res.drawable.cast else Res.drawable.airplay, tr("Trasmetti"), false, pc, glass = playerGlass) {
                         moe.rukamori.archivetune.utils.oem.SystemMediaControlResolver.openMediaOutputSwitcher(moe.rukamori.archivetune.compat.AppContext)
                     }
                     BottomAction(
@@ -1134,8 +1144,9 @@ fun PlayerScreen(underArtwork: @Composable () -> Unit = {}) {
                         if (liked) tr("Togli dai preferiti") else tr("Aggiungi ai preferiti"),
                         liked,
                         pc,
+                        glass = playerGlass,
                     ) { connection.toggleLike() }
-                    BottomAction(Res.drawable.queue_music, tr("Coda"), false, pc) { navigator.queueVisible = true }
+                    BottomAction(Res.drawable.queue_music, tr("Coda"), false, pc, glass = playerGlass) { navigator.queueVisible = true }
                 }
                 Spacer(Modifier.height(16.dp))
             }
@@ -1182,9 +1193,22 @@ private fun BottomAction(
     description: String,
     active: Boolean,
     pc: PlayerColors,
+    glass: dev.chrisbanes.haze.HazeState? = null,
     onClick: () -> Unit,
 ) {
     val tint by animateColorAsState(if (active) pc.accent else pc.text.copy(alpha = 0.7f), label = "bottomActionTint")
+    if (glass != null) {
+        com.justlorenzo.archivetunex.ui.components.GlassIconButton(
+            icon,
+            description,
+            onClick = onClick,
+            size = 48.dp,
+            tint = if (active) pc.accent else pc.text,
+            state = glass,
+            dark = true,
+        )
+        return
+    }
     IconButton(onClick = onClick, modifier = Modifier.size(52.dp)) {
         AtxIcon(icon, description, size = 26.dp, tint = tint)
     }
@@ -1195,10 +1219,20 @@ private fun BottomAction(
 private fun TopBarButton(
     background: Color,
     onClick: () -> Unit,
+    glass: dev.chrisbanes.haze.HazeState? = null,
     content: @Composable () -> Unit,
 ) {
     Box(
-        Modifier.size(42.dp).clip(CircleShape).background(background).clickable(onClick = onClick),
+        Modifier
+            .size(42.dp)
+            .then(
+                if (glass != null) {
+                    Modifier.glassSurface(CircleShape, state = glass, dark = true)
+                } else {
+                    Modifier.clip(CircleShape).background(background)
+                },
+            ).clip(CircleShape)
+            .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) { content() }
 }
@@ -2366,7 +2400,7 @@ fun QueueSheet() {
     val dragTarget =
         dragFrom?.let { from -> (from + kotlin.math.round(dragOffset / rowPx).toInt()).coerceIn(0, (windows.size - 1).coerceAtLeast(0)) }
 
-    ModalBottomSheet(onDismissRequest = { navigator.queueVisible = false }, sheetState = sheetState) {
+    com.justlorenzo.archivetunex.ui.components.AtxModalSheet(onDismissRequest = { navigator.queueVisible = false }, sheetState = sheetState) {
         Row(
             Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
