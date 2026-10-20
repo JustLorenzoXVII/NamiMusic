@@ -113,8 +113,12 @@ jobs:
             -authenticationKeyID "${{ secrets.ASC_KEY_ID }}" \
             -authenticationKeyIssuerID "${{ secrets.ASC_ISSUER_ID }}" \
             2>&1 | tee export.log
-          grep -q "EXPORT SUCCEEDED\|Upload succeeded\|Uploaded" export.log || { echo "Esportazione o caricamento non riusciti"; exit 1; }
-          echo "Build $BUILD_NUMBER inviata a TestFlight: tra qualche minuto compare in App Store Connect."
+          # Le righe importanti diventano note della build (leggibili anche senza aprire il log)
+          grep -iE "error|warning|upload|export|provision|certificate|ITMS" export.log | tail -15 | while IFS= read -r line; do
+            echo "::notice title=Esportazione::${line:0:900}"
+          done
+          grep -q "EXPORT SUCCEEDED\|Upload succeeded\|Uploaded" export.log || { echo "::error::Esportazione o caricamento non riusciti"; exit 1; }
+          echo "::notice title=TestFlight::Build $BUILD_NUMBER inviata a TestFlight"
 
       - name: Log
         if: always()
