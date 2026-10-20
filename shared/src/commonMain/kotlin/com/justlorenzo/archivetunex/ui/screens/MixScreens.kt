@@ -93,11 +93,11 @@ fun MadeForYouSection() {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {
-                Text(tr("Fatte per te"), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.5).sp)
+                Text(tr("Fatte per te"), style = MaterialTheme.typography.headlineSmall, fontWeight = com.justlorenzo.archivetunex.ui.ios.extraBoldWeight, letterSpacing = (-0.5).sp)
                 Text(tr("Dai tuoi ascolti, ogni settimana"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (working) {
-                LoadingIndicator(Modifier.size(36.dp))
+                com.justlorenzo.archivetunex.ui.ios.AtxLoading(size = 36.dp)
             } else {
                 IconButton(onClick = { scope.launch { MixMaker.refreshIfNeeded(actions.database, force = true) } }) {
                     AtxIcon(Res.drawable.refresh, tr("Rigenera"), tint = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -160,7 +160,7 @@ private fun MixCover(
         Text(
             tr(mix.title),
             style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Black,
+            fontWeight = com.justlorenzo.archivetunex.ui.ios.heavyWeight,
             color = Color.White,
             letterSpacing = (-0.5).sp,
             lineHeight = 26.sp,

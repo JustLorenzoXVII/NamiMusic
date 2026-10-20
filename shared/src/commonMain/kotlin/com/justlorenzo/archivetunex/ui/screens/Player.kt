@@ -1253,7 +1253,7 @@ private fun TitleWithBadge(
         Text(
             title,
             style = textStyle,
-            fontWeight = FontWeight.Black,
+            fontWeight = com.justlorenzo.archivetunex.ui.ios.heavyWeight,
             color = pc.text,
             maxLines = 1,
             softWrap = false,
@@ -1277,7 +1277,7 @@ private fun ExplicitBadge(
         Text(
             "E",
             color = text,
-            style = TextStyle(fontSize = (size.value * 0.62f).sp, lineHeight = (size.value * 0.62f).sp, fontWeight = FontWeight.Black),
+            style = TextStyle(fontSize = (size.value * 0.62f).sp, lineHeight = (size.value * 0.62f).sp, fontWeight = com.justlorenzo.archivetunex.ui.ios.heavyWeight),
         )
     }
 }
@@ -1317,8 +1317,15 @@ private fun ProgressBar(
 ) {
     var dragging by remember { mutableStateOf<Float?>(null) }
     val current = dragging ?: progress.fraction()
+    val ios = com.justlorenzo.archivetunex.ui.ios.iosStyle
     Box(Modifier.fillMaxWidth().height(40.dp), contentAlignment = Alignment.Center) {
-        when (slider) {
+        if (ios) {
+            // Apple Music: barra sottile senza pallino, che si ingrossa mentre la trascini
+            val height by animateDpAsState(if (dragging != null) 12.dp else 7.dp, spring(dampingRatio = 0.7f, stiffness = 500f), label = "iosBar")
+            Box(Modifier.fillMaxWidth().height(height).clip(CircleShape).background(color.copy(alpha = 0.22f))) {
+                Box(Modifier.fillMaxWidth(current).fillMaxHeight().background(color.copy(alpha = if (dragging != null) 1f else 0.85f)))
+            }
+        } else when (slider) {
             SliderStyleChoice.Wavy ->
                 LinearWavyProgressIndicator(
                     progress = { dragging ?: progress.fraction() },
@@ -1351,7 +1358,7 @@ private fun ProgressBar(
             },
             colors =
                 SliderDefaults.colors(
-                    thumbColor = if (dragging != null && slider != SliderStyleChoice.Thick) color else Color.Transparent,
+                    thumbColor = if (dragging != null && slider != SliderStyleChoice.Thick && !ios) color else Color.Transparent,
                     activeTrackColor = Color.Transparent,
                     inactiveTrackColor = Color.Transparent,
                     activeTickColor = Color.Transparent,
@@ -1482,8 +1489,6 @@ private fun GroupPiece(
     }
 }
 
-/** Comandi classici: precedente, Play con la forma scelta, successivo. */
-@Composable
 /** Comandi di Apple Music: solo icone bianche grandi, senza sfondi; premute si rimpiccioliscono. */
 @Composable
 private fun IosControls(
@@ -1534,6 +1539,8 @@ private fun IosControlButton(
     ) { AtxIcon(icon, label, size = size, tint = color) }
 }
 
+/** Comandi classici: precedente, Play con la forma scelta, successivo. */
+@Composable
 private fun ClassicControls(
     shape: PlayButtonShape,
     isPlaying: Boolean,
@@ -2459,7 +2466,7 @@ fun QueueSheet() {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {
-                Text(tr("In coda"), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black)
+                Text(tr("In coda"), style = MaterialTheme.typography.headlineSmall, fontWeight = com.justlorenzo.archivetunex.ui.ios.heavyWeight)
                 Text(
                     trf("{0} brani", windows.size),
                     style = MaterialTheme.typography.bodyMedium,

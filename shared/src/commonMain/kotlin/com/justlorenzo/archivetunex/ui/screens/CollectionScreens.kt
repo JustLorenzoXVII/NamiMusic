@@ -130,7 +130,7 @@ private fun SongCollection(
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.5.sp,
                     )
-                    Text(title, style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Black, letterSpacing = (-1.5).sp)
+                    Text(title, style = MaterialTheme.typography.displayMedium, fontWeight = com.justlorenzo.archivetunex.ui.ios.heavyWeight, letterSpacing = (-1.5).sp)
                     Text(
                         trf("{0} brani", songs.size),
                         style = MaterialTheme.typography.bodyLarge,
@@ -181,7 +181,7 @@ fun BrowseScreen(
                 Text(
                     (page.value as? LoadState.Ready)?.value?.title ?: title,
                     style = MaterialTheme.typography.displaySmall,
-                    fontWeight = FontWeight.Black,
+                    fontWeight = com.justlorenzo.archivetunex.ui.ios.heavyWeight,
                     letterSpacing = (-1).sp,
                     modifier = Modifier.padding(horizontal = 20.dp),
                 )

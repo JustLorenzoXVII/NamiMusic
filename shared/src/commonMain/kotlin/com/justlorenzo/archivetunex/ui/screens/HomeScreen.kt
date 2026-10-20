@@ -94,7 +94,7 @@ fun HomeScreen() {
     val recent by remember { actions.database.recentSongs(20) }.collectAsState(emptyList())
     val ready = (home.value as? LoadState.Ready)?.value
 
-    PullToRefreshBox(
+    com.justlorenzo.archivetunex.ui.ios.AtxPullToRefreshBox(
         isRefreshing = home.value is LoadState.Loading && ready != null,
         onRefresh = home::reload,
         modifier = Modifier.fillMaxSize(),
@@ -105,7 +105,8 @@ fun HomeScreen() {
         ) {
             item(key = "header") {
                 ScreenTitle(
-                    title = account?.name?.substringBefore(' ') ?: tr("Ascolta ora"),
+                    // Tema iOS: titolo grande "Home" come Apple Music
+                    title = if (com.justlorenzo.archivetunex.ui.ios.iosStyle) tr("Home") else account?.name?.substringBefore(' ') ?: tr("Ascolta ora"),
                     overline = greeting(),
                 ) { AccountButton(account) { navigator.accountVisible = true } }
             }
@@ -119,16 +120,10 @@ fun HomeScreen() {
                     ) {
                         items(chips) { chip ->
                             val selected = chip.endpoint?.params != null && chip.endpoint?.params == chipParams
-                            FilterChip(
+                            com.justlorenzo.archivetunex.ui.ios.AtxFilterChip(
                                 selected = selected,
                                 onClick = { chipParams = if (selected) null else chip.endpoint?.params },
                                 label = { Text(chip.title, fontWeight = FontWeight.SemiBold) },
-                                shape = RoundedCornerShape(20.dp),
-                                colors =
-                                    FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                                    ),
                             )
                         }
                     }
@@ -178,7 +173,7 @@ fun HomeScreen() {
                     SectionHeader(section.title)
                     when {
                         allSongs -> SongGrid(section.items.map { it as SongItem })
-                        useCarousel -> BigCarousel(section.items)
+                        useCarousel -> if (com.justlorenzo.archivetunex.ui.ios.iosStyle) IosFeaturedRow(section.items) else BigCarousel(section.items)
                         else ->
                             LazyRow(
                                 contentPadding = PaddingValues(horizontal = 16.dp),
@@ -201,6 +196,10 @@ private fun HeroCard(
     song: MediaMetadata,
     onPlay: () -> Unit,
 ) {
+    if (com.justlorenzo.archivetunex.ui.ios.iosStyle) {
+        IosHeroCard(song, onPlay)
+        return
+    }
     val colored = com.justlorenzo.archivetunex.ui.LocalAtxStyle.current.coloredHome
     val accent =
         if (colored) {
@@ -247,7 +246,7 @@ private fun HeroCard(
             Text(
                 song.title,
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Black,
+                fontWeight = com.justlorenzo.archivetunex.ui.ios.heavyWeight,
                 color = onAccent,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -265,7 +264,7 @@ private fun HeroCard(
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
                 .size(56.dp)
-                .clip(MaterialShapes.Cookie9Sided.toShape())
+                .clip(com.justlorenzo.archivetunex.ui.ios.iosShape(MaterialShapes.Cookie9Sided.toShape()))
                 .background(onAccent),
             contentAlignment = Alignment.Center,
         ) {
@@ -324,7 +323,7 @@ private fun BigCarousel(items: List<YTItem>) {
                     .background(Brush.verticalGradient(0.5f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.75f))),
             )
             Column(Modifier.align(Alignment.BottomStart).padding(16.dp)) {
-                Text(item.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = Color.White, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(item.title, style = MaterialTheme.typography.titleLarge, fontWeight = com.justlorenzo.archivetunex.ui.ios.heavyWeight, color = Color.White, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text(item.subtitle(), style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.8f), maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
@@ -336,6 +335,22 @@ private fun RecentSongCard(
     song: MediaMetadata,
     onClick: () -> Unit,
 ) {
+    if (com.justlorenzo.archivetunex.ui.ios.iosStyle) {
+        // Apple Music: solo copertina e due righe di testo, niente riquadro intorno
+        Column(
+            Modifier
+                .width(150.dp)
+                .clickable(interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }, indication = null, onClick = onClick),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Artwork(song.thumbnailUrl, Modifier.size(150.dp), RoundedCornerShape(8.dp), sizePx = 400)
+            Column {
+                Text(song.title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(song.artists.joinToString { it.name }, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
+        return
+    }
     val colored = com.justlorenzo.archivetunex.ui.LocalAtxStyle.current.coloredHome
     val accent =
         if (colored) {
@@ -369,5 +384,61 @@ private fun RecentSongCard(
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(start = 4.dp, end = 4.dp, bottom = 4.dp),
         )
+    }
+}
+
+/** "Per te adesso" in stile Apple Music: copertina grande, testo bianco su sfumatura e Play in basso. */
+@Composable
+private fun IosHeroCard(
+    song: MediaMetadata,
+    onPlay: () -> Unit,
+) {
+    Column(Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
+        Text(
+            tr("Per te adesso"),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 6.dp),
+        )
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(260.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .clickable(onClick = onPlay),
+        ) {
+            Artwork(song.thumbnailUrl, Modifier.fillMaxSize(), RoundedCornerShape(0.dp), sizePx = 720)
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(Brush.verticalGradient(0.45f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.7f))),
+            )
+            Row(
+                Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(song.title, style = MaterialTheme.typography.titleMedium, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(song.artists.joinToString { it.name }, style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.75f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                Box(
+                    Modifier.size(40.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Color.White.copy(alpha = 0.22f)),
+                    contentAlignment = Alignment.Center,
+                ) { AtxIcon(Res.drawable.play, tr("Riproduci"), size = 18.dp, tint = Color.White) }
+            }
+        }
+    }
+}
+
+/** Prima sezione di album/playlist in grande, scorrevole (come le card in evidenza di Apple Music). */
+@Composable
+private fun IosFeaturedRow(items: List<YTItem>) {
+    val actions = LocalActions.current
+    val navigator = LocalNavigator.current
+    androidx.compose.foundation.lazy.LazyRow(
+        contentPadding = PaddingValues(horizontal = 20.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        items(items) { item -> ItemCard(item, onClick = { openItem(item, actions, navigator) }, width = 250.dp) }
     }
 }

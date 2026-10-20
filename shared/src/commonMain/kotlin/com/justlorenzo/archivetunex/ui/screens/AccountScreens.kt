@@ -111,10 +111,9 @@ fun AccountSheet() {
     val primary = MaterialTheme.colorScheme.primary
     val onPrimary = MaterialTheme.colorScheme.onPrimary
 
-    ModalBottomSheet(
+    com.justlorenzo.archivetunex.ui.components.AtxModalSheet(
         onDismissRequest = { navigator.accountVisible = false },
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Column(
             Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 24.dp),
@@ -138,7 +137,7 @@ fun AccountSheet() {
                         .offset(x = 40.dp, y = (-30).dp)
                         .size(150.dp)
                         .rotate(18f)
-                        .clip(MaterialShapes.Cookie12Sided.toShape())
+                        .clip(com.justlorenzo.archivetunex.ui.ios.iosShape(MaterialShapes.Cookie12Sided.toShape()))
                         .background(onPrimary.copy(alpha = 0.10f)),
                 )
                 Box(
@@ -146,19 +145,19 @@ fun AccountSheet() {
                         .align(Alignment.BottomEnd)
                         .offset(x = (-70).dp, y = 36.dp)
                         .size(80.dp)
-                        .clip(MaterialShapes.Pill.toShape())
+                        .clip(com.justlorenzo.archivetunex.ui.ios.iosShape(MaterialShapes.Pill.toShape()))
                         .background(onPrimary.copy(alpha = 0.08f)),
                 )
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     Box(
-                        Modifier.size(68.dp).clip(MaterialShapes.Cookie9Sided.toShape()).background(onPrimary.copy(alpha = 0.92f)),
+                        Modifier.size(68.dp).clip(com.justlorenzo.archivetunex.ui.ios.iosShape(MaterialShapes.Cookie9Sided.toShape())).background(onPrimary.copy(alpha = 0.92f)),
                         contentAlignment = Alignment.Center,
                     ) {
                         if (account != null) {
                             Text(
                                 account.name.first().uppercase(),
                                 style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Black,
+                                fontWeight = com.justlorenzo.archivetunex.ui.ios.heavyWeight,
                                 color = primary,
                             )
                         } else {
@@ -169,7 +168,7 @@ fun AccountSheet() {
                         Text(
                             account?.name ?: tr("Ospite"),
                             style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Black,
+                            fontWeight = com.justlorenzo.archivetunex.ui.ios.heavyWeight,
                             color = onPrimary,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -261,7 +260,7 @@ private fun StatTile(
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         AtxIcon(icon, null, size = 20.dp, tint = MaterialTheme.colorScheme.primary)
-        Text(count.toString(), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black)
+        Text(count.toString(), style = MaterialTheme.typography.headlineSmall, fontWeight = com.justlorenzo.archivetunex.ui.ios.heavyWeight)
         Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
     }
 }
@@ -344,7 +343,7 @@ fun LoginOverlay() {
                     modifier = Modifier.weight(1f),
                 )
                 if (state is LoginScreenState.Loading) {
-                    androidx.compose.material3.LoadingIndicator(Modifier.padding(end = 12.dp))
+                    com.justlorenzo.archivetunex.ui.ios.AtxLoading(Modifier.padding(end = 12.dp))
                 }
             }
             Box(Modifier.weight(1f).fillMaxWidth()) {
@@ -381,7 +380,7 @@ fun LogsOverlay() {
             Row(Modifier.fillMaxWidth().padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { navigator.logsVisible = false }) { AtxIcon(Res.drawable.close, tr("Chiudi")) }
                 Text(tr("Registro errori"), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                TextButton(onClick = {
+                com.justlorenzo.archivetunex.ui.ios.AtxTextButton(onClick = {
                     clipboard.setText(AnnotatedString(logs.joinToString("\n") { GlobalLog.format(it) }))
                     copied = true
                 }) { Text(if (copied) tr("Copiato") else tr("Copia")) }

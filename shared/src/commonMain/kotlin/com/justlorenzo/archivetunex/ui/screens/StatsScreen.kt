@@ -126,16 +126,10 @@ fun StatsScreen() {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(StatsPeriod.entries) { entry ->
-                    FilterChip(
+                    com.justlorenzo.archivetunex.ui.ios.AtxFilterChip(
                         selected = entry == period,
                         onClick = { period = entry },
                         label = { Text(tr(entry.rawLabel), fontWeight = FontWeight.SemiBold) },
-                        shape = RoundedCornerShape(20.dp),
-                        colors =
-                            FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                            ),
                     )
                 }
             }
@@ -145,7 +139,7 @@ fun StatsScreen() {
         if (current == null || (loading && current.plays == 0)) {
             item(key = "loading") {
                 Box(Modifier.fillMaxWidth().padding(top = 80.dp), contentAlignment = Alignment.Center) {
-                    LoadingIndicator(Modifier.size(56.dp))
+                    com.justlorenzo.archivetunex.ui.ios.AtxLoading(size = 56.dp)
                 }
             }
             return@LazyColumn
@@ -212,7 +206,7 @@ fun StatsScreen() {
                                         .background(MaterialTheme.colorScheme.primary),
                                     contentAlignment = Alignment.Center,
                                 ) {
-                                    Text("${index + 1}", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Black, style = MaterialTheme.typography.labelLarge)
+                                    Text("${index + 1}", color = MaterialTheme.colorScheme.onPrimary, fontWeight = com.justlorenzo.archivetunex.ui.ios.heavyWeight, style = MaterialTheme.typography.labelLarge)
                                 }
                             }
                             Spacer(Modifier.height(6.dp))
@@ -281,21 +275,23 @@ fun StatsScreen() {
 @Composable
 private fun HeroTotals(stats: ListeningStats) {
     val scheme = MaterialTheme.colorScheme
+    val ios = com.justlorenzo.archivetunex.ui.ios.iosStyle
     Column(
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(32.dp))
-            .background(Brush.linearGradient(listOf(scheme.primary, scheme.tertiary)))
+            .clip(RoundedCornerShape(if (ios) 22.dp else 32.dp))
+            .background(if (ios) Brush.linearGradient(listOf(scheme.surfaceContainer, scheme.surfaceContainer)) else Brush.linearGradient(listOf(scheme.primary, scheme.tertiary)))
             .padding(24.dp),
     ) {
-        Text(tr("Hai ascoltato"), style = MaterialTheme.typography.titleMedium, color = scheme.onPrimary.copy(alpha = 0.85f))
+        // Tema iOS: riquadro grigio di sistema con il numero nel colore d'accento (come Tempo di utilizzo)
+        Text(tr("Hai ascoltato"), style = MaterialTheme.typography.titleMedium, color = if (ios) scheme.onSurfaceVariant else scheme.onPrimary.copy(alpha = 0.85f))
         Text(
             formatHours(stats.totalMs),
             style = MaterialTheme.typography.displayMedium,
-            fontWeight = FontWeight.Black,
-            color = scheme.onPrimary,
-            letterSpacing = (-1).sp,
+            fontWeight = com.justlorenzo.archivetunex.ui.ios.heavyWeight,
+            color = if (ios) scheme.primary else scheme.onPrimary,
+            letterSpacing = if (ios) 0.sp else (-1).sp,
         )
         Spacer(Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -312,15 +308,16 @@ private fun HeroNumber(
     label: String,
     modifier: Modifier,
 ) {
+    val ios = com.justlorenzo.archivetunex.ui.ios.iosStyle
     Column(
         modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(Color.White.copy(alpha = 0.16f))
+            .clip(RoundedCornerShape(if (ios) 12.dp else 20.dp))
+            .background(if (ios) com.justlorenzo.archivetunex.ui.ios.iosFill else Color.White.copy(alpha = 0.16f))
             .padding(vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onPrimary)
-        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f))
+        Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = com.justlorenzo.archivetunex.ui.ios.heavyWeight, color = if (ios) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary)
+        Text(label, style = MaterialTheme.typography.labelMedium, color = if (ios) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f))
     }
 }
 
@@ -345,7 +342,7 @@ private fun RankRow(
         Text(
             rank.toString(),
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Black,
+            fontWeight = com.justlorenzo.archivetunex.ui.ios.heavyWeight,
             color = if (rank <= 3) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.width(22.dp),
         )
@@ -367,14 +364,14 @@ private fun GenresCard(
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
-            .clip(RoundedCornerShape(28.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .clip(RoundedCornerShape(if (com.justlorenzo.archivetunex.ui.ios.iosStyle) 22.dp else 28.dp))
+            .background(if (com.justlorenzo.archivetunex.ui.ios.iosStyle) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.surfaceContainerHigh)
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         if (stats.genres.isEmpty()) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                if (fetching) LoadingIndicator(Modifier.size(32.dp))
+                if (fetching) com.justlorenzo.archivetunex.ui.ios.AtxLoading(size = 32.dp)
                 Text(
                     if (fetching) tr("Sto scoprendo i generi dei tuoi artisti…") else tr("Generi non ancora disponibili. Riprova tra poco (serve internet)."),
                     style = MaterialTheme.typography.bodyMedium,
@@ -442,8 +439,8 @@ private fun HoursCard(byHour: List<Long>) {
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
-            .clip(RoundedCornerShape(28.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .clip(RoundedCornerShape(if (com.justlorenzo.archivetunex.ui.ios.iosStyle) 22.dp else 28.dp))
+            .background(if (com.justlorenzo.archivetunex.ui.ios.iosStyle) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.surfaceContainerHigh)
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {

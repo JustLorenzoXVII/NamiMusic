@@ -8,6 +8,8 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
@@ -185,11 +187,19 @@ fun SettingsOverlay() {
     val navigator = LocalNavigator.current
     val page = navigator.settingsPage
 
-    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+    val ios = com.justlorenzo.archivetunex.ui.ios.iosStyle
+    Surface(Modifier.fillMaxSize(), color = if (ios) iosGroupedBackground() else MaterialTheme.colorScheme.background) {
         AnimatedContent(
             targetState = page,
             transitionSpec = {
-                if (targetState != null) {
+                if (ios) {
+                    // iPhone: la pagina entra da destra a tutta larghezza, quella sotto si sposta di un terzo
+                    if (targetState != null) {
+                        slideInHorizontally(tween(380)) { it } togetherWith slideOutHorizontally(tween(380)) { -it / 3 }
+                    } else {
+                        slideInHorizontally(tween(380)) { -it / 3 } togetherWith slideOutHorizontally(tween(380)) { it }
+                    }
+                } else if (targetState != null) {
                     (slideInHorizontally { it / 3 } + fadeIn()) togetherWith fadeOut()
                 } else {
                     fadeIn() togetherWith (slideOutHorizontally { it / 3 } + fadeOut())
@@ -223,6 +233,10 @@ private fun SettingsScaffold(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val navigator = LocalNavigator.current
+    if (com.justlorenzo.archivetunex.ui.ios.iosStyle) {
+        IosSettingsScaffold(title, isHome, content)
+        return
+    }
     Column(Modifier.fillMaxSize().statusBarsPadding()) {
         IconButton(
             onClick = { if (isHome) navigator.settingsVisible = false else navigator.settingsPage = null },
@@ -242,7 +256,7 @@ private fun SettingsScaffold(
                         color = MaterialTheme.colorScheme.primary,
                     )
                 }
-                Text(title, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Black, letterSpacing = (-1.5).sp)
+                Text(title, style = MaterialTheme.typography.displaySmall, fontWeight = com.justlorenzo.archivetunex.ui.ios.heavyWeight, letterSpacing = (-1.5).sp)
             }
             content()
         }
@@ -255,6 +269,10 @@ private fun SettingsGroup(
     title: String? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    if (com.justlorenzo.archivetunex.ui.ios.iosStyle) {
+        IosSettingsGroup(title, content)
+        return
+    }
     Column(Modifier.padding(horizontal = 16.dp)) {
         if (title != null) {
             Text(
@@ -279,8 +297,16 @@ private fun CookieIcon(
     color: Color,
     size: androidx.compose.ui.unit.Dp = 44.dp,
 ) {
+    if (com.justlorenzo.archivetunex.ui.ios.iosStyle) {
+        // Icona delle Impostazioni di iOS: quadratino colorato con il simbolo bianco
+        Box(
+            Modifier.size(30.dp).clip(RoundedCornerShape(7.dp)).background(color),
+            contentAlignment = Alignment.Center,
+        ) { AtxIcon(icon, null, size = 19.dp, tint = Color.White) }
+        return
+    }
     Box(
-        Modifier.size(size).clip(MaterialShapes.Cookie9Sided.toShape()).background(color),
+        Modifier.size(size).clip(com.justlorenzo.archivetunex.ui.ios.iosShape(MaterialShapes.Cookie9Sided.toShape(), androidx.compose.foundation.shape.RoundedCornerShape(percent = 24))).background(color),
         contentAlignment = Alignment.Center,
     ) { AtxIcon(icon, null, size = size * 0.5f, tint = Color.White) }
 }
@@ -293,6 +319,21 @@ private fun NavRow(
     subtitle: String?,
     onClick: () -> Unit,
 ) {
+    if (com.justlorenzo.archivetunex.ui.ios.iosStyle) {
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 52.dp).clickable(onClick = onClick).padding(start = 16.dp, end = 14.dp, top = 8.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            CookieIcon(icon, color)
+            Column(Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.bodyLarge)
+                if (subtitle != null) Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            AtxIcon(Res.drawable.navigate_next, null, size = 15.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+        }
+        return
+    }
     Row(
         Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -321,11 +362,12 @@ private fun SwitchRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        val ios = com.justlorenzo.archivetunex.ui.ios.iosStyle
         Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
-            if (subtitle != null) Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = if (ios) FontWeight.Normal else FontWeight.SemiBold)
+            if (subtitle != null) Text(subtitle, style = if (ios) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Switch(checked = checked, onCheckedChange = onChange)
+        com.justlorenzo.archivetunex.ui.ios.AtxSwitch(checked = checked, onCheckedChange = onChange)
     }
 }
 
@@ -415,9 +457,13 @@ private fun SettingsHome() {
     val navigator = LocalNavigator.current
     SettingsScaffold(tr("Impostazioni"), overline = "Nami", isHome = true) {
         SettingsGroup(tr("Personalizza")) {
-            NavRow(Res.drawable.palette, Color(0xFFFF8FB8), tr("Aspetto"), tr("Lingua, tema, colori, copertine")) { navigator.settingsPage = SettingsPage.Appearance }
-            NavRow(Res.drawable.play, Color(0xFF8B5CF6), tr("Player"), tr("Sfondo, barra, pulsante Play, dettagli")) { navigator.settingsPage = SettingsPage.Player }
-            NavRow(Res.drawable.sliders, Color(0xFF00A88F), tr("Mini player"), tr("Stile, avanzamento, pulsanti")) { navigator.settingsPage = SettingsPage.MiniPlayer }
+            val ios = com.justlorenzo.archivetunex.ui.ios.iosStyle
+            NavRow(Res.drawable.palette, Color(0xFFFF8FB8), tr("Aspetto"), if (ios) tr("Lingua, tema, stile iOS") else tr("Lingua, tema, colori, copertine")) { navigator.settingsPage = SettingsPage.Appearance }
+            // Col tema iOS player e mini player sono quelli di Apple: le loro scelte di stile non servono
+            if (!ios) {
+                NavRow(Res.drawable.play, Color(0xFF8B5CF6), tr("Player"), tr("Sfondo, barra, pulsante Play, dettagli")) { navigator.settingsPage = SettingsPage.Player }
+                NavRow(Res.drawable.sliders, Color(0xFF00A88F), tr("Mini player"), tr("Stile, avanzamento, pulsanti")) { navigator.settingsPage = SettingsPage.MiniPlayer }
+            }
         }
         SettingsGroup(tr("Musica")) {
             NavRow(Res.drawable.tune, Color(0xFFFF7A2F), tr("Riproduzione"), tr("Qualità audio")) { navigator.settingsPage = SettingsPage.Playback }
@@ -441,29 +487,26 @@ private fun AppearancePage() {
 
     SettingsScaffold(tr("Aspetto"), overline = tr("Personalizza")) {
         SettingsGroup(tr("Lingua")) {
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(16.dp)) {
-                val options = com.justlorenzo.archivetunex.ui.AppLanguage.entries
-                options.forEachIndexed { index, language ->
-                    SegmentedButton(
-                        selected = appLanguage == language,
-                        onClick = { appLanguage = language },
-                        shape = SegmentedButtonDefaults.itemShape(index, options.size),
-                    ) { Text(tr(language.label)) }
-                }
-            }
+            val languages = com.justlorenzo.archivetunex.ui.AppLanguage.entries
+            com.justlorenzo.archivetunex.ui.ios.AtxSegmented(
+                options = languages.map { tr(it.label) },
+                selectedIndex = languages.indexOf(appLanguage),
+                onSelect = { appLanguage = languages[it] },
+                modifier = Modifier.padding(16.dp),
+            )
         }
         SettingsGroup(tr("Tema")) {
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(16.dp)) {
-                val options = listOf(DarkMode.AUTO to tr("Sistema"), DarkMode.OFF to tr("Chiaro"), DarkMode.ON to tr("Scuro"))
-                options.forEachIndexed { index, (mode, label) ->
-                    SegmentedButton(
-                        selected = darkMode == mode,
-                        onClick = { darkMode = mode },
-                        shape = SegmentedButtonDefaults.itemShape(index, options.size),
-                    ) { Text(label) }
-                }
+            val modes = listOf(DarkMode.AUTO to tr("Sistema"), DarkMode.OFF to tr("Chiaro"), DarkMode.ON to tr("Scuro"))
+            com.justlorenzo.archivetunex.ui.ios.AtxSegmented(
+                options = modes.map { it.second },
+                selectedIndex = modes.indexOfFirst { it.first == darkMode },
+                onSelect = { darkMode = modes[it].first },
+                modifier = Modifier.padding(16.dp),
+            )
+            // Col tema iOS il nero è già puro
+            if (!style.liquidGlass) {
+                SwitchRow(tr("Nero puro"), tr("Nel tema scuro lo sfondo è nero (schermi OLED)"), style.pureBlack) { save(PureBlackKey, it) }
             }
-            SwitchRow(tr("Nero puro"), tr("Nel tema scuro lo sfondo è nero (schermi OLED)"), style.pureBlack) { save(PureBlackKey, it) }
         }
         if (com.justlorenzo.archivetunex.ui.glass.glassChromeAvailable) {
             SettingsGroup(tr("Stile iOS")) {
@@ -475,6 +518,8 @@ private fun AppearancePage() {
             }
         }
 
+        // Col tema iOS colori, tavolozze e forme sono quelli di Apple: queste scelte non servono
+        if (!style.liquidGlass) {
         SettingsGroup(tr("Colori dell'app")) {
             PreviewChoices(
                 options = ThemeSource.entries,
@@ -545,6 +590,7 @@ private fun AppearancePage() {
         }
         SettingsGroup {
             SwitchRow(tr("Home colorata"), tr("Le card della Home prendono i colori delle copertine"), style.coloredHome) { save(ColoredHomeKey, it) }
+        }
         }
     }
 }
@@ -626,7 +672,7 @@ private fun PalettePreview(
             }
             // Etichetta
             Box(Modifier.width(30.dp).height(18.dp).clip(CircleShape).background(scheme.secondaryContainer))
-            Box(Modifier.size(18.dp).clip(MaterialShapes.Cookie9Sided.toShape()).background(scheme.tertiary))
+            Box(Modifier.size(18.dp).clip(com.justlorenzo.archivetunex.ui.ios.iosShape(MaterialShapes.Cookie9Sided.toShape())).background(scheme.tertiary))
         }
     }
 }
@@ -653,9 +699,9 @@ private fun ColorPicker(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Box(Modifier.size(52.dp).clip(MaterialShapes.Cookie9Sided.toShape()).background(preview))
+            Box(Modifier.size(52.dp).clip(com.justlorenzo.archivetunex.ui.ios.iosShape(MaterialShapes.Cookie9Sided.toShape())).background(preview))
             Column {
-                Text(if (customOpen) tr("Su misura") else presetName?.let(::tr) ?: tr("Su misura"), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
+                Text(if (customOpen) tr("Su misura") else presetName?.let(::tr) ?: tr("Su misura"), style = MaterialTheme.typography.titleLarge, fontWeight = com.justlorenzo.archivetunex.ui.ios.heavyWeight)
                 Text(tr("Tutta l'app nasce da questo colore"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
@@ -670,7 +716,7 @@ private fun ColorPicker(
                 Box(
                     Modifier
                         .size(48.dp)
-                        .clip(if (selected) MaterialShapes.Cookie9Sided.toShape() else CircleShape)
+                        .clip(if (selected) com.justlorenzo.archivetunex.ui.ios.iosShape(MaterialShapes.Cookie9Sided.toShape()) else CircleShape)
                         .background(preset)
                         .clickable {
                             customOpen = false
@@ -684,13 +730,13 @@ private fun ColorPicker(
                 Box(
                     Modifier
                         .size(48.dp)
-                        .clip(if (customOpen) MaterialShapes.Cookie9Sided.toShape() else CircleShape)
+                        .clip(if (customOpen) com.justlorenzo.archivetunex.ui.ios.iosShape(MaterialShapes.Cookie9Sided.toShape()) else CircleShape)
                         .background(Brush.sweepGradient((0..6).map { Color.hsv(it * 60f % 360f, 0.7f, 0.95f) }))
                         .clickable { customOpen = true },
                     contentAlignment = Alignment.Center,
                 ) {
                     Box(Modifier.size(22.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHigh), contentAlignment = Alignment.Center) {
-                        Text("+", fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurface)
+                        Text("+", fontWeight = com.justlorenzo.archivetunex.ui.ios.heavyWeight, color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             }
@@ -1293,7 +1339,7 @@ private fun StoragePage() {
     SettingsScaffold(tr("Download e spazio"), overline = tr("Musica")) {
         SettingsGroup {
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(formatBytes(usedBytes), style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Black)
+                Text(formatBytes(usedBytes), style = MaterialTheme.typography.displaySmall, fontWeight = com.justlorenzo.archivetunex.ui.ios.heavyWeight)
                 Text(trf("occupati da {0} brani scaricati", downloads.size), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
@@ -1365,7 +1411,8 @@ private fun <T> ChoiceDialog(
     onSelect: (T) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
+    val ios = com.justlorenzo.archivetunex.ui.ios.iosStyle
+    com.justlorenzo.archivetunex.ui.ios.AtxAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
@@ -1381,15 +1428,166 @@ private fun <T> ChoiceDialog(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        RadioButton(selected = value == selected, onClick = {
+                        // iOS: etichetta a sinistra e spunta a destra; Material: pallino a sinistra
+                        if (ios) Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                        com.justlorenzo.archivetunex.ui.ios.AtxRadio(selected = value == selected, onClick = {
                             onSelect(value)
                             onDismiss()
                         })
-                        Text(label, style = MaterialTheme.typography.bodyLarge)
+                        if (!ios) Text(label, style = MaterialTheme.typography.bodyLarge)
                     }
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Chiudi")) } },
+        confirmButton = { com.justlorenzo.archivetunex.ui.ios.AtxTextButton(onClick = onDismiss) { Text(tr("Chiudi")) } },
     )
 }
+
+
+// region Impostazioni in stile iOS
+
+/** Sfondo delle liste raggruppate di iOS: grigio chiarissimo nel tema chiaro, nero nello scuro. */
+@Composable
+private fun iosGroupedBackground(): Color =
+    if (MaterialTheme.colorScheme.background.luminance() < 0.5f) Color.Black else Color(0xFFF2F2F7)
+
+/** Pagina delle Impostazioni di iOS: pulsante di vetro in alto e titolo grande. */
+@Composable
+private fun IosSettingsScaffold(
+    title: String,
+    isHome: Boolean,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val navigator = LocalNavigator.current
+    com.justlorenzo.archivetunex.ui.components.GlassPage(
+        modifier = Modifier.fillMaxSize(),
+        overlay = {
+            com.justlorenzo.archivetunex.ui.components.GlassIconButton(
+                if (isHome) Res.drawable.close else Res.drawable.arrow_back,
+                if (isHome) tr("Chiudi") else tr("Indietro"),
+                onClick = { if (isHome) navigator.settingsVisible = false else navigator.settingsPage = null },
+                modifier = Modifier.statusBarsPadding().padding(start = 16.dp, top = 6.dp),
+            )
+        },
+    ) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .background(iosGroupedBackground())
+                .verticalScroll(rememberScrollState())
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(top = 56.dp, bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(22.dp),
+        ) {
+            Text(
+                title,
+                style = MaterialTheme.typography.displaySmall,
+                modifier = Modifier.padding(horizontal = 20.dp),
+            )
+            content()
+        }
+    }
+}
+
+/** Gruppo di iOS: titolo piccolo grigio sopra e righe in un riquadro arrotondato con i separatori. */
+@Composable
+private fun IosSettingsGroup(
+    title: String?,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    Column(Modifier.padding(horizontal = 16.dp)) {
+        if (title != null) {
+            Text(
+                title.uppercase(),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 16.dp, bottom = 7.dp),
+            )
+        }
+        val separator = MaterialTheme.colorScheme.outlineVariant
+        SeparatedColumn(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(26.dp))
+                .background(if (dark) Color(0xFF1C1C1E) else Color.White),
+            separator = separator,
+            content = content,
+        )
+    }
+}
+
+/** Colonna con un separatore sottile tra una riga e l'altra (rientrato a sinistra, come in iOS). */
+@Composable
+private fun SeparatedColumn(
+    modifier: Modifier,
+    separator: Color,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    // Dove finisce ogni riga (tranne l'ultima): lo scrive il layout, lo legge il disegno
+    val edges = remember { IntArrayHolder() }
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    androidx.compose.ui.layout.Layout(
+        content = { PlainColumnScope.content() },
+        modifier =
+            modifier.drawWithContent {
+                drawContent()
+                val inset = with(density) { 16.dp.toPx() }
+                val thickness = with(density) { 0.5.dp.toPx() }
+                for (i in 0 until edges.count) {
+                    val y = edges.values[i].toFloat()
+                    drawRect(
+                        separator,
+                        topLeft = androidx.compose.ui.geometry.Offset(inset, y - thickness / 2f),
+                        size = androidx.compose.ui.geometry.Size(size.width - inset, thickness),
+                    )
+                }
+            },
+    ) { measurables, constraints ->
+        val childConstraints = constraints.copy(minHeight = 0, maxHeight = androidx.compose.ui.unit.Constraints.Infinity)
+        val placeables = measurables.map { it.measure(childConstraints) }
+        val width = constraints.maxWidth
+        val height = placeables.sumOf { it.height }
+        layout(width, height) {
+            var y = 0
+            val visible = placeables.filter { it.height > 0 }
+            edges.reset(visible.size)
+            visible.forEachIndexed { index, placeable ->
+                placeable.place(0, y)
+                y += placeable.height
+                if (index < visible.lastIndex) edges.add(y)
+            }
+        }
+    }
+}
+
+private class IntArrayHolder {
+    var values = IntArray(8)
+    var count = 0
+
+    fun reset(capacity: Int) {
+        if (values.size < capacity) values = IntArray(capacity)
+        count = 0
+    }
+
+    fun add(value: Int) {
+        values[count++] = value
+    }
+}
+
+/** Le righe dei gruppi non usano pesi né allineamenti speciali: basta un ColumnScope semplice. */
+private object PlainColumnScope : ColumnScope {
+    override fun Modifier.weight(
+        weight: Float,
+        fill: Boolean,
+    ): Modifier = this
+
+    override fun Modifier.align(alignment: Alignment.Horizontal): Modifier = this
+
+    override fun Modifier.alignBy(alignmentLine: androidx.compose.ui.layout.VerticalAlignmentLine): Modifier = this
+
+    override fun Modifier.alignBy(alignmentLineBlock: (androidx.compose.ui.layout.Measured) -> Int): Modifier = this
+}
+
+// endregion

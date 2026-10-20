@@ -271,7 +271,27 @@ data class AtxStyle(
     val liquidGlass: Boolean = false,
 )
 
-internal fun Preferences.toAtxStyle(): AtxStyle {
+internal fun Preferences.toAtxStyle(): AtxStyle = readAtxStyle().let { if (it.liquidGlass) it.asIos() else it }
+
+/**
+ * Tema iOS: le scelte di stile di Material (forme, vinile, pulsanti a biscotto, home colorata…)
+ * non valgono, l'app si comporta come un'app di Apple.
+ */
+private fun AtxStyle.asIos(): AtxStyle =
+    copy(
+        corners = ArtworkCorners.Small,
+        coloredHome = false,
+        playerLayout = PlayerLayout.Card,
+        playerBackground = PlayerBackground.Blur,
+        slider = SliderStyleChoice.Classic,
+        playButton = PlayButtonShape.Circle,
+        shrinkArtworkOnPause = true,
+        coloredPlayerControls = true,
+        miniArtwork = MiniArtwork.Rounded,
+        tabLabels = TabLabels.Always,
+    )
+
+private fun Preferences.readAtxStyle(): AtxStyle {
     val d = AtxStyle()
     return AtxStyle(
         themeSource = this[ThemeSourceKey].toEnum(d.themeSource),

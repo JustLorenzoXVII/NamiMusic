@@ -46,6 +46,7 @@ import archivetunex.shared.generated.resources.Res
 import archivetunex.shared.generated.resources.check
 import archivetunex.shared.generated.resources.download
 import archivetunex.shared.generated.resources.explicit
+import archivetunex.shared.generated.resources.more_horiz
 import archivetunex.shared.generated.resources.more_vert
 import archivetunex.shared.generated.resources.music_note
 import archivetunex.shared.generated.resources.navigate_next
@@ -72,6 +73,15 @@ fun AtxIcon(
     size: Dp = 24.dp,
     tint: androidx.compose.ui.graphics.Color = androidx.compose.material3.LocalContentColor.current,
 ) {
+    // Tema iOS: la stessa icona, ma la SF Symbol di Apple disegnata dal sistema
+    if (com.justlorenzo.archivetunex.ui.LocalAtxStyle.current.liquidGlass) {
+        val symbol = com.justlorenzo.archivetunex.ui.ios.iosSymbolFor(icon)
+        val image = symbol?.let { com.justlorenzo.archivetunex.ui.ios.rememberSystemSymbol(it, size.value * 0.82f) }
+        if (image != null) {
+            Icon(image, contentDescription, modifier.size(size), tint = tint)
+            return
+        }
+    }
     Icon(painterResource(icon), contentDescription, modifier.size(size), tint = tint)
 }
 
@@ -152,6 +162,23 @@ fun SectionHeader(
     modifier: Modifier = Modifier,
     onMore: (() -> Unit)? = null,
 ) {
+    if (com.justlorenzo.archivetunex.ui.ios.iosStyle) {
+        // Apple Music: titolo di sezione in grassetto con la freccetta grigia accanto, tutto toccabile
+        Row(
+            modifier = modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 22.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(
+                Modifier.then(if (onMore != null) Modifier.clickable(interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }, indication = null, onClick = onMore) else Modifier),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(title, style = MaterialTheme.typography.headlineSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                if (onMore != null) AtxIcon(Res.drawable.navigate_next, tr("Altro"), size = 18.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        return
+    }
     Row(
         modifier = modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = 20.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -159,7 +186,7 @@ fun SectionHeader(
         Text(
             title,
             style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = com.justlorenzo.archivetunex.ui.ios.extraBoldWeight,
             letterSpacing = (-0.5).sp,
             modifier = Modifier.weight(1f),
             maxLines = 1,
@@ -191,10 +218,22 @@ fun DownloadBadge(
                 modifier = modifier,
             )
         Download.STATE_DOWNLOADING, Download.STATE_QUEUED, Download.STATE_RESTARTING ->
+            if (com.justlorenzo.archivetunex.ui.ios.iosStyle) {
+                androidx.compose.material3.CircularProgressIndicator(
+                    progress = { ((download?.percentDownloaded ?: 0f) / 100f).coerceIn(0f, 1f) },
+                    modifier = modifier.size(14.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = com.justlorenzo.archivetunex.ui.ios.iosFill,
+                    gapSize = 0.dp,
+                    strokeCap = androidx.compose.ui.graphics.StrokeCap.Round,
+                )
+            } else {
             CircularWavyProgressIndicator(
                 progress = { ((download?.percentDownloaded ?: 0f) / 100f).coerceIn(0f, 1f) },
                 modifier = modifier.size(16.dp),
             )
+            }
         else -> Unit
     }
 }
@@ -213,6 +252,10 @@ fun SongRow(
     leadingNumber: Int? = null,
     onMore: (() -> Unit)? = null,
 ) {
+    if (com.justlorenzo.archivetunex.ui.ios.iosStyle) {
+        IosSongRow(songId, title, subtitle, artworkUrl, onClick, modifier, explicit, isCurrent, leadingNumber, onMore)
+        return
+    }
     Row(
         modifier =
             modifier
@@ -263,6 +306,71 @@ fun SongRow(
     }
 }
 
+/** Riga brano di Apple Music: copertina piccola, titolo normale, artista grigio, separatore sottile. */
+@Composable
+private fun IosSongRow(
+    songId: String,
+    title: String,
+    subtitle: String,
+    artworkUrl: String?,
+    onClick: () -> Unit,
+    modifier: Modifier,
+    explicit: Boolean,
+    isCurrent: Boolean,
+    leadingNumber: Int?,
+    onMore: (() -> Unit)?,
+) {
+    val scheme = MaterialTheme.colorScheme
+    Row(
+        modifier = modifier.fillMaxWidth().height(60.dp).clickable(onClick = onClick).padding(start = 20.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (leadingNumber != null) {
+            Text(
+                leadingNumber.toString(),
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (isCurrent) scheme.primary else scheme.onSurfaceVariant,
+                modifier = Modifier.width(28.dp),
+            )
+        } else {
+            Artwork(artworkUrl, Modifier.size(48.dp), androidx.compose.foundation.shape.RoundedCornerShape(6.dp), sizePx = 226)
+        }
+        Spacer(Modifier.width(12.dp))
+        Box(Modifier.weight(1f).fillMaxSize()) {
+            Row(Modifier.fillMaxSize().padding(end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                    Text(
+                        title,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (isCurrent) scheme.primary else scheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        if (explicit) AtxIcon(Res.drawable.explicit, tr("Esplicito"), size = 13.dp, tint = scheme.onSurfaceVariant)
+                        DownloadBadge(songId)
+                        Text(
+                            subtitle,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = scheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+                if (onMore != null) {
+                    Box(
+                        Modifier.size(44.dp).clickable(interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }, indication = null, onClick = onMore),
+                        contentAlignment = Alignment.Center,
+                    ) { AtxIcon(Res.drawable.more_horiz, tr("Altre opzioni"), size = 20.dp, tint = scheme.onSurface) }
+                }
+            }
+            // Separatore sottile sotto il testo (non sotto la copertina), come nelle liste di iOS
+            Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(0.5.dp).background(scheme.outlineVariant))
+        }
+    }
+}
+
 /** Testo secondario di un elemento di YouTube Music. */
 fun YTItem.subtitle(): String =
     when (this) {
@@ -283,8 +391,14 @@ fun ItemCard(
     width: Dp = 168.dp,
 ) {
     Column(
-        modifier = modifier.width(width).clip(MaterialTheme.shapes.medium).clickable(onClick = onClick).padding(4.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier =
+            if (com.justlorenzo.archivetunex.ui.ios.iosStyle) {
+                // iOS: niente riquadro che si accende, si vela solo la copertina al tocco
+                modifier.width(width).clickable(interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }, indication = null, onClick = onClick).padding(4.dp)
+            } else {
+                modifier.width(width).clip(MaterialTheme.shapes.medium).clickable(onClick = onClick).padding(4.dp)
+            },
+        verticalArrangement = Arrangement.spacedBy(if (com.justlorenzo.archivetunex.ui.ios.iosStyle) 6.dp else 8.dp),
     ) {
         Artwork(
             item.thumbnail,
@@ -293,12 +407,15 @@ fun ItemCard(
             sizePx = 400,
         )
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            val ios = com.justlorenzo.archivetunex.ui.ios.iosStyle
             Text(
                 item.title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 2,
+                style = if (ios) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.titleSmall,
+                fontWeight = if (ios) FontWeight.Medium else FontWeight.SemiBold,
+                maxLines = if (ios) 1 else 2,
                 overflow = TextOverflow.Ellipsis,
+                textAlign = if (ios && item is ArtistItem) androidx.compose.ui.text.style.TextAlign.Center else androidx.compose.ui.text.style.TextAlign.Unspecified,
+                modifier = if (ios && item is ArtistItem) Modifier.fillMaxWidth() else Modifier,
             )
             Text(
                 item.subtitle(),
@@ -313,7 +430,7 @@ fun ItemCard(
 
 /** Forma "biscotto" di Material 3 Expressive per i volti degli artisti. */
 val ArtistShape: Shape
-    @Composable get() = MaterialShapes.Cookie9Sided.toShape()
+    @Composable get() = if (com.justlorenzo.archivetunex.ui.ios.iosStyle) CircleShape else MaterialShapes.Cookie9Sided.toShape()
 
 /** Titolo grande delle schermate principali, con una riga sopra (es. il saluto). */
 @Composable
@@ -323,6 +440,23 @@ fun ScreenTitle(
     overline: String? = null,
     trailing: @Composable () -> Unit = {},
 ) {
+    if (com.justlorenzo.archivetunex.ui.ios.iosStyle) {
+        // Titolo grande di iOS (Large Title): niente riga sopra, 34 punti in grassetto
+        Row(
+            modifier.fillMaxWidth().statusBarsPadding().padding(start = 20.dp, end = 16.dp, top = 10.dp, bottom = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                title,
+                style = MaterialTheme.typography.displaySmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            trailing()
+        }
+        return
+    }
     Row(
         modifier.fillMaxWidth().statusBarsPadding().padding(start = 20.dp, end = 8.dp, top = 16.dp, bottom = 4.dp),
         verticalAlignment = Alignment.Bottom,
@@ -340,7 +474,7 @@ fun ScreenTitle(
             Text(
                 title,
                 style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Black,
+                fontWeight = com.justlorenzo.archivetunex.ui.ios.heavyWeight,
                 letterSpacing = (-1.5).sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -354,7 +488,7 @@ fun ScreenTitle(
 @Composable
 fun LoadingBox(modifier: Modifier = Modifier) {
     Box(modifier.fillMaxWidth().padding(48.dp), contentAlignment = Alignment.Center) {
-        ContainedLoadingIndicator()
+        com.justlorenzo.archivetunex.ui.ios.AtxLoading(contained = true)
     }
 }
 
@@ -375,7 +509,7 @@ fun ErrorBox(
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Button(onClick = onRetry) { Text(tr("Riprova")) }
+        com.justlorenzo.archivetunex.ui.ios.AtxButton(onClick = onRetry) { Text(tr("Riprova")) }
     }
 }
 

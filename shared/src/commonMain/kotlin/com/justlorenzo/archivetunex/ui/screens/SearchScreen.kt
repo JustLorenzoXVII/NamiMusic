@@ -144,34 +144,14 @@ fun SearchScreen() {
             Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 8.dp, bottom = 4.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            TextField(
+            com.justlorenzo.archivetunex.ui.ios.AtxSearchField(
                 value = text,
                 onValueChange = {
                     text = it
                     if (it.isBlank()) submitted = ""
                 },
-                placeholder = { Text(tr("Brani, artisti, album, playlist")) },
-                leadingIcon = { AtxIcon(Res.drawable.search, null) },
-                trailingIcon = {
-                    if (text.isNotEmpty()) {
-                        IconButton(onClick = {
-                            text = ""
-                            submitted = ""
-                        }) { AtxIcon(Res.drawable.close, tr("Cancella")) }
-                    }
-                },
-                singleLine = true,
-                shape = RoundedCornerShape(28.dp),
-                colors =
-                    TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    ),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = { submit(text) }),
+                placeholder = tr("Brani, artisti, album, playlist"),
+                onSearch = { submit(text) },
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -273,16 +253,10 @@ private fun SearchResults(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(SearchKind.entries) { entry ->
-                    FilterChip(
+                    com.justlorenzo.archivetunex.ui.ios.AtxFilterChip(
                         selected = entry == kind,
                         onClick = { onKindChange(entry) },
                         label = { Text(entry.label, fontWeight = FontWeight.SemiBold) },
-                        shape = RoundedCornerShape(20.dp),
-                        colors =
-                            FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                            ),
                     )
                 }
             }
@@ -300,7 +274,7 @@ private fun SearchResults(
                         Text(
                             row.title,
                             style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.ExtraBold,
+                            fontWeight = com.justlorenzo.archivetunex.ui.ios.extraBoldWeight,
                             modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 6.dp),
                         )
                         return@items
@@ -418,10 +392,10 @@ private fun SearchHome(
                     Text(
                         tr("Ricerche recenti"),
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.ExtraBold,
+                        fontWeight = com.justlorenzo.archivetunex.ui.ios.extraBoldWeight,
                         modifier = Modifier.weight(1f),
                     )
-                    TextButton(onClick = onClearHistory) { Text(tr("Cancella")) }
+                    com.justlorenzo.archivetunex.ui.ios.AtxTextButton(onClick = onClearHistory) { Text(tr("Cancella")) }
                 }
             }
             items(history, key = { it.id }) { entry ->
@@ -494,9 +468,13 @@ private fun MoodTile(
         androidx.compose.animation.core.spring(dampingRatio = 0.5f, stiffness = 600f),
         label = "moodScale",
     )
+    val ios = com.justlorenzo.archivetunex.ui.ios.iosStyle
     // Angoli: grandi da una parte e piccoli dall'altra, alternati da un genere all'altro
+    // (tema iOS: riquadro semplice con angoli piccoli, come le categorie di Apple Music)
     val tileShape =
-        if (seed % 2 == 0) {
+        if (ios) {
+            RoundedCornerShape(12.dp)
+        } else if (seed % 2 == 0) {
             RoundedCornerShape(topStart = 30.dp, topEnd = 10.dp, bottomStart = 10.dp, bottomEnd = 30.dp)
         } else {
             RoundedCornerShape(topStart = 10.dp, topEnd = 30.dp, bottomStart = 30.dp, bottomEnd = 10.dp)
@@ -510,12 +488,12 @@ private fun MoodTile(
             }.clip(tileShape)
             .background(
                 androidx.compose.ui.graphics.Brush.linearGradient(
-                    listOf(base, base.copy(alpha = 0.6f).compositeOver(Color.Black)),
+                    if (ios) listOf(base, base) else listOf(base, base.copy(alpha = 0.6f).compositeOver(Color.Black)),
                 ),
             ).clickable(interactionSource = source, indication = androidx.compose.foundation.LocalIndication.current, onClick = onClick),
     ) {
-        // La forma decorativa che esce dall'angolo in alto a destra
-        androidx.compose.foundation.layout.Box(
+        // La forma decorativa che esce dall'angolo in alto a destra (non nel tema iOS)
+        if (!ios) androidx.compose.foundation.layout.Box(
             Modifier
                 .align(Alignment.TopEnd)
                 .offset(x = 26.dp, y = (-22).dp)
@@ -524,7 +502,7 @@ private fun MoodTile(
                 .clip(shape)
                 .background(content.copy(alpha = 0.16f)),
         )
-        androidx.compose.foundation.layout.Box(
+        if (!ios) androidx.compose.foundation.layout.Box(
             Modifier
                 .align(Alignment.TopEnd)
                 .offset(x = (-30).dp, y = 14.dp)
@@ -535,8 +513,8 @@ private fun MoodTile(
         )
         Text(
             title,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Black,
+            style = if (ios) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
+            fontWeight = if (ios) FontWeight.Bold else FontWeight.Black,
             color = content,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,

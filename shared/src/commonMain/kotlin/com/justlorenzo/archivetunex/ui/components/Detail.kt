@@ -118,27 +118,27 @@ fun PlayShuffleButtons(
                     if (toggle.active) toggle.iconOn else toggle.iconOff,
                     if (toggle.active) toggle.labelOn else toggle.labelOff,
                     size = 26.dp,
-                    tint = if (toggle.active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = if (toggle.active) MaterialTheme.colorScheme.primary else if (ios) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
         if (onDownload != null) {
             IconButton(onClick = onDownload) {
-                AtxIcon(Res.drawable.download, tr("Scarica tutto"), size = 26.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                AtxIcon(Res.drawable.download, tr("Scarica tutto"), size = if (ios) 22.dp else 26.dp, tint = if (ios) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         if (menu.isNotEmpty()) {
             var open by remember { mutableStateOf(false) }
             Box {
                 IconButton(onClick = { open = true }) {
-                    AtxIcon(Res.drawable.more_vert, tr("Altro"), size = 26.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    AtxIcon(Res.drawable.more_vert, tr("Altro"), size = if (ios) 22.dp else 26.dp, tint = if (ios) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                DropdownMenu(expanded = open, onDismissRequest = { open = false }, shape = RoundedCornerShape(20.dp)) {
+                com.justlorenzo.archivetunex.ui.ios.AtxDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
                     menu.forEach { item ->
-                        val color = if (item.danger) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
-                        DropdownMenuItem(
-                            text = { Text(item.label, color = color, fontWeight = FontWeight.SemiBold) },
-                            leadingIcon = { AtxIcon(item.icon, null, size = 20.dp, tint = color) },
+                        com.justlorenzo.archivetunex.ui.ios.AtxMenuItem(
+                            text = item.label,
+                            icon = item.icon,
+                            danger = item.danger,
                             onClick = {
                                 open = false
                                 item.onClick()
@@ -150,7 +150,7 @@ fun PlayShuffleButtons(
         }
         if (onDelete != null) {
             IconButton(onClick = onDelete) {
-                AtxIcon(Res.drawable.delete, tr("Elimina"), size = 26.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                AtxIcon(Res.drawable.delete, tr("Elimina"), size = if (ios) 22.dp else 26.dp, tint = if (ios) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         if (!ios) {
@@ -291,22 +291,24 @@ fun DetailHeader(
                 )
             }
         }
+        val ios = com.justlorenzo.archivetunex.ui.ios.iosStyle
         Text(
             title,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Black,
-            letterSpacing = (-0.5).sp,
+            style = if (ios) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.headlineMedium,
+            fontWeight = if (ios) FontWeight.Bold else FontWeight.Black,
+            letterSpacing = if (ios) MaterialTheme.typography.headlineSmall.letterSpacing else (-0.5).sp,
             textAlign = TextAlign.Center,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(top = 12.dp),
         )
         if (!subtitle.isNullOrBlank()) {
+            // Apple Music: l'artista sotto il titolo è nel colore d'accento
             Text(
                 subtitle,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
+                style = if (ios) MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Normal) else MaterialTheme.typography.titleMedium,
+                fontWeight = if (ios) FontWeight.Normal else FontWeight.SemiBold,
+                color = if (ios) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -315,7 +317,7 @@ fun DetailHeader(
         if (!detail.isNullOrBlank()) {
             Text(
                 detail,
-                style = MaterialTheme.typography.bodyMedium,
+                style = if (ios) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )

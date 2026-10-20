@@ -41,6 +41,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.fillMaxHeight
+import archivetunex.shared.generated.resources.navigate_next
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -196,7 +198,7 @@ fun LibraryScreen() {
         }
 
     val pullState = rememberPullToRefreshState()
-    PullToRefreshBox(
+    com.justlorenzo.archivetunex.ui.ios.AtxPullToRefreshBox(
         isRefreshing = pulling,
         onRefresh = {
             pulling = true
@@ -204,15 +206,6 @@ fun LibraryScreen() {
         },
         state = pullState,
         modifier = Modifier.fillMaxSize(),
-        indicator = {
-            PullToRefreshDefaults.LoadingIndicator(
-                state = pullState,
-                isRefreshing = pulling,
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.align(Alignment.TopCenter).padding(top = 48.dp),
-            )
-        },
     ) {
     LazyColumn(Modifier.fillMaxSize(), contentPadding = BottomContentPadding) {
         item(key = "header") {
@@ -221,6 +214,16 @@ fun LibraryScreen() {
             }
         }
         item(key = "pinned") {
+            if (com.justlorenzo.archivetunex.ui.ios.iosStyle) {
+                // Apple Music: elenco con icona d'accento, nome e freccetta
+                IosLibraryLinks(
+                    listOf(
+                        Triple(tr("Scaricati"), Res.drawable.download, downloadCount) to { navigator.open(Route.Downloads) },
+                        Triple(tr("Preferiti"), Res.drawable.favorite, likedCount) to { navigator.open(Route.Liked) },
+                    ),
+                )
+                return@item
+            }
             Row(
                 Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -249,16 +252,10 @@ fun LibraryScreen() {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(LibrarySection.entries) { entry ->
-                    FilterChip(
+                    com.justlorenzo.archivetunex.ui.ios.AtxFilterChip(
                         selected = entry == section,
                         onClick = { section = entry },
                         label = { Text(entry.label, fontWeight = FontWeight.SemiBold) },
-                        shape = RoundedCornerShape(20.dp),
-                        colors =
-                            FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                            ),
                     )
                 }
             }
@@ -338,7 +335,8 @@ private fun LazyListScope.cardList(cards: List<LibraryCard>) {
 
 @Composable
 private fun ListCard(card: LibraryCard) {
-    val shape: Shape = if (card.round) ArtistShape else RoundedCornerShape(12.dp)
+    val ios = com.justlorenzo.archivetunex.ui.ios.iosStyle
+    val shape: Shape = if (card.round) ArtistShape else RoundedCornerShape(if (ios) 6.dp else 12.dp)
     Row(
         Modifier
             .fillMaxWidth()
@@ -346,25 +344,30 @@ private fun ListCard(card: LibraryCard) {
             .padding(horizontal = 16.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (card.isCreate) {
+        if (card.isCreate && ios) {
+            Box(
+                Modifier.size(56.dp).clip(shape).background(com.justlorenzo.archivetunex.ui.ios.iosFill),
+                contentAlignment = Alignment.Center,
+            ) { AtxIcon(Res.drawable.add, null, size = 26.dp, tint = MaterialTheme.colorScheme.primary) }
+        } else if (card.isCreate) {
             Box(
                 Modifier.size(64.dp).clip(shape).background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center,
             ) {
                 Box(
-                    Modifier.size(40.dp).clip(MaterialShapes.Cookie9Sided.toShape()).background(MaterialTheme.colorScheme.primary),
+                    Modifier.size(40.dp).clip(com.justlorenzo.archivetunex.ui.ios.iosShape(MaterialShapes.Cookie9Sided.toShape())).background(MaterialTheme.colorScheme.primary),
                     contentAlignment = Alignment.Center,
                 ) { AtxIcon(Res.drawable.add, null, size = 22.dp, tint = MaterialTheme.colorScheme.onPrimary) }
             }
         } else {
-            Artwork(card.artworkUrl, Modifier.size(64.dp), shape, sizePx = 200)
+            Artwork(card.artworkUrl, Modifier.size(if (ios) 56.dp else 64.dp), shape, sizePx = 200)
         }
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {
             Text(
                 card.title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
+                style = if (ios) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.titleMedium,
+                fontWeight = if (ios) FontWeight.Normal else FontWeight.Bold,
                 color = if (card.isCreate) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -385,13 +388,23 @@ private fun GridCard(
     card: LibraryCard,
     modifier: Modifier = Modifier,
 ) {
+    val ios = com.justlorenzo.archivetunex.ui.ios.iosStyle
     Column(
-        modifier.clip(RoundedCornerShape(24.dp)).clickable(onClick = card.onClick).padding(4.dp),
+        if (ios) {
+            modifier.clickable(interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }, indication = null, onClick = card.onClick).padding(4.dp)
+        } else {
+            modifier.clip(RoundedCornerShape(24.dp)).clickable(onClick = card.onClick).padding(4.dp)
+        },
         verticalArrangement = Arrangement.spacedBy(6.dp),
         horizontalAlignment = if (card.round) Alignment.CenterHorizontally else Alignment.Start,
     ) {
         val shape: Shape = if (card.round) ArtistShape else RoundedCornerShape(com.justlorenzo.archivetunex.ui.LocalAtxStyle.current.corners.radius)
-        if (card.isCreate) {
+        if (card.isCreate && ios) {
+            Box(
+                Modifier.fillMaxWidth().aspectRatio(1f).clip(shape).background(com.justlorenzo.archivetunex.ui.ios.iosFill),
+                contentAlignment = Alignment.Center,
+            ) { AtxIcon(Res.drawable.add, null, size = 40.dp, tint = MaterialTheme.colorScheme.primary) }
+        } else if (card.isCreate) {
             // Riquadro per creare una playlist: tinta del colore principale e un grande "+" a biscotto
             Box(
                 Modifier
@@ -403,7 +416,7 @@ private fun GridCard(
                 contentAlignment = Alignment.Center,
             ) {
                 Box(
-                    Modifier.size(64.dp).clip(MaterialShapes.Cookie9Sided.toShape()).background(MaterialTheme.colorScheme.primary),
+                    Modifier.size(64.dp).clip(com.justlorenzo.archivetunex.ui.ios.iosShape(MaterialShapes.Cookie9Sided.toShape())).background(MaterialTheme.colorScheme.primary),
                     contentAlignment = Alignment.Center,
                 ) { AtxIcon(Res.drawable.add, null, size = 32.dp, tint = MaterialTheme.colorScheme.onPrimary) }
             }
@@ -412,8 +425,8 @@ private fun GridCard(
         }
         Text(
             card.title,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
+            style = if (ios) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.titleSmall,
+            fontWeight = if (ios) FontWeight.Medium else FontWeight.Bold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(horizontal = 4.dp),
@@ -452,8 +465,34 @@ private fun PinnedTile(
             contentAlignment = Alignment.Center,
         ) { AtxIcon(icon, null, tint = Color.White) }
         Column(Modifier.align(Alignment.BottomStart)) {
-            Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = Color.White, letterSpacing = (-0.3).sp)
+            Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = com.justlorenzo.archivetunex.ui.ios.heavyWeight, color = Color.White, letterSpacing = (-0.3).sp)
             Text(trf("{0} brani", count), style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.85f))
+        }
+    }
+}
+
+/** Le voci in cima alla Libreria di Apple Music: icona d'accento, nome, conteggio e freccetta. */
+@Composable
+private fun IosLibraryLinks(links: List<Pair<Triple<String, DrawableResource, Int>, () -> Unit>>) {
+    Column(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp)) {
+        links.forEach { (info, onClick) ->
+            val (title, icon, count) = info
+            Row(
+                Modifier.fillMaxWidth().height(50.dp).clickable(onClick = onClick).padding(start = 20.dp, end = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                AtxIcon(icon, null, size = 22.dp, tint = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.width(16.dp))
+                Box(Modifier.weight(1f).fillMaxHeight()) {
+                    Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                        if (count > 0) Text(count.toString(), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(Modifier.width(8.dp))
+                        AtxIcon(Res.drawable.navigate_next, null, size = 15.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                    }
+                    Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(0.5.dp).background(MaterialTheme.colorScheme.outlineVariant))
+                }
+            }
         }
     }
 }

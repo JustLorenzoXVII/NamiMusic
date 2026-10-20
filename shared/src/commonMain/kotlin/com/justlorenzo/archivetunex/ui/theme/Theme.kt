@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+
 package com.justlorenzo.archivetunex.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -147,6 +149,16 @@ private val IosLightColors =
         onError = Color.White,
     )
 
+// Forme del tema iOS: angoli continui moderati come nelle app di Apple
+private val IosShapes =
+    Shapes(
+        extraSmall = RoundedCornerShape(6.dp),
+        small = RoundedCornerShape(8.dp),
+        medium = RoundedCornerShape(10.dp),
+        large = RoundedCornerShape(14.dp),
+        extraLarge = RoundedCornerShape(26.dp),
+    )
+
 // Forme più arrotondate, in stile Expressive (come Fuji Music)
 private val AtxShapes =
     Shapes(
@@ -176,11 +188,17 @@ fun ArchiveTuneXTheme(
         // Tema iOS: colori fissi di sistema (niente tavolozza dalla copertina) e font di sistema
         MaterialExpressiveTheme(
             colorScheme = if (darkTheme) IosDarkColors else IosLightColors,
-            typography = atxTypography(systemFont = true),
-            shapes = AtxShapes,
-            motionScheme = MotionScheme.expressive(),
-            content = content,
-        )
+            typography = iosTypography(),
+            shapes = IosShapes,
+            motionScheme = MotionScheme.standard(),
+        ) {
+            // Niente onde di Material al tocco: le righe si velano di grigio come su iPhone
+            androidx.compose.runtime.CompositionLocalProvider(
+                androidx.compose.material3.LocalRippleConfiguration provides null,
+                androidx.compose.foundation.LocalIndication provides com.justlorenzo.archivetunex.ui.ios.IosHighlight,
+                content = content,
+            )
+        }
         return
     }
     val system = if (useSystemColors) systemDynamicColorScheme(darkTheme) else null

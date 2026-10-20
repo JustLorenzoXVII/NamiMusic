@@ -90,7 +90,7 @@ fun PlayerLyrics(
         // Caricamento: indicatore Expressive al centro, non le barre grigie attaccate al titolo
         LyricsRenderScreenState.Loading ->
             LyricsMessage(modifier, textColor) {
-                LoadingIndicator(color = textColor, modifier = Modifier.size(56.dp))
+                com.justlorenzo.archivetunex.ui.ios.AtxLoading(size = 56.dp, color = textColor)
                 Text(tr("Cerco il testo…"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = textColor.copy(alpha = 0.8f))
             }
         LyricsRenderScreenState.Empty ->

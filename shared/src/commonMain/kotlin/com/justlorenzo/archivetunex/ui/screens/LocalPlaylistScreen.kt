@@ -200,26 +200,19 @@ fun LocalPlaylistScreen(
                     Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    FilledTonalButton(onClick = { adding = true }, modifier = Modifier.weight(1f).height(48.dp)) {
+                    com.justlorenzo.archivetunex.ui.ios.AtxButton(tonal = true, onClick = { adding = true }, modifier = Modifier.weight(1f).height(48.dp)) {
                         AtxIcon(Res.drawable.add, null, size = 20.dp)
                         Spacer(Modifier.width(8.dp))
                         Text(tr("Aggiungi brani"), fontWeight = FontWeight.Bold, maxLines = 1)
                     }
-                    FilledTonalButton(
+                    com.justlorenzo.archivetunex.ui.ios.AtxButton(
+                        tonal = true,
+                        highlighted = editing,
                         onClick = {
                             editing = !editing
                             query = ""
                         },
                         modifier = Modifier.weight(1f).height(48.dp),
-                        colors =
-                            if (editing) {
-                                androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary,
-                                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                                )
-                            } else {
-                                androidx.compose.material3.ButtonDefaults.filledTonalButtonColors()
-                            },
                     ) {
                         AtxIcon(if (editing) Res.drawable.check else Res.drawable.edit, null, size = 20.dp)
                         Spacer(Modifier.width(8.dp))
@@ -279,7 +272,7 @@ fun LocalPlaylistScreen(
                                     tint = if (sort != PlaylistSort.Custom) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
-                            DropdownMenu(expanded = sortOpen, onDismissRequest = { sortOpen = false }, shape = RoundedCornerShape(20.dp)) {
+                            com.justlorenzo.archivetunex.ui.ios.AtxDropdownMenu(expanded = sortOpen, onDismissRequest = { sortOpen = false }) {
                                 Text(
                                     tr("Ordina per"),
                                     style = MaterialTheme.typography.labelLarge,
@@ -288,24 +281,10 @@ fun LocalPlaylistScreen(
                                 )
                                 PlaylistSort.entries.forEach { option ->
                                     val selected = option == sort
-                                    DropdownMenuItem(
-                                        text = {
-                                            Text(
-                                                option.label,
-                                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                                                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                                            )
-                                        },
-                                        trailingIcon = {
-                                            if (selected) {
-                                                AtxIcon(
-                                                    if (descending) Res.drawable.arrow_downward else Res.drawable.arrow_upward,
-                                                    null,
-                                                    size = 20.dp,
-                                                    tint = MaterialTheme.colorScheme.primary,
-                                                )
-                                            }
-                                        },
+                                    com.justlorenzo.archivetunex.ui.ios.AtxMenuItem(
+                                        text = option.label,
+                                        icon = if (selected) (if (descending) Res.drawable.arrow_downward else Res.drawable.arrow_upward) else null,
+                                        selected = selected,
                                         // Toccando di nuovo l'ordine scelto si inverte
                                         onClick = {
                                             if (selected) {
@@ -509,31 +488,11 @@ private fun PlaylistSearchField(
     modifier: Modifier = Modifier,
     focusRequester: FocusRequester? = null,
 ) {
-    TextField(
+    com.justlorenzo.archivetunex.ui.ios.AtxSearchField(
         value = query,
         onValueChange = onQueryChange,
+        placeholder = placeholder,
         modifier = modifier.fillMaxWidth().let { if (focusRequester != null) it.focusRequester(focusRequester) else it },
-        singleLine = true,
-        placeholder = { Text(placeholder) },
-        leadingIcon = { AtxIcon(Res.drawable.search, null, size = 22.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
-        trailingIcon =
-            if (query.isNotEmpty()) {
-                {
-                    IconButton(onClick = { onQueryChange("") }) {
-                        AtxIcon(Res.drawable.close, tr("Cancella"), size = 20.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
-            } else {
-                null
-            },
-        shape = RoundedCornerShape(28.dp),
-        colors =
-            TextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-            ),
     )
 }
 
@@ -571,7 +530,7 @@ private fun AddSongsSheet(
         Text(
             tr("Aggiungi brani"),
             style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Black,
+            fontWeight = com.justlorenzo.archivetunex.ui.ios.heavyWeight,
             modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
         )
         PlaylistSearchField(

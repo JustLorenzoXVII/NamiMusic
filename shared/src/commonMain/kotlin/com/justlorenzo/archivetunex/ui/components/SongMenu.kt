@@ -145,6 +145,17 @@ private fun MenuEntry(
     label: String,
     onClick: () -> Unit,
 ) {
+    if (com.justlorenzo.archivetunex.ui.ios.iosStyle) {
+        // Voce di menu di iOS: testo a sinistra, simbolo a destra
+        Row(
+            Modifier.fillMaxWidth().height(50.dp).clickable(onClick = onClick).padding(horizontal = 22.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+            AtxIcon(icon, null, size = 20.dp, tint = MaterialTheme.colorScheme.onSurface)
+        }
+        return
+    }
     ListItem(
         headlineContent = { Text(label) },
         leadingContent = { AtxIcon(icon, null) },

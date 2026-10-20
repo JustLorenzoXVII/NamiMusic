@@ -50,28 +50,27 @@ fun CreatePlaylistDialog(
     var name by remember { mutableStateOf("") }
     var onYouTube by remember { mutableStateOf(true) }
 
-    AlertDialog(
+    com.justlorenzo.archivetunex.ui.ios.AtxAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(tr("Nuova playlist")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(
+                com.justlorenzo.archivetunex.ui.ios.AtxTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text(tr("Nome")) },
-                    singleLine = true,
+                    label = tr("Nome"),
                     modifier = Modifier.fillMaxWidth(),
                 )
                 if (account != null) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(tr("Crea anche su YouTube Music"), modifier = Modifier.weight(1f))
-                        Switch(checked = onYouTube, onCheckedChange = { onYouTube = it })
+                        com.justlorenzo.archivetunex.ui.ios.AtxSwitch(checked = onYouTube, onCheckedChange = { onYouTube = it })
                     }
                 }
             }
         },
         confirmButton = {
-            TextButton(
+            com.justlorenzo.archivetunex.ui.ios.AtxTextButton(
                 enabled = name.isNotBlank(),
                 onClick = {
                     actions.createPlaylist(name.trim(), onYouTube = account != null && onYouTube, firstSong = firstSong)
@@ -79,7 +78,7 @@ fun CreatePlaylistDialog(
                 },
             ) { Text(tr("Crea")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Annulla")) } },
+        dismissButton = { com.justlorenzo.archivetunex.ui.ios.AtxTextButton(onClick = onDismiss) { Text(tr("Annulla")) } },
     )
 }
 
@@ -167,24 +166,23 @@ fun RenamePlaylistDialog(
     onRename: (String) -> Unit,
 ) {
     var name by remember { mutableStateOf(currentName) }
-    AlertDialog(
+    com.justlorenzo.archivetunex.ui.ios.AtxAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(tr("Rinomina playlist")) },
         text = {
-            OutlinedTextField(
+            com.justlorenzo.archivetunex.ui.ios.AtxTextField(
                 value = name,
                 onValueChange = { name = it },
-                singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
         },
         confirmButton = {
-            TextButton(enabled = name.isNotBlank(), onClick = {
+            com.justlorenzo.archivetunex.ui.ios.AtxTextButton(enabled = name.isNotBlank(), onClick = {
                 onRename(name.trim())
                 onDismiss()
             }) { Text(tr("Salva")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Annulla")) } },
+        dismissButton = { com.justlorenzo.archivetunex.ui.ios.AtxTextButton(onClick = onDismiss) { Text(tr("Annulla")) } },
     )
 }
 
@@ -197,16 +195,16 @@ fun ConfirmDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
-    AlertDialog(
+    com.justlorenzo.archivetunex.ui.ios.AtxAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = { Text(text) },
         confirmButton = {
-            TextButton(onClick = {
+            com.justlorenzo.archivetunex.ui.ios.AtxTextButton(destructive = true, onClick = {
                 onConfirm()
                 onDismiss()
             }) { Text(confirmLabel, color = MaterialTheme.colorScheme.error) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Annulla")) } },
+        dismissButton = { com.justlorenzo.archivetunex.ui.ios.AtxTextButton(onClick = onDismiss) { Text(tr("Annulla")) } },
     )
 }

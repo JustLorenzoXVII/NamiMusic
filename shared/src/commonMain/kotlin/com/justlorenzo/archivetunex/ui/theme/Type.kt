@@ -68,3 +68,34 @@ fun atxTypography(systemFont: Boolean = false): Typography {
         )
     }
 }
+
+/**
+ * Tipografia del tema iOS: font di sistema (SF Pro) con la scala dei testi di Apple
+ * (Large Title 34, Title 28/22/20, Headline 17, Body 17, Subheadline 15, Footnote 13, Caption 12/11).
+ */
+fun iosTypography(): Typography {
+    val f = FontFamily.Default
+    fun style(
+        size: Int,
+        line: Int,
+        weight: FontWeight,
+        tracking: Double,
+    ) = TextStyle(fontFamily = f, fontSize = size.sp, lineHeight = line.sp, fontWeight = weight, letterSpacing = tracking.sp)
+    return Typography(
+        displayLarge = style(40, 48, FontWeight.Bold, 0.37),
+        displayMedium = style(36, 43, FontWeight.Bold, 0.37),
+        displaySmall = style(34, 41, FontWeight.Bold, 0.37),
+        headlineLarge = style(28, 34, FontWeight.Bold, 0.36),
+        headlineMedium = style(28, 34, FontWeight.Bold, 0.36),
+        headlineSmall = style(22, 28, FontWeight.Bold, -0.26),
+        titleLarge = style(20, 25, FontWeight.SemiBold, -0.45),
+        titleMedium = style(17, 22, FontWeight.SemiBold, -0.43),
+        titleSmall = style(15, 20, FontWeight.SemiBold, -0.23),
+        bodyLarge = style(17, 22, FontWeight.Normal, -0.43),
+        bodyMedium = style(15, 20, FontWeight.Normal, -0.23),
+        bodySmall = style(13, 18, FontWeight.Normal, -0.08),
+        labelLarge = style(15, 20, FontWeight.SemiBold, -0.23),
+        labelMedium = style(12, 16, FontWeight.Medium, 0.0),
+        labelSmall = style(11, 13, FontWeight.Medium, 0.06),
+    )
+}
