@@ -118,11 +118,14 @@ jobs:
         id: xcode
         continue-on-error: true
         run: |
+          set +e
           set -o pipefail
           xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug \
             -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO ARCHS=arm64 ONLY_ACTIVE_ARCH=YES build 2>&1 | tee xcode-full.log
-          grep -nE "error:|warning: .*GlassChrome|BUILD (SUCCEEDED|FAILED)" xcode-full.log > xcode.log || true
+          STATUS=$?
+          grep -nE "error:|warning: .*GlassChrome|BUILD (SUCCEEDED|FAILED)" xcode-full.log > xcode.log
+          exit $STATUS
 
       - name: Salva i log nel branch ci-logs
         if: always()

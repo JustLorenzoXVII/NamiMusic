@@ -36,12 +36,12 @@ enum GlassChrome {
     }
 }
 
-struct GlassChromeView: View {
+struct GlassChromeView: SwiftUI.View {
     @ObservedObject var model: GlassChromeModel
-    @Namespace private var tabNamespace
+    @SwiftUI.Namespace private var tabNamespace
 
-    var body: some View {
-        Group {
+    var body: some SwiftUI.View {
+        SwiftUI.Group {
             if let state = model.state {
                 chrome(state)
                     .opacity(state.visible ? 1 : 0)
@@ -54,20 +54,20 @@ struct GlassChromeView: View {
         .ignoresSafeArea()
     }
 
-    private func chrome(_ state: GlassChromeState) -> some View {
-        let accent = Color(argb: state.accent)
+    private func chrome(_ state: GlassChromeState) -> some SwiftUI.View {
+        let accent = SwiftUI.Color(argb: state.accent)
         return GlassGroup {
-            VStack(spacing: 10) {
+            SwiftUI.VStack(spacing: 10) {
                 if state.hasMini {
                     MiniAccessory(state: state)
                         .frame(height: 50)
-                        .contentShape(Capsule())
+                        .contentShape(SwiftUI.Capsule())
                         .onTapGesture { GlassChromeBridge.shared.openPlayer() }
                         .glassCapsule()
                         .background(MiniFrameReporter())
                         .transition(.opacity.combined(with: .scale(scale: 0.9, anchor: .bottom)))
                 }
-                HStack(spacing: 12) {
+                SwiftUI.HStack(spacing: 12) {
                     TabCapsule(state: state, accent: accent, namespace: tabNamespace)
                     SearchCircle(state: state, accent: accent)
                 }
@@ -82,52 +82,52 @@ struct GlassChromeView: View {
 
 // MARK: - Schede
 
-private struct TabItem: Identifiable {
+private struct GlassTabItem: Identifiable {
     let id: Int32
     let symbol: String
     let label: String
 }
 
-private struct TabCapsule: View {
+private struct TabCapsule: SwiftUI.View {
     let state: GlassChromeState
-    let accent: Color
-    let namespace: Namespace.ID
+    let accent: SwiftUI.Color
+    let namespace: SwiftUI.Namespace.ID
 
     // Stesso ordine delle schede dell'app: 0 Home, 1 Cerca, 2 Statistiche, 3 Libreria
-    private var items: [TabItem] {
+    private var items: [GlassTabItem] {
         [
-            TabItem(id: 0, symbol: "house.fill", label: state.homeLabel),
-            TabItem(id: 2, symbol: "chart.bar.fill", label: state.statsLabel),
-            TabItem(id: 3, symbol: "square.stack.fill", label: state.libraryLabel),
+            GlassTabItem(id: 0, symbol: "house.fill", label: state.homeLabel),
+            GlassTabItem(id: 2, symbol: "chart.bar.fill", label: state.statsLabel),
+            GlassTabItem(id: 3, symbol: "square.stack.fill", label: state.libraryLabel),
         ]
     }
 
-    var body: some View {
-        HStack(spacing: 0) {
-            ForEach(items) { item in
+    var body: some SwiftUI.View {
+        SwiftUI.HStack(spacing: 0) {
+            SwiftUI.ForEach(items) { item in
                 let selected = state.selectedTab == item.id
-                Button {
+                SwiftUI.Button {
                     GlassChromeBridge.shared.selectTab(index: item.id)
                 } label: {
-                    VStack(spacing: 2) {
-                        Image(systemName: item.symbol)
+                    SwiftUI.VStack(spacing: 2) {
+                        SwiftUI.Image(systemName: item.symbol)
                             .font(.system(size: 19, weight: .semibold))
                             .frame(height: 25)
-                        Text(item.label)
+                        SwiftUI.Text(item.label)
                             .font(.system(size: 10, weight: .semibold))
                             .lineLimit(1)
                             .minimumScaleFactor(0.8)
                     }
-                    .foregroundStyle(selected ? accent : Color.primary)
+                    .foregroundStyle(selected ? accent : SwiftUI.Color.primary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background {
                         if selected {
-                            Capsule()
-                                .fill(Color.primary.opacity(0.1))
+                            SwiftUI.Capsule()
+                                .fill(SwiftUI.Color.primary.opacity(0.1))
                                 .matchedGeometryEffect(id: "selezione", in: namespace)
                         }
                     }
-                    .contentShape(Capsule())
+                    .contentShape(SwiftUI.Capsule())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(item.label)
@@ -140,20 +140,20 @@ private struct TabCapsule: View {
     }
 }
 
-private struct SearchCircle: View {
+private struct SearchCircle: SwiftUI.View {
     let state: GlassChromeState
-    let accent: Color
+    let accent: SwiftUI.Color
 
-    var body: some View {
+    var body: some SwiftUI.View {
         let selected = state.selectedTab == 1
-        Button {
+        SwiftUI.Button {
             GlassChromeBridge.shared.selectTab(index: 1)
         } label: {
-            Image(systemName: "magnifyingglass")
+            SwiftUI.Image(systemName: "magnifyingglass")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundStyle(selected ? accent : Color.primary)
+                .foregroundStyle(selected ? accent : SwiftUI.Color.primary)
                 .frame(width: 62, height: 62)
-                .contentShape(Circle())
+                .contentShape(SwiftUI.Circle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(state.searchLabel)
@@ -163,72 +163,72 @@ private struct SearchCircle: View {
 
 // MARK: - Mini player
 
-private struct MiniAccessory: View {
+private struct MiniAccessory: SwiftUI.View {
     let state: GlassChromeState
 
-    var body: some View {
-        HStack(spacing: 10) {
-            Artwork(url: state.artworkUrl)
+    var body: some SwiftUI.View {
+        SwiftUI.HStack(spacing: 10) {
+            GlassArtwork(url: state.artworkUrl)
                 .frame(width: 38, height: 38)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-            VStack(alignment: .leading, spacing: 1) {
-                Text(state.title)
+                .clipShape(SwiftUI.RoundedRectangle(cornerRadius: 8, style: .continuous))
+            SwiftUI.VStack(alignment: .leading, spacing: 1) {
+                SwiftUI.Text(state.title)
                     .font(.system(size: 14, weight: .semibold))
                     .lineLimit(1)
                 if !state.artist.isEmpty {
-                    Text(state.artist)
+                    SwiftUI.Text(state.artist)
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            Button {
+            SwiftUI.Button {
                 GlassChromeBridge.shared.playPause()
             } label: {
-                Image(systemName: state.isPlaying ? "pause.fill" : "play.fill")
+                SwiftUI.Image(systemName: state.isPlaying ? "pause.fill" : "play.fill")
                     .font(.system(size: 20, weight: .semibold))
                     .contentTransition(.symbolEffect(.replace))
                     .frame(width: 38, height: 44)
-                    .contentShape(Rectangle())
+                    .contentShape(SwiftUI.Rectangle())
             }
             .buttonStyle(.plain)
-            Button {
+            SwiftUI.Button {
                 GlassChromeBridge.shared.next()
             } label: {
-                Image(systemName: "forward.fill")
+                SwiftUI.Image(systemName: "forward.fill")
                     .font(.system(size: 18, weight: .semibold))
                     .frame(width: 38, height: 44)
-                    .contentShape(Rectangle())
+                    .contentShape(SwiftUI.Rectangle())
             }
             .buttonStyle(.plain)
         }
         .padding(.leading, 6)
         .padding(.trailing, 10)
-        .foregroundStyle(Color.primary)
+        .foregroundStyle(SwiftUI.Color.primary)
     }
 }
 
-private struct Artwork: View {
+private struct GlassArtwork: SwiftUI.View {
     let url: String?
 
-    var body: some View {
-        AsyncImage(url: url.flatMap { URL(string: $0) }) { phase in
+    var body: some SwiftUI.View {
+        SwiftUI.AsyncImage(url: url.flatMap { URL(string: $0) }) { phase in
             if let image = phase.image {
                 image.resizable().scaledToFill()
             } else {
-                Color.gray.opacity(0.3)
+                SwiftUI.Color.gray.opacity(0.3)
             }
         }
     }
 }
 
 /// Dice all'app dove si trova il mini player: il player si apre da lì e lì si richiude.
-private struct MiniFrameReporter: View {
-    var body: some View {
-        GeometryReader { geometry in
+private struct MiniFrameReporter: SwiftUI.View {
+    var body: some SwiftUI.View {
+        SwiftUI.GeometryReader { geometry in
             let frame = geometry.frame(in: .global)
-            Color.clear
+            SwiftUI.Color.clear
                 .onAppear { report(frame) }
                 .onChange(of: frame) { _, newFrame in report(newFrame) }
         }
@@ -247,10 +247,10 @@ private struct MiniFrameReporter: View {
 // MARK: - Vetro
 
 /// Su iOS 26 le forme di vetro vicine si fondono tra loro, come nelle app di Apple.
-private struct GlassGroup<Content: View>: View {
+private struct GlassGroup<Content: SwiftUI.View>: SwiftUI.View {
     @ViewBuilder var content: Content
 
-    var body: some View {
+    var body: some SwiftUI.View {
         if #available(iOS 26.0, *) {
             GlassEffectContainer(spacing: 12) { content }
         } else {
@@ -259,33 +259,33 @@ private struct GlassGroup<Content: View>: View {
     }
 }
 
-private extension View {
+private extension SwiftUI.View {
     @ViewBuilder
-    func glassCapsule() -> some View {
+    func glassCapsule() -> some SwiftUI.View {
         if #available(iOS 26.0, *) {
-            self.glassEffect(.regular.interactive(), in: Capsule())
+            self.glassEffect(.regular.interactive(), in: SwiftUI.Capsule())
         } else {
             self
-                .background(.ultraThinMaterial, in: Capsule())
-                .overlay(Capsule().strokeBorder(Color.white.opacity(0.18), lineWidth: 0.5))
+                .background(.ultraThinMaterial, in: SwiftUI.Capsule())
+                .overlay(SwiftUI.Capsule().strokeBorder(SwiftUI.Color.white.opacity(0.18), lineWidth: 0.5))
                 .shadow(color: .black.opacity(0.18), radius: 12, y: 6)
         }
     }
 
     @ViewBuilder
-    func glassCircle() -> some View {
+    func glassCircle() -> some SwiftUI.View {
         if #available(iOS 26.0, *) {
-            self.glassEffect(.regular.interactive(), in: Circle())
+            self.glassEffect(.regular.interactive(), in: SwiftUI.Circle())
         } else {
             self
-                .background(.ultraThinMaterial, in: Circle())
-                .overlay(Circle().strokeBorder(Color.white.opacity(0.18), lineWidth: 0.5))
+                .background(.ultraThinMaterial, in: SwiftUI.Circle())
+                .overlay(SwiftUI.Circle().strokeBorder(SwiftUI.Color.white.opacity(0.18), lineWidth: 0.5))
                 .shadow(color: .black.opacity(0.18), radius: 12, y: 6)
         }
     }
 }
 
-private extension Color {
+private extension SwiftUI.Color {
     /// Colore da un intero ARGB (come lo passa l'app).
     init(argb: Int64) {
         let value = UInt32(truncatingIfNeeded: argb)
