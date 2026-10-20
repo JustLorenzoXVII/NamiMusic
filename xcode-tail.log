@@ -1,0 +1,300 @@
+
+To learn more, see the documentation of the '@ConsistentCopyVisibility' and '@ExposedCopyVisibility' annotations.
+
+This will become an error in language version 2.5. See https://youtrack.jetbrains.com/issue/KT-11914.
+/Users/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/viewmodels/SponsorBlockSettingsViewModel.kt:268:37: warning: Unnecessary safe call on a non-null receiver of type 'SponsorBlockSettingsUiData'.
+/Users/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/viewmodels/SponsorBlockSettingsViewModel.kt:274:64: warning: Unnecessary safe call on a non-null receiver of type 'SponsorBlockSettingsUiData'.
+/Users/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/commonMain/kotlin/moe/rukamori/archivetune/viewmodels/SponsorBlockSettingsViewModel.kt:276:54: warning: Unnecessary safe call on a non-null receiver of type 'SponsorBlockSettingsUiData'.
+/Users/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/iosMain/kotlin/moe/rukamori/archivetune/compat/BackHandler.ios.kt:12:37: warning: 'fun BackHandler(enabled: Boolean = ..., onBack: () -> Unit): Unit' is deprecated. Use NavigationEventHandler instead.
+/Users/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/iosMain/kotlin/moe/rukamori/archivetune/compat/PredictiveBack.ios.kt:15:37: warning: 'fun PredictiveBackHandler(enabled: Boolean = ..., onBack: suspend (Flow<BackEventCompat>) -> Unit): Unit' is deprecated. Use NavigationEventHandler instead.
+/Users/runner/work/ArchiveTuneX/ArchiveTuneX/shared/src/iosMain/kotlin/moe/rukamori/archivetune/compat/PredictiveBack.ios.kt:16:102: warning: 'class BackEventCompat : Any' is deprecated. Use NavigationEvent instead.
+
+> Task :shared:linkDebugFrameworkIosSimulatorArm64
+warning: Cannot infer a bundle ID from packages of source files and exported dependencies, use the bundle name instead: Shared. Please specify the bundle ID explicitly using the -Xbinary=bundleId=<id> compiler flag.
+
+> Task :shared:assembleDebugAppleFrameworkForXcodeIosSimulatorArm64
+> Task :shared:copyDsymForEmbedAndSignAppleFrameworkForXcode SKIPPED
+> Task :shared:embedAndSignAppleFrameworkForXcode SKIPPED
+gradle/actions: Writing build results to /Users/runner/work/_temp/.gradle-actions/build-results/xcode-1792536557596.json
+
+BUILD SUCCESSFUL in 9m 34s
+32 actionable tasks: 32 executed
+Configuration cache entry stored.
+
+Ld /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator/ArchiveTuneX.app/__preview.dylib normal (in target 'iosApp' from project 'iosApp')
+    cd /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios18.2-simulator -dynamiclib -isysroot /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -O0 -L/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator -F/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator -install_name @rpath/ArchiveTuneX.debug.dylib -dead_strip -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/ArchiveTuneX_dependency_info.dat -o /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator/ArchiveTuneX.app/__preview.dylib
+
+MkDir /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/assetcatalog_output/thinned (in target 'iosApp' from project 'iosApp')
+    cd /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp
+    /bin/mkdir -p /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/assetcatalog_output/thinned
+
+MkDir /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/assetcatalog_output/unthinned (in target 'iosApp' from project 'iosApp')
+    cd /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp
+    /bin/mkdir -p /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/assetcatalog_output/unthinned
+
+GenerateAssetSymbols /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/Preview\ Content/Preview\ Assets.xcassets /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/Assets.xcassets (in target 'iosApp' from project 'iosApp')
+    cd /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp
+    /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/actool /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/Preview\ Content/Preview\ Assets.xcassets /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/Assets.xcassets --compile /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator/ArchiveTuneX.app --output-format human-readable-text --notices --warnings --export-dependency-info /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/assetcatalog_dependencies --output-partial-info-plist /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/assetcatalog_generated_info.plist --app-icon AppIcon --accent-color AccentColor --compress-pngs --enable-on-demand-resources YES --development-region en --target-device iphone --target-device ipad --minimum-deployment-target 18.2 --platform iphonesimulator --bundle-identifier com.justlorenzo.archivetunex --generate-swift-asset-symbols /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/DerivedSources/GeneratedAssetSymbols.swift --generate-objc-asset-symbols /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/DerivedSources/GeneratedAssetSymbols.h --generate-asset-symbol-index /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/* com.apple.actool.compilation-results */
+/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/DerivedSources/GeneratedAssetSymbols.h
+/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/DerivedSources/GeneratedAssetSymbols.swift
+
+
+CompileAssetCatalogVariant thinned /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator/ArchiveTuneX.app /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/Preview\ Content/Preview\ Assets.xcassets /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/Assets.xcassets (in target 'iosApp' from project 'iosApp')
+    cd /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp
+    /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/actool /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/Preview\ Content/Preview\ Assets.xcassets /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/Assets.xcassets --compile /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/assetcatalog_output/thinned --output-format human-readable-text --notices --warnings --export-dependency-info /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/assetcatalog_dependencies_thinned --output-partial-info-plist /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/assetcatalog_generated_info.plist_thinned --app-icon AppIcon --accent-color AccentColor --compress-pngs --enable-on-demand-resources YES --development-region en --target-device iphone --target-device ipad --minimum-deployment-target 18.2 --platform iphonesimulator
+/* com.apple.actool.compilation-results */
+/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/assetcatalog_generated_info.plist_thinned
+/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/assetcatalog_output/thinned/AppIcon60x60@2x.png
+/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/assetcatalog_output/thinned/AppIcon76x76@2x~ipad.png
+/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/assetcatalog_output/thinned/Assets.car
+
+
+SwiftDriver iosApp normal arm64 com.apple.xcode.tools.swift.compiler (in target 'iosApp' from project 'iosApp')
+    cd /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp
+    builtin-SwiftDriver -- /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name ArchiveTuneX -Onone -enforce-exclusivity\=checked @/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/ArchiveTuneX.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -target arm64-apple-ios18.2-simulator -g -module-cache-path /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator -F /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64 -c -j5 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.2-23C57-dc75598d0054f22ec865fa860f139d72e244bd9a5feaf902f95f61bf06266e52.sdkstatcache -output-file-map /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/iosApp-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/ArchiveTuneX.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/iosApp_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/ArchiveTuneX-generated-files.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/ArchiveTuneX-own-target-headers.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/ArchiveTuneX-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/ArchiveTuneX-project-headers.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/DerivedSources/arm64 -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/ArchiveTuneX-Swift.h -working-directory /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp -experimental-emit-module-separately -disable-cmo
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_SwiftConcurrencyShims-8BG66MPCCFZ034WL46G8AIOMU.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/ptrcheck-6MBIPEOAY3QFNOGD7KTTMFJDP.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/DeveloperToolsSupport-33CWZXW11OZOMTWZRLCD0C8RL.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_Builtin_stdarg-80ZVKY6E4LAN7AUQTEVS4RY7V.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/ptrauth-CZL36FG0U9UDJOEX9L3FXUWIA.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_AvailabilityInternal-4V57YXGECA9I7A18YE4AZ18UT.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_Builtin_stdbool-1UXPX3B11292KP95VIAL067GG.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_Builtin_float-6MDK9TTC7Y990V1SQ766WW7N3.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_Builtin_stddef-7E87Y9J0BNCH4XX2IAP5XDESI.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/SwiftShims-6LCDW2X4QH61HTTYRGLQBESQW.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_DarwinFoundation1-3G1G2HIAH6SIFQYIS4IGRG9K5.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_Builtin_limits-2GYMI6Y6AKJGFCC0QMUX60YK3.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_DarwinFoundation2-B5497BU8ON93WYKD76E2W130A.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/sys_types-5QLYYOGRMBZAAHJJMAP88HZNN.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_Builtin_stdint-1OVBP598DZ3VJ55SGHRZ1C4D9.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_Builtin_tgmath-2Z1ASP3VD7IZJNZW2BCQAV4TS.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_Builtin_stdatomic-2XZ8UROLTLCI13Y1JP6QH2LP0.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_Builtin_intrinsics-DR6RSGL8IBBY2GG5306ZP0H13.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_DarwinFoundation3-C8UVO5ZVDG973VE3DX4T12OBK.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_Builtin_inttypes-4Z6A8UX8B0YZJH0KTX924DI7X.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Darwin-6ZVD5NW04TCIQZ8726EP05A39.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/simd-DBMJFF248XW8DXTA4QUHZJ1WZ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/ObjectiveC-2IRV0CDRUFRYGXQH66GKVC4XR.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/MachO-4CQBMVXBOKSK2C9Z6XSTZSW3S.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/os_object-2758PO7LAOX6UMJPKISAZH9YU.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/os_workgroup-BWFEHK3FDZ9DKOBII1N6WWDLI.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Spatial-1LRC6TAWALEGJUK2Q5BJGPWS5.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Dispatch-43L2DSGUH8RHE0QR4Q83CQF9C.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/XPC-CPXSBW94ITF2WX3R678JNHCYF.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CoreFoundation-AJWFL3GD51D9IUVH2LV6D6HP2.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/os-BDOG33IB6KQOBMDJOUNVF3T9M.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CoreGraphics-CTHKLL96U3DCYFOSTO6MXH930.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CFNetwork-ASE9SLVVXF6GUCM7S844D8K9C.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Security-54VT4O3II9P0ST7N8CF014ESH.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Foundation-7HFQENLCUQJQREKF9ZLJ50PC5.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/ImageIO-6PBSX0EYTP8X400C9MG4LADUX.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CoreText-F58TJC839JZB2DJ01TC1Z4YHL.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/UniformTypeIdentifiers-2S1BDQTEKO5TI7VAWKY25YF5F.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/OSLog-BP9Q4EAVMM7Y34WGM0BO48XTJ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/IOSurface-4C7FWRJH8NB3N52BUKSWZONAS.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/Shared-6D826195NK7EN755GT34EQNVQ.pcm
+/Users/runner/work/ArchiveTuneX/ArchiveTuneX/shared/build/xcode-frameworks/Debug/iphonesimulator26.2/Shared.framework/Headers/Shared.h:38534:16: warning: imported declaration 'SharedKotlinStringCompanion' could not be mapped to 'KotlinString.Companion' [#ClangDeclarationImport]
+38532 | 
+38533 | __attribute__((objc_subclassing_restricted))
+38534 | __attribute__((swift_name("KotlinString.Companion")))
+      |                |- warning: imported declaration 'SharedKotlinStringCompanion' could not be mapped to 'KotlinString.Companion' [#ClangDeclarationImport]
+      |                `- note: please report this issue to the owners of 'Shared'
+38535 | @interface SharedKotlinStringCompanion : SharedBase
+38536 | + (instancetype)alloc __attribute__((unavailable));
+
+/Users/runner/work/ArchiveTuneX/ArchiveTuneX/shared/build/xcode-frameworks/Debug/iphonesimulator26.2/Shared.framework/Headers/Shared.h:43384:16: warning: imported declaration 'SharedInnertubeMoodAndGenresItem' could not be mapped to 'InnertubeMoodAndGenres.Item' [#ClangDeclarationImport]
+43382 | 
+43383 | __attribute__((objc_subclassing_restricted))
+43384 | __attribute__((swift_name("InnertubeMoodAndGenres.Item")))
+      |                |- warning: imported declaration 'SharedInnertubeMoodAndGenresItem' could not be mapped to 'InnertubeMoodAndGenres.Item' [#ClangDeclarationImport]
+      |                `- note: please report this issue to the owners of 'Shared'
+43385 | @interface SharedInnertubeMoodAndGenresItem : SharedBase
+43386 | - (instancetype)initWithTitle:(NSString *)title stripeColor:(int64_t)stripeColor endpoint:(SharedInnertubeBrowseEndpoint *)endpoint __attribute__((swift_name("init(title:stripeColor:endpoint:)"))) __attribute__((objc_designated_initializer));
+
+/Users/runner/work/ArchiveTuneX/ArchiveTuneX/shared/build/xcode-frameworks/Debug/iphonesimulator26.2/Shared.framework/Headers/Shared.h:43419:16: warning: imported declaration 'SharedInnertubeChartsPageChartSection' could not be mapped to 'InnertubeChartsPage.ChartSection' [#ClangDeclarationImport]
+43417 | 
+43418 | __attribute__((objc_subclassing_restricted))
+43419 | __attribute__((swift_name("InnertubeChartsPage.ChartSection")))
+      |                |- warning: imported declaration 'SharedInnertubeChartsPageChartSection' could not be mapped to 'InnertubeChartsPage.ChartSection' [#ClangDeclarationImport]
+      |                `- note: please report this issue to the owners of 'Shared'
+43420 | @interface SharedInnertubeChartsPageChartSection : SharedBase
+43421 | - (instancetype)initWithTitle:(NSString *)title items:(NSArray<SharedInnertubeYTItem *> *)items chartType:(SharedInnertubeChartsPageChartType *)chartType __attribute__((swift_name("init(title:items:chartType:)"))) __attribute__((objc_designated_initializer));
+
+/Users/runner/work/ArchiveTuneX/ArchiveTuneX/shared/build/xcode-frameworks/Debug/iphonesimulator26.2/Shared.framework/Headers/Shared.h:50030:16: warning: imported declaration 'SharedInnertubeChartsPageChartType' could not be mapped to 'InnertubeChartsPage.ChartType' [#ClangDeclarationImport]
+50028 | 
+50029 | __attribute__((objc_subclassing_restricted))
+50030 | __attribute__((swift_name("InnertubeChartsPage.ChartType")))
+      |                |- warning: imported declaration 'SharedInnertubeChartsPageChartType' could not be mapped to 'InnertubeChartsPage.ChartType' [#ClangDeclarationImport]
+      |                `- note: please report this issue to the owners of 'Shared'
+50031 | @interface SharedInnertubeChartsPageChartType : SharedKotlinEnum<SharedInnertubeChartsPageChartType *>
+50032 | + (instancetype)alloc __attribute__((unavailable));
+
+/Users/runner/work/ArchiveTuneX/ArchiveTuneX/shared/build/xcode-frameworks/Debug/iphonesimulator26.2/Shared.framework/Headers/Shared.h:55433:16: warning: imported declaration 'SharedUi_graphicsPathSegmentType' could not be mapped to 'Ui_graphicsPathSegment.Type_' [#ClangDeclarationImport]
+55431 |  */
+55432 | __attribute__((objc_subclassing_restricted))
+55433 | __attribute__((swift_name("Ui_graphicsPathSegment.Type_")))
+      |                |- warning: imported declaration 'SharedUi_graphicsPathSegmentType' could not be mapped to 'Ui_graphicsPathSegment.Type_' [#ClangDeclarationImport]
+      |                `- note: please report this issue to the owners of 'Shared'
+55434 | @interface SharedUi_graphicsPathSegmentType : SharedKotlinEnum<SharedUi_graphicsPathSegmentType *>
+55435 | + (instancetype)alloc __attribute__((unavailable));
+
+[#ClangDeclarationImport]: <https://docs.swift.org/compiler/documentation/diagnostics/clang-declaration-import>
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/FileProvider-DV9JY4DMOYOUNB5ZGBVDL2JXP.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/UIUtilities-202TAD0X89CDF4MKIHELUTP14.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CoreData-EVB5CDSP53FTVTC07TU1YORII.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Metal-52IQ97TX69Z6C2TZ3UKJUJSXC.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Accessibility-6FG87DK9SPI4T0QHFCHM4NFZE.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Symbols-D5QQG547RCDBUN3J9S5LKUM2S.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CoreTransferable-5JEXE1NIWJVMJ3EYIBJBURR9K.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/UserNotifications-5GKI6XQ86U8Q1TD2H7CXMXQDD.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/OpenGLES-6KMO59LISEY5AL07BUBBCDPOH.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/DataDetection-1TMDP7GX8NWQVAM8USPT5JMD3.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CoreVideo-2QKOEU1UUQKSK5VD1NT1IIWO0.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CoreImage-4X56MDIG2UE4ZR59NHN6BRBCR.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/QuartzCore-117MK44TAWGER1D783CQB3Y5I.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/SwiftUICore-4TCNI7XKP1QKKP2VT2SUY7FI4.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/UIKit-8RQC2X6V7NLLPT9V0L33T8DW2.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/SwiftUI-50Q7NE2MBQ5VQPFPPUZY5A0ML.pcm
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ ArchiveTuneX (in target 'iosApp' from project 'iosApp')
+
+EmitSwiftModule normal arm64 (in target 'iosApp' from project 'iosApp')
+    cd /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp
+    
+
+SwiftCompile normal arm64 Compiling\ GeneratedAssetSymbols.swift /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'iosApp' from project 'iosApp')
+SwiftCompile normal arm64 /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'iosApp' from project 'iosApp')
+    cd /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp
+    
+
+SwiftCompile normal arm64 Compiling\ ContentView.swift /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/ContentView.swift (in target 'iosApp' from project 'iosApp')
+
+SwiftCompile normal arm64 /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/ContentView.swift (in target 'iosApp' from project 'iosApp')
+    cd /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp
+    
+
+SwiftCompile normal arm64 Compiling\ iOSApp.swift /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/iOSApp.swift (in target 'iosApp' from project 'iosApp')
+
+SwiftCompile normal arm64 /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/iOSApp.swift (in target 'iosApp' from project 'iosApp')
+    cd /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp
+    
+
+SwiftCompile normal arm64 Compiling\ GlassChrome.swift /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/GlassChrome.swift (in target 'iosApp' from project 'iosApp')
+Failed frontend command:
+/Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend -frontend -c /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/ContentView.swift -primary-file /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/GlassChrome.swift /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/iOSApp.swift /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/DerivedSources/GeneratedAssetSymbols.swift -emit-dependencies-path /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/GlassChrome.d -emit-const-values-path /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/GlassChrome.swiftconstvalues -emit-reference-dependencies-path /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/GlassChrome.swiftdeps -serialize-diagnostics-path /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/GlassChrome.dia -emit-localized-strings -emit-localized-strings-path /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64 -target arm64-apple-ios18.2-simulator -module-can-import-version DeveloperToolsSupport 23.0.4 23.0.4 -module-can-import-version SwiftUI 7.2.5.1 7.2.5 -module-can-import-version UIKit 9126.2.4.1 9126.2.4 -load-resolved-plugin /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libFoundationMacros.dylib\#/Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#FoundationMacros -load-resolved-plugin /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libObservationMacros.dylib\#/Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#ObservationMacros -load-resolved-plugin /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libPreviewsMacros.dylib\#/Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#PreviewsMacros -load-resolved-plugin /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libSwiftMacros.dylib\#/Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#SwiftMacros -load-resolved-plugin /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libSwiftUIMacros.dylib\#/Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#SwiftUIMacros -disable-implicit-swift-modules -Xcc -fno-implicit-modules -Xcc -fno-implicit-module-maps -explicit-swift-module-map-file /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/ArchiveTuneX-dependencies-1.json -Xllvm -aarch64-use-tbi -enable-objc-interop -sdk /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -I /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator -F /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator -no-color-diagnostics -Xcc -fno-color-diagnostics -enable-testing -g -debug-info-format\=dwarf -dwarf-version\=5 -module-cache-path /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -swift-version 5 -enforce-exclusivity\=checked -Onone -D DEBUG -serialize-debugging-options -const-gather-protocols-file /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/iosApp_const_extract_protocols.json -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -empty-abi-descriptor -validate-clang-modules-once -clang-build-session-file /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -working-directory -Xcc /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp -enable-anonymous-context-mangled-names -file-compilation-dir /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -Xcc -ivfsstatcache -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.2-23C57-dc75598d0054f22ec865fa860f139d72e244bd9a5feaf902f95f61bf06266e52.sdkstatcache -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/swift-overrides.hmap -Xcc -iquote -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/ArchiveTuneX-generated-files.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/ArchiveTuneX-own-target-headers.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/ArchiveTuneX-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/ArchiveTuneX-project-headers.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/DerivedSources/arm64 -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/DerivedSources -Xcc -DDEBUG\=1 -no-auto-bridging-header-chaining -module-name ArchiveTuneX -frontend-parseable-output -disable-clang-spi -target-sdk-version 26.2 -target-sdk-name iphonesimulator26.2 -clang-target arm64-apple-ios26.2-simulator -in-process-plugin-server-path /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/libSwiftInProcPluginServer.dylib -o /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/GlassChrome.o -index-unit-output-path /iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/GlassChrome.o -index-store-path /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Index.noindex/DataStore -index-system-modules
+
+SwiftCompile normal arm64 /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/GlassChrome.swift (in target 'iosApp' from project 'iosApp')
+    cd /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp
+    
+/Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/GlassChrome.swift:311:88: error: extra argument 'isEnabled' in call
+            self.glassEffect(.regular.interactive(), in: SwiftUI.Capsule(), isEnabled: enabled)
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for ArchiveTuneX (in target 'iosApp' from project 'iosApp')
+
+SwiftDriver\ Compilation\ Requirements iosApp normal arm64 com.apple.xcode.tools.swift.compiler (in target 'iosApp' from project 'iosApp')
+    cd /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name ArchiveTuneX -Onone -enforce-exclusivity\=checked @/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/ArchiveTuneX.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -target arm64-apple-ios18.2-simulator -g -module-cache-path /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator -F /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64 -c -j5 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.2-23C57-dc75598d0054f22ec865fa860f139d72e244bd9a5feaf902f95f61bf06266e52.sdkstatcache -output-file-map /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/iosApp-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/ArchiveTuneX.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/iosApp_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/ArchiveTuneX-generated-files.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/ArchiveTuneX-own-target-headers.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/ArchiveTuneX-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/ArchiveTuneX-project-headers.hmap -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/DerivedSources/arm64 -Xcc -I/Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/ArchiveTuneX-Swift.h -working-directory /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp -experimental-emit-module-separately -disable-cmo
+
+LinkAssetCatalog /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/Preview\ Content/Preview\ Assets.xcassets /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/Assets.xcassets (in target 'iosApp' from project 'iosApp')
+    cd /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp
+    builtin-linkAssetCatalog --thinned /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/assetcatalog_output/thinned --thinned-dependencies /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/assetcatalog_dependencies_thinned --thinned-info-plist-content /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/assetcatalog_generated_info.plist_thinned --unthinned /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/assetcatalog_output/unthinned --unthinned-dependencies /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/assetcatalog_dependencies_unthinned --unthinned-info-plist-content /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/assetcatalog_generated_info.plist_unthinned --output /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator/ArchiveTuneX.app --plist-output /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/assetcatalog_generated_info.plist
+note: Emplaced /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator/ArchiveTuneX.app/Assets.car (in target 'iosApp' from project 'iosApp')
+note: Emplaced /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator/ArchiveTuneX.app/AppIcon60x60@2x.png (in target 'iosApp' from project 'iosApp')
+note: Emplaced /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator/ArchiveTuneX.app/AppIcon76x76@2x~ipad.png (in target 'iosApp' from project 'iosApp')
+
+SwiftMergeGeneratedHeaders /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/DerivedSources/ArchiveTuneX-Swift.h /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/ArchiveTuneX-Swift.h (in target 'iosApp' from project 'iosApp')
+    cd /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp
+    builtin-swiftHeaderTool -arch arm64 /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/ArchiveTuneX-Swift.h -o /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/DerivedSources/ArchiveTuneX-Swift.h
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator/ArchiveTuneX.swiftmodule/arm64-apple-ios-simulator.swiftmodule /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/ArchiveTuneX.swiftmodule (in target 'iosApp' from project 'iosApp')
+    cd /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/ArchiveTuneX.swiftmodule /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator/ArchiveTuneX.swiftmodule/arm64-apple-ios-simulator.swiftmodule
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator/ArchiveTuneX.swiftmodule/arm64-apple-ios-simulator.swiftdoc /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/ArchiveTuneX.swiftdoc (in target 'iosApp' from project 'iosApp')
+    cd /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/ArchiveTuneX.swiftdoc /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator/ArchiveTuneX.swiftmodule/arm64-apple-ios-simulator.swiftdoc
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator/ArchiveTuneX.swiftmodule/arm64-apple-ios-simulator.abi.json /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/ArchiveTuneX.abi.json (in target 'iosApp' from project 'iosApp')
+    cd /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/ArchiveTuneX.abi.json /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator/ArchiveTuneX.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Copy /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator/ArchiveTuneX.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/ArchiveTuneX.swiftsourceinfo (in target 'iosApp' from project 'iosApp')
+    cd /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/Objects-normal/arm64/ArchiveTuneX.swiftsourceinfo /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator/ArchiveTuneX.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+ProcessInfoPlistFile /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator/ArchiveTuneX.app/Info.plist /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/Info.plist (in target 'iosApp' from project 'iosApp')
+    cd /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp
+    builtin-infoPlistUtility /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/Info.plist -producttype com.apple.product-type.application -genpkginfo /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator/ArchiveTuneX.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Intermediates.noindex/iosApp.build/Debug-iphonesimulator/iosApp.build/assetcatalog_generated_info.plist -o /Users/runner/Library/Developer/Xcode/DerivedData/iosApp-cvbfniiievpwmwbgijwatxezluiq/Build/Products/Debug-iphonesimulator/ArchiveTuneX.app/Info.plist
+
+SwiftDriverJobDiscovery normal arm64 Compiling iOSApp.swift (in target 'iosApp' from project 'iosApp')
+
+note: Run script build phase 'Compile Kotlin Framework' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'iosApp' from project 'iosApp')
+** BUILD FAILED **
+
+
+The following build commands failed:
+	SwiftCompile normal arm64 Compiling\ GlassChrome.swift /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/GlassChrome.swift (in target 'iosApp' from project 'iosApp')
+	SwiftCompile normal arm64 /Users/runner/work/ArchiveTuneX/ArchiveTuneX/iosApp/iosApp/GlassChrome.swift (in target 'iosApp' from project 'iosApp')
+	Building project iosApp with scheme iosApp and configuration Debug
+(3 failures)
