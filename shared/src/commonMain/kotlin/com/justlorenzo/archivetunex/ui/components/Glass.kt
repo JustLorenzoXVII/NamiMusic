@@ -83,10 +83,12 @@ fun Modifier.glassSurface(
     if (state == null || !glassEnabled) return this.clip(shape).background(fallback)
     val style =
         remember(shape, dark) {
-            GlassStyle {
+            // Vetro "clear" (quello dei controlli di iOS sopra foto e video): trasparente, con la
+            // rifrazione forte sul bordo e i riflessi; solo un filo di bianco per staccare dallo sfondo
+            GlassStyle.clear.then {
                 shape(shape)
-                // Un velo leggero come il vetro "regular" di iOS: si leggono le icone anche sopra le foto
-                tint(if (dark) Color.Black.copy(alpha = 0.18f) else Color.White.copy(alpha = 0.3f))
+                tint(Color.White.copy(alpha = if (dark) 0.08f else 0.22f))
+                specularIntensity(0.75f)
             }
         }
     return this.hazeGlass(input = HazeInput.Sources(state), style = style)

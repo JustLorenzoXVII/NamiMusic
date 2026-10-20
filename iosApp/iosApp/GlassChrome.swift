@@ -56,33 +56,37 @@ struct GlassChromeView: SwiftUI.View {
         let accent = SwiftUI.Color(argb: state.accent)
         return GlassGroup {
             SwiftUI.VStack(spacing: 10) {
+                // Il vetro di iOS 26 lo disegna il contenitore, che non rispetta la trasparenza dei
+                // singoli elementi: per nasconderli si spegne il vetro o si tolgono dalla vista
                 if state.hasMini {
                     MiniAccessory(state: state)
                         .frame(height: 50)
                         .contentShape(SwiftUI.Capsule())
                         .onTapGesture { GlassChromeBridge.shared.openPlayer() }
-                        .glassCapsule()
-                        .background(MiniFrameReporter())
-                        // Mentre il player è aperto il mini player non c'è: sparisce e ricompare di colpo,
-                        // perché il player si apre e si richiude esattamente nel suo riquadro
+                        // Col player aperto il vetro si spegne e il contenuto sparisce, di colpo:
+                        // il player si apre e si richiude esattamente nel suo riquadro
                         .opacity(state.visible ? 1 : 0)
+                        .glassCapsule(enabled: state.visible)
                         .animation(nil, value: state.visible)
+                        .background(MiniFrameReporter())
                         // Quando parte il primo brano sale da sotto
                         .transition(.asymmetric(insertion: .opacity.combined(with: .offset(y: 28)), removal: .opacity))
                 }
-                SwiftUI.HStack(spacing: 12) {
-                    TabCapsule(state: state, accent: accent, namespace: tabNamespace)
-                    SearchCircle(state: state, accent: accent)
+                if state.visible {
+                    SwiftUI.HStack(spacing: 12) {
+                        TabCapsule(state: state, accent: accent, namespace: tabNamespace)
+                        SearchCircle(state: state, accent: accent)
+                    }
+                    .frame(height: 62)
+                    // Le schede scivolano giù sotto il player che si apre e risalgono quando si chiude
+                    .transition(.offset(y: 110).combined(with: .opacity))
                 }
-                .frame(height: 62)
-                // Le schede scivolano giù sotto il player che si apre, e risalgono quando si chiude
-                .offset(y: state.visible ? 0 : 110)
-                .opacity(state.visible ? 1 : 0)
-                .animation(.spring(response: 0.42, dampingFraction: 0.88), value: state.visible)
             }
+            .frame(maxHeight: .infinity, alignment: .bottom)
             .padding(.horizontal, 16)
             .padding(.bottom, CGFloat(state.bottomPadding))
             .animation(.spring(response: 0.45, dampingFraction: 0.85), value: state.hasMini)
+            .animation(.spring(response: 0.42, dampingFraction: 0.88), value: state.visible)
         }
     }
 }
@@ -302,14 +306,14 @@ private struct GlassGroup<Content: SwiftUI.View>: SwiftUI.View {
 
 private extension SwiftUI.View {
     @ViewBuilder
-    func glassCapsule() -> some SwiftUI.View {
+    func glassCapsule(enabled: Bool = true) -> some SwiftUI.View {
         if #available(iOS 26.0, *) {
-            self.glassEffect(.regular.interactive(), in: SwiftUI.Capsule())
+            self.glassEffect(.regular.interactive(), in: SwiftUI.Capsule(), isEnabled: enabled)
         } else {
             self
-                .background(.ultraThinMaterial, in: SwiftUI.Capsule())
-                .overlay(SwiftUI.Capsule().strokeBorder(SwiftUI.Color.white.opacity(0.18), lineWidth: 0.5))
-                .shadow(color: .black.opacity(0.18), radius: 12, y: 6)
+                .background(.ultraThinMaterial.opacity(enabled ? 1 : 0), in: SwiftUI.Capsule())
+                .overlay(SwiftUI.Capsule().strokeBorder(SwiftUI.Color.white.opacity(enabled ? 0.18 : 0), lineWidth: 0.5))
+                .shadow(color: .black.opacity(enabled ? 0.18 : 0), radius: 12, y: 6)
         }
     }
 

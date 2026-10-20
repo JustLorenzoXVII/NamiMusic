@@ -562,7 +562,8 @@ fun PlayerScreen(underArtwork: @Composable () -> Unit = {}) {
     val progress = rememberProgressState(connection)
     val song = metadata ?: return
     val style = LocalAtxStyle.current
-    val layout = style.playerLayout
+    // Tema iOS: player come Apple Music (copertina semplice, niente vinile/cassetta)
+    val layout = if (style.liquidGlass) PlayerLayout.Card else style.playerLayout
     // Tema iOS: i pulsanti del player sono di vetro e riflettono lo sfondo con la copertina sfocata
     val hazeState = dev.chrisbanes.haze.rememberHazeState()
     val playerGlass = if (style.liquidGlass) hazeState else null
@@ -1013,7 +1014,7 @@ fun PlayerScreen(underArtwork: @Composable () -> Unit = {}) {
                         AtxIcon(Res.drawable.expand_more, tr("Chiudi player"), size = 30.dp, tint = pc.text)
                     }
                     Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                        Text(
+                        if (!style.liquidGlass) Text(
                             tr("IN RIPRODUZIONE"),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
@@ -1104,16 +1105,18 @@ fun PlayerScreen(underArtwork: @Composable () -> Unit = {}) {
 
                 Spacer(Modifier.height(16.dp))
                 ProgressBar(
-                    slider = style.slider,
+                    slider = if (style.liquidGlass) SliderStyleChoice.Classic else style.slider,
                     progress = progress,
                     isPlaying = isPlaying,
-                    color = pc.accent,
+                    color = if (style.liquidGlass) pc.text else pc.accent,
                     onSeek = { connection.player.seekTo(it) },
                 )
                 Times(progress, pc.text.copy(alpha = 0.7f), style.showRemainingTime)
 
                 Spacer(Modifier.height(20.dp))
-                if (style.playButton == PlayButtonShape.Group) {
+                if (style.liquidGlass) {
+                    IosControls(isPlaying, pc.text, onPrevious = connection::seekToPrevious, onPlay = actions::togglePlayPause, onNext = connection::seekToNext)
+                } else if (style.playButton == PlayButtonShape.Group) {
                     ConnectedControls(
                         isPlaying = isPlaying,
                         accent = pc.accent,
@@ -1481,6 +1484,56 @@ private fun GroupPiece(
 
 /** Comandi classici: precedente, Play con la forma scelta, successivo. */
 @Composable
+/** Comandi di Apple Music: solo icone bianche grandi, senza sfondi; premute si rimpiccioliscono. */
+@Composable
+private fun IosControls(
+    isPlaying: Boolean,
+    color: Color,
+    onPrevious: () -> Unit,
+    onPlay: () -> Unit,
+    onNext: () -> Unit,
+) {
+    Row(
+        Modifier.fillMaxWidth().height(88.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IosControlButton(Res.drawable.skip_previous, tr("Brano precedente"), 42.dp, color, onPrevious)
+        IosControlButton(
+            if (isPlaying) Res.drawable.pause else Res.drawable.play,
+            if (isPlaying) tr("Pausa") else tr("Riproduci"),
+            58.dp,
+            color,
+            onPlay,
+        )
+        IosControlButton(Res.drawable.skip_next, tr("Brano successivo"), 42.dp, color, onNext)
+    }
+}
+
+@Composable
+private fun IosControlButton(
+    icon: DrawableResource,
+    label: String,
+    size: Dp,
+    color: Color,
+    onClick: () -> Unit,
+) {
+    val source = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val pressed by source.collectIsPressedAsState()
+    val scale by animateFloatAsState(if (pressed) 0.82f else 1f, spring(dampingRatio = 0.55f, stiffness = 700f), label = "iosControl")
+    Box(
+        Modifier
+            .size(size + 28.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }.clip(CircleShape)
+            .background(color.copy(alpha = if (pressed) 0.12f else 0f))
+            .clickable(interactionSource = source, indication = null, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) { AtxIcon(icon, label, size = size, tint = color) }
+}
+
 private fun ClassicControls(
     shape: PlayButtonShape,
     isPlaying: Boolean,
