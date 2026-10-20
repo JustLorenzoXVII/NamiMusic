@@ -1,6 +1,11 @@
 package com.justlorenzo.archivetunex
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.navigationBars
 import com.justlorenzo.archivetunex.ui.toAtxStyle
 import moe.rukamori.archivetune.extensions.toEnum
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -201,6 +206,7 @@ private fun LoadedApp(prefs: androidx.datastore.preferences.core.Preferences) {
         paletteStyle = style.paletteStyle.toMaterialKolor(),
         useSystemColors = style.themeSource == ThemeSource.System,
         pureBlack = style.pureBlack,
+        iosStyle = style.liquidGlass,
     ) {
         CompositionLocalProvider(
             LocalNavigator provides navigator,
@@ -477,7 +483,16 @@ private fun AppContent(navigator: AtxNavigator) {
             }
 
             val bottomStyle = LocalAtxStyle.current.miniLayout
-            if (bottomStyle == com.justlorenzo.archivetunex.ui.MiniLayout.Joined) {
+            val glass = LocalAtxStyle.current.liquidGlass
+            if (glass) {
+                // Tema iOS: mini player, schede e ricerca nativi di vetro (Liquid Glass)
+                LiquidGlassBar(
+                    navigator = navigator,
+                    hidden = navigator.playerExpanded || playerProgress > 0.01f,
+                    onMiniBounds = { miniBounds = it },
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
+            } else if (bottomStyle == com.justlorenzo.archivetunex.ui.MiniLayout.Joined) {
                 // Stile Fuji: mini player e barra di navigazione uniti
                 JoinedBottomBar(
                     tabs =
@@ -546,14 +561,16 @@ private fun AppContent(navigator: AtxNavigator) {
             PlayerMorph(
                 miniBounds = miniBounds,
                 miniRadius =
-                    when (LocalAtxStyle.current.miniLayout) {
+                    if (glass) {
+                        25.dp
+                    } else when (LocalAtxStyle.current.miniLayout) {
                         com.justlorenzo.archivetunex.ui.MiniLayout.Joined -> 28.dp
                         com.justlorenzo.archivetunex.ui.MiniLayout.Pill -> 29.dp
                         com.justlorenzo.archivetunex.ui.MiniLayout.Floating -> 26.dp
                         com.justlorenzo.archivetunex.ui.MiniLayout.Large -> 30.dp
                     },
                 onProgress = { playerProgress = it },
-                topCornersOnly = bottomStyle == com.justlorenzo.archivetunex.ui.MiniLayout.Joined,
+                topCornersOnly = !glass && bottomStyle == com.justlorenzo.archivetunex.ui.MiniLayout.Joined,
             )
             AnimatedVisibility(visible = navigator.settingsVisible, enter = fadeIn(), exit = fadeOut()) {
                 SettingsOverlay()
@@ -569,6 +586,60 @@ private fun AppContent(navigator: AtxNavigator) {
         }
     }
     }
+}
+
+/** Barra di vetro del tema iOS: le passa lo stato dell'app e riceve i tocchi. */
+@Composable
+private fun LiquidGlassBar(
+    navigator: AtxNavigator,
+    hidden: Boolean,
+    onMiniBounds: (androidx.compose.ui.geometry.Rect) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val actions = com.justlorenzo.archivetunex.ui.LocalActions.current
+    val connection = actions.player
+    val metadata by connection.mediaMetadata.collectAsState()
+    val playing by connection.isPlaying.collectAsState()
+    val scheme = MaterialTheme.colorScheme
+    // Sopra il player, le impostazioni e i fogli a tutto schermo la barra si nasconde
+    val covered =
+        hidden || navigator.settingsVisible || navigator.loginVisible || navigator.logsVisible ||
+            navigator.queueVisible || navigator.accountVisible || navigator.lyricsVisible
+    val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    // Come le app di Apple: la barra scende un po' dentro lo spazio della barretta Home
+    val bottomPadding = if (navBottom > 0.dp) (navBottom - 13.dp).coerceAtLeast(12.dp) else 12.dp
+    val state =
+        com.justlorenzo.archivetunex.ui.glass.GlassChromeState(
+            selectedTab = navigator.tab.ordinal,
+            hasMini = metadata != null,
+            title = metadata?.title.orEmpty(),
+            artist = metadata?.artists?.joinToString(", ") { it.name }.orEmpty(),
+            artworkUrl = metadata?.thumbnailUrl,
+            isPlaying = playing,
+            dark = scheme.background.luminance() < 0.5f,
+            visible = !covered,
+            accent = scheme.primary.toArgb().toLong() and 0xFFFFFFFFL,
+            bottomPadding = bottomPadding.value,
+            homeLabel = tr("Home"),
+            statsLabel = tr("Statistiche"),
+            libraryLabel = tr("Libreria"),
+            searchLabel = tr("Cerca"),
+        )
+    val glassActions =
+        remember(navigator, actions) {
+            com.justlorenzo.archivetunex.ui.glass.GlassChromeActions(
+                onTab = { index -> Tab.entries.getOrNull(index)?.let { navigator.selectTab(it) } },
+                onMini = { navigator.playerExpanded = true },
+                onPlayPause = { actions.togglePlayPause() },
+                onNext = { connection.seekToNext() },
+            )
+        }
+    com.justlorenzo.archivetunex.ui.glass.GlassBottomChrome(
+        state = state,
+        actions = glassActions,
+        onMiniBounds = onMiniBounds,
+        modifier = modifier,
+    )
 }
 
 /** Schede a pillola fluttuante: quella attiva si allarga e mostra il nome (stile Expressive). */

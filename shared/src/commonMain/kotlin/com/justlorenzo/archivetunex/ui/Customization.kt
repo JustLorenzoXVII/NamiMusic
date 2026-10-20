@@ -218,6 +218,9 @@ val ThemeSourceKey = stringPreferencesKey("atx_theme_source")
 val CustomColorKey = intPreferencesKey("atx_custom_color")
 val PaletteStyleKey = stringPreferencesKey("atx_palette_style")
 val PureBlackKey = booleanPreferencesKey("atx_pure_black")
+
+/** Tema iOS con Liquid Glass: colori di sistema, barra di vetro nativa, player con i colori della copertina (solo iPhone). */
+val LiquidGlassKey = booleanPreferencesKey("atx_liquid_glass")
 val ArtworkCornersKey = stringPreferencesKey("atx_artwork_corners")
 val TabLabelsKey = stringPreferencesKey("atx_tab_labels")
 val ColoredHomeKey = booleanPreferencesKey("atx_colored_home")
@@ -265,6 +268,7 @@ data class AtxStyle(
     val miniArtwork: MiniArtwork = MiniArtwork.Rounded,
     val miniButtons: MiniButtons = MiniButtons.PlayNext,
     val miniShowArtist: Boolean = true,
+    val liquidGlass: Boolean = false,
 )
 
 internal fun Preferences.toAtxStyle(): AtxStyle {
@@ -291,6 +295,7 @@ internal fun Preferences.toAtxStyle(): AtxStyle {
         miniArtwork = this[MiniArtworkKey].toEnum(d.miniArtwork),
         miniButtons = this[MiniButtonsKey].toEnum(d.miniButtons),
         miniShowArtist = this[MiniShowArtistKey] ?: d.miniShowArtist,
+        liquidGlass = (this[LiquidGlassKey] ?: d.liquidGlass) && com.justlorenzo.archivetunex.ui.glass.glassChromeAvailable,
     )
 }
 

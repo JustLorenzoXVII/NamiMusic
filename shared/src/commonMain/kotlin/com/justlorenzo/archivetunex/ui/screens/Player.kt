@@ -561,7 +561,8 @@ fun PlayerScreen(underArtwork: @Composable () -> Unit = {}) {
     val song = metadata ?: return
     val style = LocalAtxStyle.current
     val layout = style.playerLayout
-    val playerBackground = style.playerBackground
+    // Tema iOS: il player prende sempre i colori della copertina, su sfondo scuro sfocato (come Apple Music)
+    val playerBackground = if (style.liquidGlass) PlayerBackground.Blur else style.playerBackground
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
     val haptics = LocalHapticFeedback.current
@@ -588,8 +589,8 @@ fun PlayerScreen(underArtwork: @Composable () -> Unit = {}) {
     val artColors = rememberArtworkColors(song.thumbnailUrl)
     val artworkAccent = animatedArtworkColor(artColors)
     val themeBackground = MaterialTheme.colorScheme.background
-    val dark = themeBackground.luminance() < 0.5f
-    val seed = if (style.coloredPlayerControls) artworkAccent else MaterialTheme.colorScheme.primary
+    val dark = style.liquidGlass || themeBackground.luminance() < 0.5f
+    val seed = if (style.liquidGlass || style.coloredPlayerControls) artworkAccent else MaterialTheme.colorScheme.primary
     val baseColors = remember(seed, dark, layout) { playerColors(seed, dark, poster = false) }
     val pc =
         if (playerBackground == PlayerBackground.Plain) {

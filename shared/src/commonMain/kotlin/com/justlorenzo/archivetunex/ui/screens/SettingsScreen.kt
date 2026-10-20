@@ -465,6 +465,15 @@ private fun AppearancePage() {
             }
             SwitchRow(tr("Nero puro"), tr("Nel tema scuro lo sfondo è nero (schermi OLED)"), style.pureBlack) { save(PureBlackKey, it) }
         }
+        if (com.justlorenzo.archivetunex.ui.glass.glassChromeAvailable) {
+            SettingsGroup(tr("Stile iOS")) {
+                SwitchRow(
+                    tr("Tema iOS (Liquid Glass)"),
+                    tr("Bianco o nero come Apple Music, barra e mini player di vetro. Il player prende i colori della copertina"),
+                    style.liquidGlass,
+                ) { save(com.justlorenzo.archivetunex.ui.LiquidGlassKey, it) }
+            }
+        }
 
         SettingsGroup(tr("Colori dell'app")) {
             PreviewChoices(

@@ -37,8 +37,9 @@ val GoogleSans: FontFamily
 
 /** Tipografia di Nami: quella di Material 3 con Google Sans e il corpo del testo a 16sp (come Fuji). */
 @Composable
-fun atxTypography(): Typography {
-    val family = GoogleSans
+fun atxTypography(systemFont: Boolean = false): Typography {
+    // Tema iOS: font di sistema (SF Pro su iPhone)
+    val family = if (systemFont) FontFamily.Default else GoogleSans
     return remember(family) {
         val base = Typography()
         Typography(
