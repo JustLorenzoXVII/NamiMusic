@@ -2191,7 +2191,10 @@ fun Modifier.dragToOpenPlayer(): Modifier {
 
 /** Dove sta la copertina dentro il mini player, per farla partire (e tornare) esattamente da lì. */
 private fun miniArtFrame(style: com.justlorenzo.archivetunex.ui.AtxStyle): ArtFrame =
-    when (style.miniLayout) {
+    // Tema iOS: la copertina del mini player di vetro nativo (38 punti, 6 dal bordo, angoli 8)
+    if (style.liquidGlass) {
+        ArtFrame(6.dp, 6.dp, 38.dp, 38.dp, 8.dp)
+    } else when (style.miniLayout) {
         MiniLayout.Joined -> ArtFrame(12.dp, 12.dp, 48.dp, 48.dp, 12.dp)
         MiniLayout.Floating -> ArtFrame(10.dp, 10.dp, 48.dp, 48.dp, 14.dp)
         MiniLayout.Pill -> ArtFrame(8.dp, 8.dp, 42.dp, 42.dp, 21.dp)
@@ -2274,8 +2277,11 @@ fun PlayerMorph(
             ) {
                 PlayerScreen(
                     underArtwork = {
-                        // Le scritte e i tasti del mini player sfumano subito (la copertina vola via da sola)
-                        if (p < 0.4f) {
+                        if (LocalAtxStyle.current.liquidGlass) {
+                            // Tema iOS: all'inizio il riquadro ha l'aspetto del mini player di vetro
+                            // (stesso colore, scritte e tasti negli stessi punti), poi sfuma nel player
+                            if (p < 0.35f) GlassMiniLook(start.height, alpha = (1f - p / 0.25f).coerceIn(0f, 1f))
+                        } else if (p < 0.4f) {
                             Box(
                                 Modifier
                                     .fillMaxWidth()
@@ -2285,6 +2291,42 @@ fun PlayerMorph(
                         }
                     },
                 )
+            }
+        }
+    }
+}
+
+/** L'aspetto del mini player di vetro nativo, disegnato in Compose per il primo istante dell'apertura. */
+@Composable
+private fun GlassMiniLook(
+    height: Dp,
+    alpha: Float,
+) {
+    val connection = LocalActions.current.player
+    val metadata by connection.mediaMetadata.collectAsState()
+    val playing by connection.isPlaying.collectAsState()
+    val scheme = MaterialTheme.colorScheme
+    val dark = scheme.background.luminance() < 0.5f
+    // Il vetro scuro sopra il nero è un grigio scuro, quello chiaro sopra il bianco un grigio chiarissimo
+    val glassColor = if (dark) Color(0xFF242427) else Color(0xFFF4F4F6)
+    val text = if (dark) Color.White else Color.Black
+    Box(Modifier.fillMaxSize().graphicsLayer { this.alpha = alpha }.background(glassColor)) {
+        Row(
+            Modifier.fillMaxWidth().height(height).padding(start = 54.dp, end = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(metadata?.title.orEmpty(), color = text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                val artist = metadata?.artists?.joinToString(", ") { it.name }.orEmpty()
+                if (artist.isNotEmpty()) {
+                    Text(artist, color = text.copy(alpha = 0.6f), fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            }
+            Box(Modifier.size(38.dp, 44.dp), contentAlignment = Alignment.Center) {
+                AtxIcon(if (playing) Res.drawable.pause else Res.drawable.play, null, size = 22.dp, tint = text)
+            }
+            Box(Modifier.size(38.dp, 44.dp), contentAlignment = Alignment.Center) {
+                AtxIcon(Res.drawable.skip_next, null, size = 22.dp, tint = text)
             }
         }
     }

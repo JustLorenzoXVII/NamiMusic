@@ -44,9 +44,7 @@ struct GlassChromeView: SwiftUI.View {
         SwiftUI.Group {
             if let state = model.state {
                 chrome(state)
-                    .opacity(state.visible ? 1 : 0)
                     .allowsHitTesting(state.visible)
-                    .animation(.easeInOut(duration: 0.22), value: state.visible)
                     .environment(\.colorScheme, state.dark ? .dark : .light)
             }
         }
@@ -65,17 +63,26 @@ struct GlassChromeView: SwiftUI.View {
                         .onTapGesture { GlassChromeBridge.shared.openPlayer() }
                         .glassCapsule()
                         .background(MiniFrameReporter())
-                        .transition(.opacity.combined(with: .scale(scale: 0.9, anchor: .bottom)))
+                        // Mentre il player è aperto il mini player non c'è: sparisce e ricompare di colpo,
+                        // perché il player si apre e si richiude esattamente nel suo riquadro
+                        .opacity(state.visible ? 1 : 0)
+                        .animation(nil, value: state.visible)
+                        // Quando parte il primo brano sale da sotto
+                        .transition(.asymmetric(insertion: .opacity.combined(with: .offset(y: 28)), removal: .opacity))
                 }
                 SwiftUI.HStack(spacing: 12) {
                     TabCapsule(state: state, accent: accent, namespace: tabNamespace)
                     SearchCircle(state: state, accent: accent)
                 }
                 .frame(height: 62)
+                // Le schede scivolano giù sotto il player che si apre, e risalgono quando si chiude
+                .offset(y: state.visible ? 0 : 110)
+                .opacity(state.visible ? 1 : 0)
+                .animation(.spring(response: 0.42, dampingFraction: 0.88), value: state.visible)
             }
             .padding(.horizontal, 16)
             .padding(.bottom, CGFloat(state.bottomPadding))
-            .animation(.smooth(duration: 0.3), value: state.hasMini)
+            .animation(.spring(response: 0.45, dampingFraction: 0.85), value: state.hasMini)
         }
     }
 }
@@ -209,17 +216,50 @@ private struct MiniAccessory: SwiftUI.View {
     }
 }
 
+/// Copertina del mini player. Al cambio brano resta quella vecchia finché la nuova non è pronta
+/// (niente lampo grigio), e le copertine già viste si riprendono dalla memoria.
 private struct GlassArtwork: SwiftUI.View {
     let url: String?
+    @StateObject private var loader = ArtworkLoader()
 
     var body: some SwiftUI.View {
-        SwiftUI.AsyncImage(url: url.flatMap { URL(string: $0) }) { phase in
-            if let image = phase.image {
-                image.resizable().scaledToFill()
-            } else {
-                SwiftUI.Color.gray.opacity(0.3)
+        SwiftUI.ZStack {
+            SwiftUI.Color.gray.opacity(0.3)
+            if let image = loader.image {
+                SwiftUI.Image(uiImage: image).resizable().scaledToFill()
+                    .transition(.opacity)
             }
         }
+        .animation(.easeInOut(duration: 0.25), value: loader.image)
+        .onAppear { loader.load(url) }
+        .onChange(of: url) { _, newUrl in loader.load(newUrl) }
+    }
+}
+
+private final class ArtworkLoader: ObservableObject {
+    @Published var image: UIImage?
+    private static let cache = NSCache<NSString, UIImage>()
+    private var current: String?
+    private var task: URLSessionDataTask?
+
+    func load(_ url: String?) {
+        guard let url, url != current else { return }
+        current = url
+        if let cached = Self.cache.object(forKey: url as NSString) {
+            image = cached
+            return
+        }
+        task?.cancel()
+        guard let address = URL(string: url) else { return }
+        task = URLSession.shared.dataTask(with: address) { [weak self] data, _, _ in
+            guard let data, let loaded = UIImage(data: data) else { return }
+            Self.cache.setObject(loaded, forKey: url as NSString)
+            DispatchQueue.main.async {
+                guard let self, self.current == url else { return }
+                self.image = loaded
+            }
+        }
+        task?.resume()
     }
 }
 
@@ -246,13 +286,14 @@ private struct MiniFrameReporter: SwiftUI.View {
 
 // MARK: - Vetro
 
-/// Su iOS 26 le forme di vetro vicine si fondono tra loro, come nelle app di Apple.
+/// Su iOS 26 le forme di vetro nello stesso contenitore si deformano insieme. La distanza è bassa:
+/// mini player, schede e ricerca restano separati e non si fondono a riposo.
 private struct GlassGroup<Content: SwiftUI.View>: SwiftUI.View {
     @ViewBuilder var content: Content
 
     var body: some SwiftUI.View {
         if #available(iOS 26.0, *) {
-            GlassEffectContainer(spacing: 12) { content }
+            GlassEffectContainer(spacing: 4) { content }
         } else {
             content
         }

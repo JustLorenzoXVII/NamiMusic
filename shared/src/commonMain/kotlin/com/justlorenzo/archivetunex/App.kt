@@ -407,12 +407,23 @@ private fun AppContent(navigator: AtxNavigator) {
             val leave = remember(key) { androidx.compose.animation.core.Animatable(0f) }
             val leavingEntry = if (change.kind == PageChange.Back || change.kind == PageChange.Tab) change.from else null
             var leavingDone by remember(key) { mutableStateOf(leavingEntry == null) }
+            // Tema iOS: pagine che entrano ed escono a tutta larghezza come su iPhone, schede istantanee
+            val iosMotion = LocalAtxStyle.current.liquidGlass
             androidx.compose.runtime.LaunchedEffect(key) {
                 val tabSwitch = change.kind == PageChange.Tab
+                if (iosMotion) {
+                    val spec = tween<Float>(if (tabSwitch) 1 else 380, easing = IosNavigationEasing)
+                    launch { enter.animateTo(1f, spec) }
+                    if (leavingEntry != null) {
+                        leave.animateTo(1f, spec)
+                        leavingDone = true
+                    }
+                } else {
                 launch { enter.animateTo(1f, tween(if (tabSwitch) 180 else 280, easing = androidx.compose.animation.core.FastOutSlowInEasing)) }
                 if (leavingEntry != null) {
                     leave.animateTo(1f, tween(if (tabSwitch) 140 else 240, easing = androidx.compose.animation.core.FastOutSlowInEasing))
                     leavingDone = true
+                }
                 }
                 androidx.compose.runtime.withFrameNanos { }
                 pageBack.instant = false
@@ -437,6 +448,38 @@ private fun AppContent(navigator: AtxNavigator) {
                                 val direction = if (pageBack.fromLeft) 1f else -1f
                                 // Quanto è uscita la pagina col gesto (dito + finale automatico)
                                 val gesture = pageBack.progress + (1f - pageBack.progress) * pageBack.commit
+                                if (iosMotion && !pageBack.active) {
+                                    // iPhone: la nuova pagina copre quella sotto scorrendo da destra a tutta larghezza,
+                                    // quella sotto si sposta di un terzo verso sinistra; indietro, il contrario
+                                    when (slot.role) {
+                                        PageRole.Under -> {
+                                            if (change.kind == PageChange.Push && enter.value < 1f) {
+                                                translationX = -w * 0.3f * enter.value
+                                            } else {
+                                                alpha = 0f
+                                            }
+                                        }
+                                        PageRole.Current -> {
+                                            when (change.kind) {
+                                                PageChange.Push -> {
+                                                    translationX = (1f - enter.value) * w
+                                                    shadowElevation = with(density) { 24.dp.toPx() } * (1f - enter.value)
+                                                }
+                                                PageChange.Back -> if (!leavingDone) translationX = -w * 0.3f * (1f - leave.value)
+                                                else -> Unit
+                                            }
+                                        }
+                                        PageRole.Leaving -> {
+                                            if (change.kind == PageChange.Back) {
+                                                translationX = leave.value * w
+                                                shadowElevation = with(density) { 24.dp.toPx() } * (1f - leave.value)
+                                            } else {
+                                                alpha = 0f
+                                            }
+                                        }
+                                    }
+                                    return@graphicsLayer
+                                }
                                 when (slot.role) {
                                     PageRole.Under -> {
                                         val pushing = change.kind == PageChange.Push && enter.value < 1f
@@ -587,6 +630,9 @@ private fun AppContent(navigator: AtxNavigator) {
     }
     }
 }
+
+/** Curva delle transizioni di navigazione di iOS: partenza decisa, arrivo molto morbido. */
+private val IosNavigationEasing = androidx.compose.animation.core.CubicBezierEasing(0.2f, 0.9f, 0.25f, 1f)
 
 /** Barra di vetro del tema iOS: le passa lo stato dell'app e riceve i tocchi. */
 @Composable
