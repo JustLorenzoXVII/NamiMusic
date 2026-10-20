@@ -471,7 +471,7 @@ private fun ImmersiveBackdrop(
                     .hazeBlur(
                         input = HazeInput.Sources(hazeState),
                         style = blurStyle,
-                        performanceMode = HazePerformanceMode.Adaptive,
+                        performanceMode = HazePerformanceMode.Default,
                         expandLayerBounds = true,
                     ).background(lowerScrim),
         )

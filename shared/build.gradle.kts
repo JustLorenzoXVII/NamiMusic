@@ -90,7 +90,6 @@ kotlin {
             implementation(libs.sqlite.bundled)
             implementation(libs.coil.compose)
             // Vetro (Liquid Glass) disegnato in Compose: pulsanti, menu e fogli del tema iOS
-            implementation(libs.haze)
             implementation(libs.haze.glass)
             implementation(libs.coil.network.ktor)
             implementation(libs.coil.svg)
