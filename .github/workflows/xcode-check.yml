@@ -1,15 +1,9 @@
-# Compila l'app iPhone completa (Swift compreso) su un Mac di GitHub, così gli errori di SwiftUI
-# si vedono prima di mandarla su TestFlight. I Mac costano minuti: parte solo quando cambia la parte
-# iPhone (Swift, progetto Xcode, ponte Kotlin per iOS) oppure a mano.
+# Compila l'app iPhone completa (Swift compreso) su un Mac di GitHub, senza mandarla su TestFlight.
 name: Controllo app iPhone (Xcode)
 
 on:
-  push:
-    branches: [nuova-ui, liquid-glass]
-    paths:
-      - "iosApp/**"
-      - "shared/src/iosMain/**"
-      - ".github/workflows/xcode-check.yml"
+  # Solo a mano (Actions → "Controllo app iPhone (Xcode)" → Run workflow): i minuti dei Mac
+  # servono alle build TestFlight, che compilano comunque anche lo Swift.
   workflow_dispatch:
 
 permissions:
@@ -33,6 +27,13 @@ jobs:
           java-version: 21
 
       - uses: gradle/actions/setup-gradle@v5
+
+      # Il compilatore Kotlin per iPhone (~/.konan) resta tra una build e l'altra: meno minuti di Mac
+      - uses: actions/cache@v4
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: konan-${{ runner.os }}-
 
       - name: Prepara Gradle e Xcode 26
         run: |

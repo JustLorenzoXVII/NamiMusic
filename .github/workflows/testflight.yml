@@ -32,6 +32,13 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v5
 
+      # Il compilatore Kotlin per iPhone (~/.konan) resta tra una build e l'altra: meno minuti di Mac
+      - uses: actions/cache@v4
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: konan-${{ runner.os }}-
+
       - name: Prepara Gradle e Xcode 26
         run: |
           chmod +x gradlew
