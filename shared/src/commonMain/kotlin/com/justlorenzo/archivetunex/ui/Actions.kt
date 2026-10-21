@@ -132,7 +132,7 @@ class AtxActions(
         firstSong: MediaMetadata? = null,
     ) = launchSafely(tr("Creazione playlist non riuscita")) {
         val browseId = if (onYouTube) YouTube.createPlaylist(name).getOrNull() else null
-        val entity = PlaylistEntity(name = name, browseId = browseId, isEditable = true)
+        val entity = PlaylistEntity(name = name, browseId = browseId, isEditable = true, bookmarkedAt = LocalDateTime.now())
         database.insert(entity)
         if (firstSong != null) addToPlaylistNow(entity.id, firstSong)
     }
@@ -143,7 +143,7 @@ class AtxActions(
         songs: List<MediaMetadata>,
     ) = launchSafely(tr("Creazione playlist non riuscita")) {
         val browseId = YouTube.createPlaylist(name).getOrNull()
-        val entity = PlaylistEntity(name = name, browseId = browseId, isEditable = true)
+        val entity = PlaylistEntity(name = name, browseId = browseId, isEditable = true, bookmarkedAt = LocalDateTime.now())
         database.insert(entity)
         songs.forEach { database.insert(it) }
         val playlist = database.playlist(entity.id).first() ?: return@launchSafely

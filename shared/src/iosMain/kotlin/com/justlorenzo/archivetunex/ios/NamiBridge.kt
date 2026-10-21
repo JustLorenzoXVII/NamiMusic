@@ -29,6 +29,7 @@ import moe.rukamori.archivetune.models.MediaMetadata
 import moe.rukamori.archivetune.models.toMediaMetadata
 import moe.rukamori.archivetune.ui.utils.resize
 import moe.rukamori.archivetune.utils.dataStore
+import moe.rukamori.archivetune.compat.time.LocalDateTime
 import moe.rukamori.archivetune.utils.toPlaybackAuthState
 
 /** Un brano, come lo mostra l'interfaccia SwiftUI. */
@@ -134,6 +135,27 @@ object NamiBridge {
                     database = ArchiveTuneXRuntime.database,
                     downloads = ArchiveTuneXRuntime.downloadUtil,
                 )
+            recoverHiddenPlaylists()
+        }
+    }
+
+    /**
+     * Le playlist create nei giorni scorsi finivano nel database senza "bookmarkedAt" e quindi
+     * non comparivano in Libreria: le rende visibili (solo quelle tue, create di recente).
+     */
+    private fun recoverHiddenPlaylists() {
+        scope.launch {
+            withContext(Dispatchers.Default) {
+                runCatching {
+                    val since = LocalDateTime.now().minusDays(7)
+                    database
+                        .allPlaylistsForDownloads()
+                        .first()
+                        .map { it.playlist }
+                        .filter { it.bookmarkedAt == null && it.isEditable && it.createdAt?.isAfter(since) == true }
+                        .forEach { database.update(it.copy(bookmarkedAt = it.createdAt ?: LocalDateTime.now())) }
+                }
+            }
         }
     }
 
