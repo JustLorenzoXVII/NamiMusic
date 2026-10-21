@@ -1,17 +1,31 @@
 import SwiftUI
 
-// Home come Apple Music: mood in alto, mix "Fatte per te", ascoltati di recente e le sezioni
-// di YouTube Music. Album e playlist si aprono nella loro pagina, i brani partono subito.
+// Home: saluto in base all'ora, bagliore colorato dalla copertina in riproduzione, card
+// "In riproduzione", mood, mix "Fatte per te", ascoltati di recente e le sezioni di YouTube Music.
 
 struct HomeView: View {
     @ObservedObject private var home = HomeStore.shared
+    @ObservedObject private var player = PlayerStore.shared
     let onSettings: () -> Void
 
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 30) {
+                Text(Self.dateLine)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, -18)
+
+                if player.state.track != nil {
+                    NowPlayingCard()
+                        .padding(.horizontal, 20)
+                        .transition(.asymmetric(insertion: .scale(scale: 0.92).combined(with: .opacity), removal: .opacity))
+                }
                 if !home.chips.isEmpty {
-                    ChipsRow(chips: home.chips, selected: home.selectedChip, onSelect: home.select(chip:))
+                    ChipsRow(chips: home.chips, selected: home.selectedChip, onSelect: { chip in
+                        withAnimation(.snappy) { home.select(chip: chip) }
+                    })
                 }
                 if !home.mixes.isEmpty {
                     MixesSection(mixes: home.mixes)
@@ -21,32 +35,149 @@ struct HomeView: View {
                 }
                 if home.sections.isEmpty {
                     if home.loading {
-                        ProgressView()
-                            .controlSize(.large)
-                            .frame(maxWidth: .infinity)
-                            .padding(.top, 40)
+                        LoadingView()
                     } else if let error = home.error {
-                        ContentUnavailableView {
-                            Label("Home non disponibile", systemImage: "wifi.exclamationmark")
-                        } description: {
-                            Text(error)
-                        } actions: {
-                            Button("Riprova") { home.load() }
-                                .buttonStyle(.borderedProminent)
-                        }
+                        ErrorView(title: "Home non disponibile", message: error) { home.load() }
                     }
                 }
-                ForEach(home.sections) { section in
-                    HomeSectionView(section: section)
-                }
+                SectionsList(sections: home.sections)
+                    .opacity(home.loading && !home.sections.isEmpty ? 0.45 : 1)
             }
             .padding(.top, 4)
             .padding(.bottom, 32)
+            .animation(.smooth(duration: 0.4), value: home.sections.map(\.id))
+            .animation(.spring(response: 0.45, dampingFraction: 0.8), value: player.state.track?.id)
         }
-        .navigationTitle("Home")
+        .background(alignment: .top) { AmbientGlow() }
+        .navigationTitle(Self.greeting)
         .toolbar { SettingsToolbar(onSettings: onSettings) }
         .refreshable { await home.reload() }
         .onAppear { home.loadIfNeeded() }
+    }
+
+    static var greeting: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 5..<13: return "Buongiorno"
+        case 13..<18: return "Buon pomeriggio"
+        default: return "Buonasera"
+        }
+    }
+
+    static var dateLine: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "it_IT")
+        formatter.dateFormat = "EEEE d MMMM"
+        return formatter.string(from: Date()).capitalized(with: Locale(identifier: "it_IT"))
+    }
+}
+
+// MARK: - Bagliore dalla copertina
+
+/// Una macchia di colore sfumata dietro l'intestazione, presa dalla copertina che sta suonando
+/// (l'accento di Nami se non suona niente). Cambia colore con un'animazione lenta.
+struct AmbientGlow: View {
+    @ObservedObject private var player = PlayerStore.shared
+    @State private var palette: ArtworkPalette?
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        let first = palette?.top ?? Color.namiAccent
+        let second = palette?.bottom ?? Color.namiAccent.opacity(0.4)
+        ZStack {
+            RadialGradient(colors: [first.opacity(scheme == .dark ? 0.75 : 0.45), .clear], center: .topLeading, startRadius: 10, endRadius: 380)
+            RadialGradient(colors: [second.opacity(scheme == .dark ? 0.6 : 0.3), .clear], center: .topTrailing, startRadius: 10, endRadius: 320)
+        }
+        .frame(height: 460)
+        .mask(LinearGradient(colors: [.black, .black.opacity(0.6), .clear], startPoint: .top, endPoint: .bottom))
+        .ignoresSafeArea()
+        .allowsHitTesting(false)
+        .animation(.easeInOut(duration: 1.2), value: palette)
+        .onAppear(perform: update)
+        .onChange(of: player.state.track?.artworkURL) { _, _ in update() }
+    }
+
+    private func update() {
+        guard let url = player.state.track?.artworkURL else { palette = nil; return }
+        PaletteExtractor.palette(for: url) { palette = $0 }
+    }
+}
+
+// MARK: - In riproduzione
+
+/// Card grande col brano che sta suonando: colori della copertina, Liquid Glass sul pulsante.
+private struct NowPlayingCard: View {
+    @ObservedObject private var player = PlayerStore.shared
+    @State private var palette = ArtworkPalette.fallback
+
+    var body: some View {
+        let track = player.state.track
+        HStack(spacing: 14) {
+            ArtworkView(url: track?.artworkURL, size: 72, cornerRadius: 10)
+                .shadow(color: .black.opacity(0.35), radius: 10, y: 5)
+                .scaleEffect(player.state.isPlaying ? 1 : 0.9)
+                .animation(.spring(response: 0.45, dampingFraction: 0.65), value: player.state.isPlaying)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(player.state.isPlaying ? "IN RIPRODUZIONE" : "IN PAUSA")
+                    .font(.caption2.weight(.bold))
+                    .tracking(0.8)
+                    .foregroundStyle(.white.opacity(0.7))
+                    .contentTransition(.opacity)
+                Text(track?.title ?? "")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                Text(track?.artist ?? "")
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.75))
+                    .lineLimit(1)
+                ProgressView(value: player.duration > 0 ? min(player.position / player.duration, 1) : 0)
+                    .tint(.white)
+                    .scaleEffect(x: 1, y: 0.7, anchor: .center)
+                    .padding(.top, 4)
+            }
+            Spacer(minLength: 4)
+            Button(action: player.togglePlayPause) {
+                Image(systemName: player.state.isPlaying ? "pause.fill" : "play.fill")
+                    .font(.title2)
+                    .foregroundStyle(.white)
+                    .contentTransition(.symbolEffect(.replace))
+                    .frame(width: 52, height: 52)
+            }
+            .buttonStyle(.squishy)
+            .glassCircle()
+            .sensoryFeedback(.impact(weight: .medium), trigger: player.state.isPlaying)
+        }
+        .padding(14)
+        .background {
+            ZStack {
+                LinearGradient(colors: [palette.top, palette.bottom], startPoint: .topLeading, endPoint: .bottomTrailing)
+                RemoteImage(url: track?.artworkURL, placeholder: .clear)
+                    .blur(radius: 40, opaque: true)
+                    .opacity(0.35)
+            }
+            .animation(.easeInOut(duration: 0.8), value: palette)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .shadow(color: palette.bottom.opacity(0.45), radius: 18, y: 10)
+        .onAppear(perform: update)
+        .onChange(of: track?.artworkURL) { _, _ in update() }
+    }
+
+    private func update() {
+        guard let url = player.state.track?.artworkURL else { return }
+        PaletteExtractor.palette(for: url) { palette = $0 }
+    }
+}
+
+private extension View {
+    /// Cerchio di vetro (iOS 26), materiale sfocato prima.
+    @ViewBuilder func glassCircle() -> some View {
+        if #available(iOS 26.0, *) {
+            glassEffect(.regular.interactive(), in: Circle())
+        } else {
+            background(.ultraThinMaterial, in: Circle())
+        }
     }
 }
 
@@ -69,10 +200,11 @@ private struct ChipsRow: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 4)
         }
+        .sensoryFeedback(.selection, trigger: selected)
     }
 }
 
-private struct ChipButton: View {
+struct ChipButton: View {
     let title: String
     let selected: Bool
     let action: () -> Void
@@ -100,60 +232,43 @@ private struct ChipButton: View {
     }
 }
 
-// MARK: - Intestazioni
-
-struct SectionTitle: View {
-    let title: String
-    var subtitle: String? = nil
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 4) {
-                Text(title)
-                    .font(.title2.weight(.bold))
-                Image(systemName: "chevron.forward")
-                    .font(.headline.weight(.bold))
-                    .foregroundStyle(.secondary)
-            }
-            if let subtitle {
-                Text(subtitle)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(.horizontal, 20)
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
 // MARK: - Fatte per te
 
 private struct MixesSection: View {
     let mixes: [MixItem]
     @ObservedObject private var home = HomeStore.shared
+    @State private var spins = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
+            HStack(alignment: .top) {
                 SectionTitle(title: "Fatte per te", subtitle: "Dai tuoi ascolti, ogni settimana")
                 Button {
+                    spins += 1
                     home.refreshMixes()
                 } label: {
                     Image(systemName: "arrow.clockwise")
                         .font(.headline)
+                        .foregroundStyle(Color.namiAccent)
+                        .rotationEffect(.degrees(Double(spins) * 360))
+                        .animation(.spring(response: 0.6, dampingFraction: 0.7), value: spins)
+                        .frame(width: 36, height: 36)
                 }
-                .padding(.trailing, 20)
+                .padding(.trailing, 14)
                 .accessibilityLabel("Rifai i mix")
+                .sensoryFeedback(.impact(weight: .light), trigger: spins)
             }
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 14) {
                     ForEach(mixes) { mix in
                         NavigationLink {
                             MixPage(mix: mix)
+                                .zoomDestination("mix:" + mix.id)
                         } label: {
                             MixCard(mix: mix)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.squishy)
+                        .carouselEffect()
                     }
                 }
                 .padding(.horizontal, 20)
@@ -177,25 +292,33 @@ private struct MixCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
             ZStack(alignment: .bottomLeading) {
-                MosaicArtwork(urls: mix.covers, cornerRadius: 12)
-                LinearGradient(colors: [colors[0].opacity(0.35), colors[1].opacity(0.9)], startPoint: .top, endPoint: .bottom)
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                Text(mix.title)
-                    .font(.title3.weight(.bold))
-                    .foregroundStyle(.white)
-                    .lineLimit(2)
-                    .padding(12)
+                MosaicArtwork(urls: mix.covers, cornerRadius: 16)
+                LinearGradient(colors: [colors[0].opacity(0.25), colors[1].opacity(0.95)], startPoint: .top, endPoint: .bottom)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                VStack(alignment: .leading, spacing: 2) {
+                    Image(systemName: "sparkles")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.white.opacity(0.85))
+                    Text(mix.title)
+                        .font(.title3.weight(.heavy))
+                        .foregroundStyle(.white)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.8)
+                }
+                .padding(14)
             }
-            .frame(width: 170, height: 170)
-            .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
+            .frame(width: 180, height: 180)
+            .zoomSource("mix:" + mix.id)
+            .shadow(color: colors[1].opacity(0.35), radius: 12, y: 6)
             Text(mix.subtitle)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
-                .frame(width: 170, alignment: .leading)
+                .frame(width: 180, alignment: .leading)
         }
+        .contentShape(Rectangle())
     }
 }
 
@@ -209,7 +332,8 @@ struct MixPage: View {
             subtitle: mix.subtitle,
             artwork: { MosaicArtwork(urls: mix.covers, cornerRadius: 12) },
             songs: home.mixTracks(mix),
-            play: { index, shuffle in home.playMix(mix, from: index, shuffle: shuffle) }
+            play: { index, shuffle in home.playMix(mix, from: index, shuffle: shuffle) },
+            tintURL: mix.covers.first
         )
     }
 }
@@ -219,7 +343,6 @@ struct MixPage: View {
 private struct RecentSection: View {
     let songs: [Track]
     @ObservedObject private var home = HomeStore.shared
-    @State private var addingToPlaylist: Track?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -230,12 +353,13 @@ private struct RecentSection: View {
                         Button {
                             home.playRecent(at: index)
                         } label: {
-                            CardLabel(artworkURL: song.artworkURL, title: song.title, subtitle: song.artist, explicit: song.explicit)
+                            CardLabel(artworkURL: song.artworkURL, title: song.title, subtitle: song.artist, explicit: song.explicit, size: 140)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.squishy)
                         .contextMenu {
-                            SongMenuItems(song: song, onAddToPlaylist: { addingToPlaylist = song })
+                            SongMenuItems(song: song, onAddToPlaylist: { NamiRouter.shared.addingToPlaylist = song })
                         }
+                        .carouselEffect()
                     }
                 }
                 .padding(.horizontal, 20)
@@ -243,158 +367,6 @@ private struct RecentSection: View {
             }
             .scrollTargetBehavior(.viewAligned)
         }
-        .sheet(item: $addingToPlaylist) { song in
-            AddToPlaylistSheet(song: song)
-        }
-    }
-}
-
-// MARK: - Sezioni di YouTube Music
-
-private struct HomeSectionView: View {
-    let section: HomeSection
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            SectionTitle(title: section.title)
-            if section.allSongs {
-                QuickPicks(items: section.items)
-            } else {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(alignment: .top, spacing: 14) {
-                        ForEach(section.items) { item in
-                            HomeItemCard(item: item)
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    .scrollTargetLayout()
-                }
-                .scrollTargetBehavior(.viewAligned)
-            }
-        }
-    }
-}
-
-/// Brani in colonne da 4 che scorrono di lato (come "Scelte rapide" di Apple Music).
-private struct QuickPicks: View {
-    let items: [HomeItem]
-    @ObservedObject private var home = HomeStore.shared
-    @ObservedObject private var player = PlayerStore.shared
-
-    private let rows = Array(repeating: GridItem(.fixed(56), spacing: 6), count: 4)
-
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            LazyHGrid(rows: rows, spacing: 16) {
-                ForEach(items) { item in
-                    Button {
-                        home.play(item)
-                    } label: {
-                        HStack(spacing: 12) {
-                            ArtworkView(url: item.artworkURL, size: 50, cornerRadius: 5)
-                            VStack(alignment: .leading, spacing: 2) {
-                                HStack(spacing: 4) {
-                                    Text(item.title)
-                                        .font(.body)
-                                        .lineLimit(1)
-                                    if item.explicit {
-                                        Image(systemName: "e.square.fill")
-                                            .font(.caption2)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                }
-                                Text(item.subtitle)
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(1)
-                            }
-                            Spacer(minLength: 0)
-                        }
-                        .frame(width: 300, alignment: .leading)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.horizontal, 20)
-            .scrollTargetLayout()
-        }
-        .scrollTargetBehavior(.viewAligned)
-        .frame(height: 4 * 56 + 3 * 6)
-    }
-}
-
-private struct HomeItemCard: View {
-    let item: HomeItem
-    @ObservedObject private var home = HomeStore.shared
-
-    var body: some View {
-        switch item.kind {
-        case .album, .playlist:
-            NavigationLink {
-                CollectionPage(item: item)
-            } label: {
-                CardLabel(artworkURL: item.artworkURL, title: item.title, subtitle: item.subtitle, explicit: item.explicit)
-            }
-            .buttonStyle(.plain)
-        case .artist:
-            NavigationLink {
-                ComingSoonView(title: "Artisti in arrivo", systemImage: "music.microphone", text: "Le pagine degli artisti in SwiftUI arrivano in una delle prossime versioni.")
-                    .navigationTitle(item.title)
-            } label: {
-                VStack(spacing: 8) {
-                    RemoteImage(url: item.artworkURL)
-                        .frame(width: 140, height: 140)
-                        .clipShape(Circle())
-                    Text(item.title)
-                        .font(.subheadline.weight(.medium))
-                        .lineLimit(1)
-                        .frame(width: 140)
-                }
-            }
-            .buttonStyle(.plain)
-        default:
-            Button {
-                home.play(item)
-            } label: {
-                CardLabel(artworkURL: item.artworkURL, title: item.title, subtitle: item.subtitle, explicit: item.explicit)
-            }
-            .buttonStyle(.plain)
-        }
-    }
-}
-
-/// Copertina quadrata con titolo e sottotitolo sotto.
-struct CardLabel: View {
-    let artworkURL: URL?
-    let title: String
-    let subtitle: String
-    var explicit: Bool = false
-    var size: CGFloat = 160
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            ArtworkView(url: artworkURL, size: size, cornerRadius: 10)
-                .shadow(color: .black.opacity(0.12), radius: 6, y: 3)
-            HStack(spacing: 4) {
-                Text(title)
-                    .font(.subheadline.weight(.medium))
-                    .lineLimit(1)
-                if explicit {
-                    Image(systemName: "e.square.fill")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            if !subtitle.isEmpty {
-                Text(subtitle)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-        }
-        .frame(width: size, alignment: .leading)
-        .contentShape(Rectangle())
     }
 }
 
@@ -411,26 +383,17 @@ struct CollectionPage: View {
 
     var body: some View {
         Group {
-            if store.loading {
-                ProgressView()
-                    .controlSize(.large)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if let error = store.error {
-                ContentUnavailableView {
-                    Label("Non disponibile", systemImage: "exclamationmark.triangle")
-                } description: {
-                    Text(error)
-                } actions: {
-                    Button("Riprova") { store.load() }
-                        .buttonStyle(.borderedProminent)
-                }
+            if let error = store.error {
+                ErrorView(title: "Non disponibile", message: error) { store.load() }
             } else {
                 SongListPage(
                     title: store.title.isEmpty ? item.title : store.title,
-                    subtitle: store.subtitle.isEmpty ? "\(store.tracks.count) brani" : "\(store.subtitle) · \(store.tracks.count) brani",
+                    subtitle: store.loading ? item.subtitle : (store.subtitle.isEmpty ? "\(store.tracks.count) brani" : "\(store.subtitle) · \(store.tracks.count) brani"),
                     artwork: { ArtworkView(url: store.artworkURL ?? item.artworkURL, cornerRadius: 12) },
                     songs: store.tracks,
-                    play: { index, shuffle in store.play(from: index, shuffle: shuffle) }
+                    play: { index, shuffle in store.play(from: index, shuffle: shuffle) },
+                    loading: store.loading,
+                    tintURL: store.artworkURL ?? item.artworkURL
                 )
             }
         }

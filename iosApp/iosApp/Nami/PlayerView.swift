@@ -6,12 +6,18 @@ import MediaPlayer
 // copertina grande che si rimpicciolisce in pausa, barra che si ingrossa quando la trascini,
 // volume e AirPlay di sistema, pulsanti di vetro.
 
+enum PlayerPanel: Equatable {
+    case none, lyrics, queue
+}
+
 struct PlayerView: View {
     @ObservedObject private var player = PlayerStore.shared
     @Environment(\.dismiss) private var dismiss
     @State private var palette = ArtworkPalette.fallback
     @State private var scrubValue: TimeInterval?
     @State private var addingToPlaylist: Track?
+    @State private var panel: PlayerPanel = .none
+    @Namespace private var artNamespace
 
     private var track: Track? { player.state.track }
 
@@ -22,15 +28,36 @@ struct PlayerView: View {
                 background
                 VStack(spacing: 0) {
                     grabber
-                    Spacer(minLength: 12)
-                    artwork(side: artSide)
-                    Spacer(minLength: 20)
-                    VStack(spacing: 22) {
-                        titleRow
+                    if panel == .none {
+                        Spacer(minLength: 12)
+                        artwork(side: artSide)
+                        Spacer(minLength: 20)
+                    } else {
+                        compactHeader
+                            .padding(.horizontal, 24)
+                            .padding(.top, 8)
+                        Group {
+                            if panel == .lyrics {
+                                LyricsPanel(onSeek: { player.seek(to: $0) })
+                            } else {
+                                QueuePanel()
+                            }
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .transition(.asymmetric(insertion: .opacity.combined(with: .offset(y: 30)), removal: .opacity))
+                    }
+                    VStack(spacing: panel == .none ? 22 : 16) {
+                        if panel == .none {
+                            titleRow
+                                .transition(.opacity)
+                        }
                         progress
                         controls
-                        VolumeSlider()
-                            .frame(height: 34)
+                        if panel == .none {
+                            VolumeSlider()
+                                .frame(height: 34)
+                                .transition(.opacity)
+                        }
                         bottomRow
                     }
                     .padding(.horizontal, 28)
@@ -47,6 +74,36 @@ struct PlayerView: View {
         .statusBarHidden(false)
         .sheet(item: $addingToPlaylist) { song in
             AddToPlaylistSheet(song: song)
+        }
+        .sensoryFeedback(.selection, trigger: panel)
+    }
+
+    private func toggle(_ target: PlayerPanel) {
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+            panel = panel == target ? .none : target
+        }
+    }
+
+    /// Copertina piccola con titolo, in alto quando sono aperti testo o coda.
+    private var compactHeader: some View {
+        HStack(spacing: 14) {
+            ArtworkView(url: track?.largeArtworkURL, size: 64, cornerRadius: 8)
+                .matchedGeometryEffect(id: "artwork", in: artNamespace)
+                .shadow(color: .black.opacity(0.35), radius: 10, y: 5)
+                .onTapGesture { toggle(panel) }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(track?.title ?? "")
+                    .font(.headline)
+                    .lineLimit(1)
+                Text(track?.artist ?? "")
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.62))
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            GlassIconButton(systemName: player.state.liked ? "heart.fill" : "heart", action: player.toggleLike)
+                .symbolEffect(.bounce, value: player.state.liked)
+            moreMenu
         }
     }
 
@@ -79,6 +136,7 @@ struct PlayerView: View {
 
     private func artwork(side: CGFloat) -> some View {
         ArtworkView(url: track?.largeArtworkURL, size: side, cornerRadius: 12)
+            .matchedGeometryEffect(id: "artwork", in: artNamespace)
             .shadow(color: .black.opacity(0.4), radius: 24, y: 14)
             .scaleEffect(player.state.isPlaying ? 1 : 0.82)
             .animation(.spring(response: 0.5, dampingFraction: 0.68), value: player.state.isPlaying)
@@ -106,28 +164,39 @@ struct PlayerView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             GlassIconButton(systemName: player.state.liked ? "heart.fill" : "heart", action: player.toggleLike)
                 .symbolEffect(.bounce, value: player.state.liked)
-            Menu {
+            moreMenu
+        }
+    }
+
+    private var moreMenu: some View {
+        Menu {
+            Button {
+                player.toggleShuffle()
+            } label: {
+                Label(player.state.shuffle ? "Disattiva casuale" : "Casuale", systemImage: "shuffle")
+            }
+            Button {
+                player.cycleRepeat()
+            } label: {
+                Label(repeatLabel, systemImage: player.state.repeatMode == 1 ? "repeat.1" : "repeat")
+            }
+            if let track {
+                Divider()
                 Button {
-                    player.toggleShuffle()
+                    addingToPlaylist = track
                 } label: {
-                    Label(player.state.shuffle ? "Disattiva casuale" : "Casuale", systemImage: "shuffle")
+                    Label("Aggiungi a una playlist", systemImage: "text.badge.plus")
                 }
-                Button {
-                    player.cycleRepeat()
-                } label: {
-                    Label(repeatLabel, systemImage: player.state.repeatMode == 1 ? "repeat.1" : "repeat")
-                }
-                if let track {
-                    Divider()
+                if DownloadsStore.shared.info(track)?.completed != true {
                     Button {
-                        addingToPlaylist = track
+                        DownloadsStore.shared.download(track)
                     } label: {
-                        Label("Aggiungi a una playlist", systemImage: "text.badge.plus")
+                        Label("Scarica", systemImage: "arrow.down.circle")
                     }
                 }
-            } label: {
-                GlassIconLabel(systemName: "ellipsis")
             }
+        } label: {
+            GlassIconLabel(systemName: "ellipsis")
         }
     }
 
@@ -179,17 +248,13 @@ struct PlayerView: View {
 
     private var bottomRow: some View {
         HStack {
-            GlassIconButton(systemName: "quote.bubble", action: {})
-                .opacity(0.4)
-                .disabled(true)
+            PanelToggle(systemName: "quote.bubble", active: panel == .lyrics) { toggle(.lyrics) }
             Spacer()
             AirPlayButton()
                 .frame(width: 44, height: 44)
                 .modifier(GlassCircle())
             Spacer()
-            GlassIconButton(systemName: "list.bullet", action: {})
-                .opacity(0.4)
-                .disabled(true)
+            PanelToggle(systemName: "list.bullet", active: panel == .queue) { toggle(.queue) }
         }
         .padding(.horizontal, 24)
     }
@@ -217,6 +282,28 @@ private struct ControlButton: View {
                 .contentShape(Circle())
         }
         .buttonStyle(PressShrinkStyle())
+        .sensoryFeedback(.impact(weight: .light), trigger: systemName)
+    }
+}
+
+/// Testo / coda: pieno quando è attivo (come Apple Music), di vetro quando no.
+private struct PanelToggle: View {
+    let systemName: String
+    let active: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: active && systemName == "quote.bubble" ? "quote.bubble.fill" : systemName)
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(active ? Color.black.opacity(0.8) : .white)
+                .contentTransition(.symbolEffect(.replace))
+                .frame(width: 44, height: 44)
+                .background(Circle().fill(.white.opacity(active ? 0.9 : 0)))
+                .modifier(GlassCircle())
+        }
+        .buttonStyle(.plain)
+        .animation(.spring(response: 0.35, dampingFraction: 0.7), value: active)
     }
 }
 

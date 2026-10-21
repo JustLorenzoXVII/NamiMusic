@@ -12,6 +12,7 @@ struct NamiRootView: View {
     @State private var tab: NamiTab = .home
     @State private var showPlayer = false
     @State private var showSettings = false
+    @ObservedObject private var router = NamiRouter.shared
     @Namespace private var playerNamespace
 
     var body: some View {
@@ -30,6 +31,9 @@ struct NamiRootView: View {
         .sheet(isPresented: $showSettings) {
             SettingsView()
         }
+        .sheet(item: $router.addingToPlaylist) { song in
+            AddToPlaylistSheet(song: song)
+        }
     }
 
     // MARK: iOS 26
@@ -38,16 +42,16 @@ struct NamiRootView: View {
     private var modernTabs: some View {
         TabView(selection: $tab) {
             Tab("Home", systemImage: "house.fill", value: NamiTab.home) {
-                NavigationStack { HomeView(onSettings: { showSettings = true }) }
+                ZoomingStack { HomeView(onSettings: { showSettings = true }) }
             }
             Tab("Statistiche", systemImage: "chart.bar.fill", value: NamiTab.stats) {
-                NavigationStack { StatsView(onSettings: { showSettings = true }) }
+                ZoomingStack { StatsView(onSettings: { showSettings = true }) }
             }
             Tab("Libreria", systemImage: "square.stack.fill", value: NamiTab.library) {
-                NavigationStack { LibraryView(onSettings: { showSettings = true }) }
+                ZoomingStack { LibraryView(onSettings: { showSettings = true }) }
             }
             Tab(value: NamiTab.search, role: .search) {
-                NavigationStack { SearchView() }
+                ZoomingStack { SearchView() }
             }
         }
         .tabBarMinimizeBehavior(.onScrollDown)
@@ -61,16 +65,16 @@ struct NamiRootView: View {
 
     private var legacyTabs: some View {
         TabView(selection: $tab) {
-            NavigationStack { HomeView(onSettings: { showSettings = true }) }
+            ZoomingStack { HomeView(onSettings: { showSettings = true }) }
                 .tabItem { Label("Home", systemImage: "house.fill") }
                 .tag(NamiTab.home)
-            NavigationStack { StatsView(onSettings: { showSettings = true }) }
+            ZoomingStack { StatsView(onSettings: { showSettings = true }) }
                 .tabItem { Label("Statistiche", systemImage: "chart.bar.fill") }
                 .tag(NamiTab.stats)
-            NavigationStack { LibraryView(onSettings: { showSettings = true }) }
+            ZoomingStack { LibraryView(onSettings: { showSettings = true }) }
                 .tabItem { Label("Libreria", systemImage: "square.stack.fill") }
                 .tag(NamiTab.library)
-            NavigationStack { SearchView() }
+            ZoomingStack { SearchView() }
                 .tabItem { Label("Cerca", systemImage: "magnifyingglass") }
                 .tag(NamiTab.search)
         }
@@ -176,30 +180,3 @@ struct ComingSoonView: View {
     }
 }
 
-struct StatsView: View {
-    let onSettings: () -> Void
-
-    var body: some View {
-        ComingSoonView(
-            title: "Statistiche in arrivo",
-            systemImage: "chart.bar",
-            text: "Le statistiche in SwiftUI arrivano in una delle prossime versioni."
-        )
-        .navigationTitle("Statistiche")
-        .toolbar { SettingsToolbar(onSettings: onSettings) }
-    }
-}
-
-struct SearchView: View {
-    @State private var query = ""
-
-    var body: some View {
-        ComingSoonView(
-            title: "Ricerca in arrivo",
-            systemImage: "magnifyingglass",
-            text: "La ricerca in SwiftUI arriva in una delle prossime versioni."
-        )
-        .navigationTitle("Cerca")
-        .searchable(text: $query, prompt: "Artisti, brani, playlist")
-    }
-}

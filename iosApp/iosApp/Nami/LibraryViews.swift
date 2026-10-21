@@ -5,6 +5,7 @@ import SwiftUI
 
 struct LibraryView: View {
     @ObservedObject private var library = LibraryStore.shared
+    @ObservedObject private var downloads = DownloadsStore.shared
     let onSettings: () -> Void
 
     @State private var creating = false
@@ -17,19 +18,41 @@ struct LibraryView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                NavigationLink {
-                    SongListPage(
-                        title: "Preferiti",
-                        subtitle: "\(library.liked.count) brani",
-                        artwork: { LikedArtwork() },
-                        songs: library.liked,
-                        play: { index, shuffle in library.playLiked(from: index, shuffle: shuffle) }
-                    )
-                } label: {
-                    LibraryRow(systemImage: "heart.fill", title: "Preferiti", detail: "\(library.liked.count)")
+                HStack(spacing: 14) {
+                    NavigationLink {
+                        SongListPage(
+                            title: "Preferiti",
+                            subtitle: "\(library.liked.count) brani",
+                            artwork: { LikedArtwork() },
+                            songs: library.liked,
+                            play: { index, shuffle in library.playLiked(from: index, shuffle: shuffle) }
+                        )
+                        .zoomDestination("library:liked")
+                    } label: {
+                        LibraryTile(
+                            title: "Preferiti",
+                            detail: "\(library.liked.count) brani",
+                            systemImage: "heart.fill",
+                            colors: [Color(red: 0.98, green: 0.45, blue: 0.62), Color(red: 0.45, green: 0.2, blue: 0.55)]
+                        )
+                        .zoomSource("library:liked")
+                    }
+                    .buttonStyle(.squishy)
+                    NavigationLink {
+                        DownloadsPage()
+                            .zoomDestination("library:downloads")
+                    } label: {
+                        LibraryTile(
+                            title: "Scaricati",
+                            detail: "\(downloads.songs.count) brani",
+                            systemImage: "arrow.down.circle.fill",
+                            colors: [Color(red: 0.36, green: 0.55, blue: 0.98), Color(red: 0.2, green: 0.2, blue: 0.55)]
+                        )
+                        .zoomSource("library:downloads")
+                    }
+                    .buttonStyle(.squishy)
                 }
-                .buttonStyle(.plain)
-                Divider().padding(.leading, 56)
+                .padding(.top, 8)
 
                 HStack {
                     Text("Playlist")
@@ -66,10 +89,11 @@ struct LibraryView: View {
                         ForEach(library.playlists) { playlist in
                             NavigationLink {
                                 PlaylistPage(playlist: playlist)
+                                    .zoomDestination("playlist:" + playlist.id)
                             } label: {
                                 PlaylistTile(playlist: playlist)
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.squishy)
                             .contextMenu {
                                 Button {
                                     library.playPlaylist(playlist)
@@ -144,6 +168,38 @@ struct LibraryView: View {
     }
 }
 
+/// Tessera colorata in cima alla Libreria (Preferiti, Scaricati).
+private struct LibraryTile: View {
+    let title: String
+    let detail: String
+    let systemImage: String
+    let colors: [Color]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Image(systemName: systemImage)
+                .font(.system(size: 28, weight: .semibold))
+                .foregroundStyle(.white)
+                .symbolEffect(.bounce, value: detail)
+            Spacer(minLength: 18)
+            Text(title)
+                .font(.headline)
+                .foregroundStyle(.white)
+            Text(detail)
+                .font(.subheadline)
+                .foregroundStyle(.white.opacity(0.8))
+                .contentTransition(.numericText())
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
+        .background(
+            LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing),
+            in: RoundedRectangle(cornerRadius: 20, style: .continuous)
+        )
+        .shadow(color: colors[1].opacity(0.35), radius: 12, y: 6)
+    }
+}
+
 private struct LibraryRow: View {
     let systemImage: String
     let title: String
@@ -174,9 +230,10 @@ private struct PlaylistTile: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            MosaicArtwork(urls: playlist.thumbnails, cornerRadius: 10)
+            MosaicArtwork(urls: playlist.thumbnails, cornerRadius: 12)
                 .aspectRatio(1, contentMode: .fit)
-                .shadow(color: .black.opacity(0.12), radius: 6, y: 3)
+                .zoomSource("playlist:" + playlist.id)
+                .shadow(color: .black.opacity(0.14), radius: 8, y: 4)
             Text(playlist.title)
                 .font(.subheadline.weight(.medium))
                 .lineLimit(1)
@@ -232,7 +289,8 @@ struct PlaylistPage: View {
             songs: store.songs,
             play: { index, shuffle in library.playPlaylist(current, from: index, shuffle: shuffle) },
             onRemove: current.isEditable ? { index in library.remove(at: index, from: current) } : nil,
-            onMove: current.isEditable ? { from, to in library.move(in: current, from: from, to: to) } : nil
+            onMove: current.isEditable ? { from, to in library.move(in: current, from: from, to: to) } : nil,
+            tintURL: current.thumbnails.first
         )
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -287,17 +345,24 @@ struct SongListPage<Artwork: View>: View {
     let play: (_ index: Int, _ shuffle: Bool) -> Void
     var onRemove: ((_ index: Int) -> Void)? = nil
     var onMove: ((_ from: Int, _ to: Int) -> Void)? = nil
+    var loading: Bool = false
+    /// Copertina da cui prendere i colori del bagliore in alto
+    var tintURL: URL? = nil
 
     @ObservedObject private var player = PlayerStore.shared
     @State private var rows: [Track] = []
-    @State private var addingToPlaylist: Track?
+    @State private var palette: ArtworkPalette?
+    @State private var appeared = false
+    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
         List {
             VStack(spacing: 14) {
                 artwork()
                     .frame(width: 250, height: 250)
-                    .shadow(color: .black.opacity(0.18), radius: 18, y: 10)
+                    .shadow(color: (palette?.bottom ?? .black).opacity(0.35), radius: 22, y: 12)
+                    .scaleEffect(appeared ? 1 : 0.94)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.75), value: appeared)
                 VStack(spacing: 3) {
                     Text(title)
                         .font(.title2.weight(.bold))
@@ -305,6 +370,7 @@ struct SongListPage<Artwork: View>: View {
                     Text(subtitle)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+                        .contentTransition(.numericText())
                 }
                 HStack(spacing: 14) {
                     PlayActionButton(title: "Riproduci", systemImage: "play.fill") { play(0, false) }
@@ -320,6 +386,12 @@ struct SongListPage<Artwork: View>: View {
             .moveDisabled(true)
             .deleteDisabled(true)
 
+            if loading && rows.isEmpty {
+                LoadingView()
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+            }
+
             ForEach(Array(rows.enumerated()), id: \.offset) { index, song in
                 Button {
                     play(index, false)
@@ -328,8 +400,9 @@ struct SongListPage<Artwork: View>: View {
                 }
                 .buttonStyle(.plain)
                 .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 16))
+                .listRowBackground(Color.clear)
                 .contextMenu {
-                    SongMenuItems(song: song, onAddToPlaylist: { addingToPlaylist = song })
+                    SongMenuItems(song: song, onAddToPlaylist: { NamiRouter.shared.addingToPlaylist = song })
                     if let onRemove {
                         Divider()
                         Button(role: .destructive) {
@@ -352,6 +425,20 @@ struct SongListPage<Artwork: View>: View {
             .onMove(perform: moveAction)
         }
         .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background {
+            ZStack(alignment: .top) {
+                Color(.systemBackground)
+                LinearGradient(
+                    colors: [(palette?.top ?? .clear).opacity(scheme == .dark ? 0.8 : 0.4), .clear],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 520)
+                .animation(.easeInOut(duration: 0.8), value: palette)
+            }
+            .ignoresSafeArea()
+        }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if onMove != nil, !rows.isEmpty {
@@ -360,13 +447,20 @@ struct SongListPage<Artwork: View>: View {
                 }
             }
         }
-        .sheet(item: $addingToPlaylist) { song in
-            AddToPlaylistSheet(song: song)
+        .onAppear {
+            rows = songs
+            appeared = true
+            updatePalette()
         }
-        .onAppear { rows = songs }
         .onChange(of: songs) { _, newValue in
             withAnimation(.snappy) { rows = newValue }
         }
+        .onChange(of: tintURL) { _, _ in updatePalette() }
+    }
+
+    private func updatePalette() {
+        guard let url = tintURL ?? songs.first?.artworkURL else { return }
+        PaletteExtractor.palette(for: url) { palette = $0 }
     }
 
     private var deleteAction: ((IndexSet) -> Void)? {
@@ -423,11 +517,25 @@ struct SongMenuItems: View {
                 Label("Aggiungi ai preferiti", systemImage: "heart")
             }
         }
+        let download = DownloadsStore.shared.info(song)
+        if download?.completed == true || download?.running == true {
+            Button(role: .destructive) {
+                DownloadsStore.shared.remove(song)
+            } label: {
+                Label(download?.completed == true ? "Rimuovi download" : "Annulla download", systemImage: "xmark.circle")
+            }
+        } else {
+            Button {
+                DownloadsStore.shared.download(song)
+            } label: {
+                Label("Scarica", systemImage: "arrow.down.circle")
+            }
+        }
     }
 }
 
 /// Riproduci / Casuale: capsule di vetro con l'accento (iOS 26), grigie prima.
-private struct PlayActionButton: View {
+struct PlayActionButton: View {
     let title: String
     let systemImage: String
     let action: () -> Void
@@ -481,6 +589,7 @@ struct SongRow: View {
                     .lineLimit(1)
             }
             Spacer(minLength: 8)
+            DownloadBadge(song: song)
             if playing {
                 Image(systemName: "waveform")
                     .foregroundStyle(Color.namiAccent)
@@ -622,7 +731,7 @@ struct SettingsView: View {
                         Label("Interfaccia iOS (Liquid Glass)", systemImage: "sparkles")
                     }
                 } footer: {
-                    Text("Spenta, Nami torna all'interfaccia completa di sempre. Le schermate in stile iOS arrivano una alla volta: per ora ci sono Home, player e Libreria.")
+                    Text("Spenta, Nami torna all'interfaccia di sempre.")
                 }
             }
             .navigationTitle("Impostazioni")
