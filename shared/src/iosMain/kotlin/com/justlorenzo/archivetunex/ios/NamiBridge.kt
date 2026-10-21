@@ -31,7 +31,7 @@ data class NamiTrack(
     /** Copertina grande (player). */
     val largeArtworkUrl: String?,
     val durationMs: Long,
-    val explicit: Boolean,
+    val isExplicit: Boolean,
 )
 
 /** Lo stato del player. */
@@ -229,5 +229,5 @@ private fun MediaMetadata.toNamiTrack(): NamiTrack =
         artworkUrl = thumbnailUrl?.resize(240, 240),
         largeArtworkUrl = thumbnailUrl?.resize(1080, 1080),
         durationMs = duration * 1000L,
-        explicit = explicit,
+        isExplicit = explicit,
     )

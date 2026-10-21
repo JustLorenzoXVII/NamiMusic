@@ -12,19 +12,19 @@ struct Track: Identifiable, Equatable, Hashable {
     let id: String
     let title: String
     let artist: String
-    let artworkURL: URL?
-    let largeArtworkURL: URL?
-    let duration: TimeInterval
+    let artworkURL: Foundation.URL?
+    let largeArtworkURL: Foundation.URL?
+    let duration: Foundation.TimeInterval
     let explicit: Bool
 
     init(_ t: NamiTrack) {
         id = t.id
         title = t.title
         artist = t.artist
-        artworkURL = t.artworkUrl.flatMap { URL(string: $0) }
-        largeArtworkURL = t.largeArtworkUrl.flatMap { URL(string: $0) }
-        duration = TimeInterval(t.durationMs) / 1000
-        explicit = t.explicit
+        artworkURL = t.artworkUrl.flatMap { Foundation.URL(string: $0) }
+        largeArtworkURL = t.largeArtworkUrl.flatMap { Foundation.URL(string: $0) }
+        duration = Foundation.TimeInterval(t.durationMs) / 1000
+        explicit = t.isExplicit
     }
 }
 
@@ -59,13 +59,13 @@ struct PlaylistItem: Identifiable, Equatable, Hashable {
     let id: String
     let title: String
     let songCount: Int
-    let thumbnails: [URL]
+    let thumbnails: [Foundation.URL]
 
     init(_ p: NamiPlaylist) {
         id = p.id
         title = p.title
         songCount = Int(p.songCount)
-        thumbnails = p.thumbnails.compactMap { URL(string: $0) }
+        thumbnails = p.thumbnails.compactMap { Foundation.URL(string: $0) }
     }
 }
 
@@ -101,13 +101,13 @@ final class PlayerStore: ObservableObject {
     static let shared = PlayerStore()
 
     @Published private(set) var state = PlayerSnapshot.empty
-    @Published private(set) var position: TimeInterval = 0
-    @Published private(set) var duration: TimeInterval = 0
+    @Published private(set) var position: Foundation.TimeInterval = 0
+    @Published private(set) var duration: Foundation.TimeInterval = 0
     /// Mentre si trascina la barra la posizione non si aggiorna da sola
     var scrubbing = false
 
     private var subscription: NamiSubscription?
-    private var timer: Timer?
+    private var timer: Foundation.Timer?
 
     private init() {
         subscription = NamiBridge.shared.observePlayer { [weak self] newState in
@@ -116,16 +116,16 @@ final class PlayerStore: ObservableObject {
             if snapshot != self.state { self.state = snapshot }
             self.tick()
         }
-        let timer = Timer(timeInterval: 0.25, repeats: true) { [weak self] _ in self?.tick() }
-        RunLoop.main.add(timer, forMode: .common)
+        let timer = Foundation.Timer(timeInterval: 0.25, repeats: true) { [weak self] _ in self?.tick() }
+        Foundation.RunLoop.main.add(timer, forMode: .common)
         self.timer = timer
     }
 
     private func tick() {
         guard !scrubbing else { return }
-        let pos = TimeInterval(NamiBridge.shared.positionMs()) / 1000
+        let pos = Foundation.TimeInterval(NamiBridge.shared.positionMs()) / 1000
         if abs(pos - position) > 0.05 { position = pos }
-        let d = TimeInterval(NamiBridge.shared.durationMs()) / 1000
+        let d = Foundation.TimeInterval(NamiBridge.shared.durationMs()) / 1000
         let total = d > 0 ? d : (state.track?.duration ?? 0)
         if total != duration { duration = total }
     }
@@ -137,7 +137,7 @@ final class PlayerStore: ObservableObject {
     func toggleShuffle() { NamiBridge.shared.toggleShuffle() }
     func cycleRepeat() { NamiBridge.shared.cycleRepeat() }
 
-    func seek(to seconds: TimeInterval) {
+    func seek(to seconds: Foundation.TimeInterval) {
         position = seconds
         NamiBridge.shared.seekTo(positionMs: Int64(seconds * 1000))
     }
