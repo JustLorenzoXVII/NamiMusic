@@ -185,3 +185,161 @@ final class PlaylistSongsStore: ObservableObject {
 
     deinit { subscription?.cancel() }
 }
+
+// MARK: - Home
+
+struct HomeItem: Identifiable, Equatable, Hashable {
+    enum Kind: Int { case song = 0, album, playlist, artist, other }
+
+    let id: String
+    let kind: Kind
+    let title: String
+    let subtitle: String
+    let artworkURL: Foundation.URL?
+    let explicit: Bool
+
+    init(_ i: NamiItem) {
+        id = i.key
+        kind = Kind(rawValue: Int(i.kind)) ?? .other
+        title = i.title
+        subtitle = i.subtitle
+        artworkURL = i.artworkUrl.flatMap { Foundation.URL(string: $0) }
+        explicit = i.isExplicit
+    }
+}
+
+struct HomeSection: Identifiable, Equatable {
+    let id: String
+    let title: String
+    let items: [HomeItem]
+    let allSongs: Bool
+}
+
+struct HomeChip: Identifiable, Equatable, Hashable {
+    var id: String { title }
+    let title: String
+    let params: String?
+}
+
+struct MixItem: Identifiable, Equatable, Hashable {
+    let id: String
+    let title: String
+    let subtitle: String
+    let covers: [Foundation.URL]
+    let songCount: Int
+    let kind: Int
+
+    init(_ m: NamiMix) {
+        id = m.id
+        title = m.title
+        subtitle = m.subtitle
+        covers = m.covers.compactMap { Foundation.URL(string: $0) }
+        songCount = Int(m.songCount)
+        kind = Int(m.kind)
+    }
+}
+
+final class HomeStore: ObservableObject {
+    static let shared = HomeStore()
+
+    @Published private(set) var chips: [HomeChip] = []
+    @Published private(set) var sections: [HomeSection] = []
+    @Published private(set) var selectedChip: String?
+    @Published private(set) var loading = false
+    @Published private(set) var error: String?
+    @Published private(set) var recent: [Track] = []
+    @Published private(set) var mixes: [MixItem] = []
+    private var subscriptions: [NamiSubscription] = []
+    private var loadedOnce = false
+
+    private init() {
+        subscriptions.append(NamiBridge.shared.observeRecent { [weak self] songs in
+            self?.recent = songs.map { Track($0) }
+        })
+        subscriptions.append(NamiBridge.shared.observeMixes { [weak self] list in
+            self?.mixes = list.map { MixItem($0) }
+        })
+    }
+
+    func loadIfNeeded() {
+        guard !loadedOnce else { return }
+        loadedOnce = true
+        load()
+    }
+
+    func select(chip: HomeChip) {
+        selectedChip = selectedChip == chip.params ? nil : chip.params
+        load()
+    }
+
+    func load(completion: (() -> Void)? = nil) {
+        loading = true
+        NamiBridge.shared.loadHome(params: selectedChip) { [weak self] home, error in
+            guard let self else { return }
+            self.loading = false
+            if let home {
+                self.error = nil
+                if !home.chips.isEmpty || self.chips.isEmpty {
+                    self.chips = home.chips.map { HomeChip(title: $0.title, params: $0.params) }
+                }
+                self.sections = home.sections.enumerated().map { index, section in
+                    HomeSection(id: "\(index)-\(section.title)", title: section.title, items: section.items.map { HomeItem($0) }, allSongs: section.allSongs)
+                }
+            } else {
+                self.error = error
+            }
+            completion?()
+        }
+    }
+
+    func reload() async {
+        await withCheckedContinuation { continuation in
+            load { continuation.resume() }
+        }
+    }
+
+    func play(_ item: HomeItem) { NamiBridge.shared.playItem(key: item.id) }
+    func playRecent(at index: Int) { NamiBridge.shared.playRecent(index: Int32(index)) }
+    func refreshMixes() { NamiBridge.shared.refreshMixes() }
+    func mixTracks(_ mix: MixItem) -> [Track] { NamiBridge.shared.mixTracks(id: mix.id).map { Track($0) } }
+    func playMix(_ mix: MixItem, from index: Int = 0, shuffle: Bool = false) {
+        NamiBridge.shared.playMix(id: mix.id, startIndex: Int32(index), shuffle: shuffle)
+    }
+}
+
+/// Album o playlist di YouTube Music aperti dalla Home.
+final class CollectionStore: ObservableObject {
+    @Published private(set) var title = ""
+    @Published private(set) var subtitle = ""
+    @Published private(set) var artworkURL: Foundation.URL?
+    @Published private(set) var tracks: [Track] = []
+    @Published private(set) var loading = true
+    @Published private(set) var error: String?
+    let key: String
+
+    init(key: String) {
+        self.key = key
+        load()
+    }
+
+    func load() {
+        loading = true
+        error = nil
+        NamiBridge.shared.loadCollection(key: key) { [weak self] collection, error in
+            guard let self else { return }
+            self.loading = false
+            if let collection {
+                self.title = collection.title
+                self.subtitle = collection.subtitle
+                self.artworkURL = collection.artworkUrl.flatMap { Foundation.URL(string: $0) }
+                self.tracks = collection.tracks.map { Track($0) }
+            } else {
+                self.error = error
+            }
+        }
+    }
+
+    func play(from index: Int = 0, shuffle: Bool = false) {
+        NamiBridge.shared.playCollection(key: key, startIndex: Int32(index), shuffle: shuffle)
+    }
+}

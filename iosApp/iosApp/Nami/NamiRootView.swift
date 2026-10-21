@@ -176,20 +176,6 @@ struct ComingSoonView: View {
     }
 }
 
-struct HomeView: View {
-    let onSettings: () -> Void
-
-    var body: some View {
-        ComingSoonView(
-            title: "Home in arrivo",
-            systemImage: "house",
-            text: "La Home in SwiftUI arriva nella prossima versione. Intanto trovi preferiti e playlist in Libreria."
-        )
-        .navigationTitle("Home")
-        .toolbar { SettingsToolbar(onSettings: onSettings) }
-    }
-}
-
 struct StatsView: View {
     let onSettings: () -> Void
 

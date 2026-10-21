@@ -5,6 +5,15 @@ import com.justlorenzo.archivetunex.ArchiveTuneXRuntime
 import com.justlorenzo.archivetunex.ui.AtxActions
 import com.justlorenzo.archivetunex.ui.LiquidGlassKey
 import kotlinx.coroutines.CoroutineScope
+import com.justlorenzo.archivetunex.insights.MixMaker
+import kotlinx.coroutines.withContext
+import moe.rukamori.archivetune.innertube.YouTube
+import moe.rukamori.archivetune.innertube.models.AlbumItem
+import moe.rukamori.archivetune.innertube.models.ArtistItem
+import moe.rukamori.archivetune.innertube.models.EpisodeItem
+import moe.rukamori.archivetune.innertube.models.PlaylistItem
+import moe.rukamori.archivetune.innertube.models.SongItem
+import moe.rukamori.archivetune.innertube.models.YTItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -53,6 +62,53 @@ data class NamiPlaylist(
     val title: String,
     val songCount: Int,
     val thumbnails: List<String>,
+)
+
+/** Un elemento di YouTube Music (Home, ricerca): kind 0 brano, 1 album, 2 playlist, 3 artista, 4 altro. */
+data class NamiItem(
+    val key: String,
+    val kind: Int,
+    val title: String,
+    val subtitle: String,
+    val artworkUrl: String?,
+    val isExplicit: Boolean,
+)
+
+data class NamiSection(
+    val title: String,
+    val items: List<NamiItem>,
+    /** Solo brani: si mostrano come elenco (come "Scelte rapide" di Apple Music). */
+    val allSongs: Boolean,
+)
+
+data class NamiChip(
+    val title: String,
+    val params: String?,
+)
+
+data class NamiHome(
+    val chips: List<NamiChip>,
+    val sections: List<NamiSection>,
+)
+
+/** Un mix "Fatte per te". */
+data class NamiMix(
+    val id: String,
+    val title: String,
+    val subtitle: String,
+    val covers: List<String>,
+    val songCount: Int,
+    /** 0 per te, 1 scoperte, 2 riscoperte, 3 artista */
+    val kind: Int,
+)
+
+/** Album o playlist di YouTube Music aperti dalla Home. */
+data class NamiCollection(
+    val key: String,
+    val title: String,
+    val subtitle: String,
+    val artworkUrl: String?,
+    val tracks: List<NamiTrack>,
 )
 
 /**
@@ -201,6 +257,168 @@ object NamiBridge {
             val songs = database.playlistSongs(playlistId).first().map { it.song.toMediaMetadata() }
             actions?.playList(songs, startIndex = startIndex, title = title, shuffle = shuffle)
         }
+    }
+
+    // endregion
+
+    // region Home
+
+    /** Gli ultimi elementi caricati, per farli partire o aprirli dal loro [NamiItem.key]. */
+    private val items = HashMap<String, YTItem>()
+    private val collections = HashMap<String, Pair<String, List<MediaMetadata>>>()
+
+    /** Carica la Home di YouTube Music (con il mood [params], o null per tutti). */
+    fun loadHome(
+        params: String?,
+        callback: (NamiHome?, String?) -> Unit,
+    ) {
+        scope.launch {
+            val result = withContext(Dispatchers.Default) { YouTube.home(params = params) }
+            result.fold(
+                onSuccess = { page ->
+                    val sections =
+                        page.sections.filter { it.items.isNotEmpty() }.map { section ->
+                            NamiSection(
+                                title = section.title,
+                                items = section.items.mapNotNull { it.toNamiItem() },
+                                allSongs = section.items.all { it is SongItem },
+                            )
+                        }
+                    val chips = page.chips.orEmpty().map { NamiChip(it.title, it.endpoint?.params) }
+                    callback(NamiHome(chips, sections), null)
+                },
+                onFailure = { callback(null, it.message ?: "Errore di rete") },
+            )
+        }
+    }
+
+    /** Tocco su un elemento: un brano parte (con la radio dopo). Album e playlist si aprono da Swift. */
+    fun playItem(key: String) {
+        when (val item = items[key]) {
+            is SongItem -> actions?.playSong(item)
+            is EpisodeItem -> actions?.playEndpoint(item.endpoint)
+            else -> Unit
+        }
+    }
+
+    fun observeRecent(listener: (List<NamiTrack>) -> Unit): NamiSubscription =
+        collect(database.recentSongs(20).map { songs -> songs.map { it.toMediaMetadata().toNamiTrack() } }, listener)
+
+    /** Un brano ascoltato di recente: parte con la sua radio. */
+    fun playRecent(index: Int) {
+        scope.launch {
+            val song = database.recentSongs(20).first().getOrNull(index) ?: return@launch
+            actions?.playSong(song.toMediaMetadata())
+        }
+    }
+
+    fun observeMixes(listener: (List<NamiMix>) -> Unit): NamiSubscription {
+        scope.launch { runCatching { MixMaker.refreshIfNeeded(database) } }
+        return collect(
+            MixMaker.mixes.map { list ->
+                list.map { mix ->
+                    NamiMix(
+                        id = mix.id,
+                        title = mix.title,
+                        subtitle = mix.subtitle,
+                        covers = mix.songs.mapNotNull { it.thumbnailUrl?.resize(300, 300) }.distinct().take(4),
+                        songCount = mix.songs.size,
+                        kind = mix.kind.ordinal,
+                    )
+                }
+            },
+            listener,
+        )
+    }
+
+    fun refreshMixes() {
+        scope.launch { runCatching { MixMaker.refreshIfNeeded(database, force = true) } }
+    }
+
+    fun mixTracks(id: String): List<NamiTrack> =
+        MixMaker.mixes.value.firstOrNull { it.id == id }?.songs.orEmpty().map { it.toMediaMetadata().toNamiTrack() }
+
+    fun playMix(
+        id: String,
+        startIndex: Int,
+        shuffle: Boolean,
+    ) {
+        val mix = MixMaker.mixes.value.firstOrNull { it.id == id } ?: return
+        actions?.playList(mix.songs.map { it.toMediaMetadata() }, startIndex = startIndex, title = mix.title, shuffle = shuffle)
+    }
+
+    /** Apre un album o una playlist di YouTube Music (dalla chiave di un [NamiItem]). */
+    fun loadCollection(
+        key: String,
+        callback: (NamiCollection?, String?) -> Unit,
+    ) {
+        val item = items[key]
+        scope.launch {
+            val result =
+                withContext(Dispatchers.Default) {
+                    runCatching {
+                        when (item) {
+                            is AlbumItem -> {
+                                val page = YouTube.album(item.browseId).getOrThrow()
+                                Triple(page.album.title, page.album.artists?.joinToString(", ") { it.name }.orEmpty(), page.songs to page.album.thumbnail)
+                            }
+                            is PlaylistItem -> {
+                                val first = YouTube.playlist(item.id).getOrThrow()
+                                val songs = first.songs.toMutableList()
+                                var continuation = first.songsContinuation ?: first.continuation
+                                var pages = 0
+                                while (continuation != null && pages < 20) {
+                                    val next = YouTube.playlistContinuation(continuation, item.id).getOrNull() ?: break
+                                    songs += next.songs
+                                    continuation = next.continuation
+                                    pages++
+                                }
+                                Triple(first.playlist.title, first.playlist.author?.name.orEmpty(), songs.distinctBy { it.id } to first.playlist.thumbnail)
+                            }
+                            else -> error("Non disponibile")
+                        }
+                    }
+                }
+            result.fold(
+                onSuccess = { (title, subtitle, data) ->
+                    val metadata = data.first.map { it.toMediaMetadata() }
+                    collections[key] = title to metadata
+                    callback(NamiCollection(key, title, subtitle, data.second?.resize(1080, 1080), metadata.map { it.toNamiTrack() }), null)
+                },
+                onFailure = { callback(null, it.message ?: "Errore di rete") },
+            )
+        }
+    }
+
+    fun playCollection(
+        key: String,
+        startIndex: Int,
+        shuffle: Boolean,
+    ) {
+        val (title, songs) = collections[key] ?: return
+        actions?.playList(songs, startIndex = startIndex, title = title, shuffle = shuffle)
+    }
+
+    private fun YTItem.toNamiItem(): NamiItem? {
+        val (kind, subtitle) =
+            when (this) {
+                is SongItem -> 0 to artists.joinToString(", ") { it.name }
+                is AlbumItem -> 1 to (artists?.joinToString(", ") { it.name } ?: year?.toString().orEmpty())
+                is PlaylistItem -> 2 to (author?.name ?: songCountText.orEmpty())
+                is ArtistItem -> 3 to ""
+                is EpisodeItem -> 4 to ""
+                else -> return null
+            }
+        val key = "$kind:$id"
+        items[key] = this
+        return NamiItem(
+            key = key,
+            kind = kind,
+            title = title,
+            subtitle = subtitle,
+            artworkUrl = thumbnail?.resize(400, 400),
+            isExplicit = explicit,
+        )
     }
 
     // endregion

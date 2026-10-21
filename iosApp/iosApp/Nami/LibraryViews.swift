@@ -263,7 +263,7 @@ struct SettingsView: View {
                         Label("Interfaccia iOS (Liquid Glass)", systemImage: "sparkles")
                     }
                 } footer: {
-                    Text("Spenta, Nami torna all'interfaccia completa di sempre. Le schermate in stile iOS arrivano una alla volta: per ora ci sono player e Libreria.")
+                    Text("Spenta, Nami torna all'interfaccia completa di sempre. Le schermate in stile iOS arrivano una alla volta: per ora ci sono Home, player e Libreria.")
                 }
             }
             .navigationTitle("Impostazioni")
