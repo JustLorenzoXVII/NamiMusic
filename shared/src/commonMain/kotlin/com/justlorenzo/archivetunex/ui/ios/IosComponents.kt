@@ -2,6 +2,7 @@
 
 package com.justlorenzo.archivetunex.ui.ios
 
+import androidx.compose.foundation.border
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
@@ -120,6 +121,36 @@ fun iosShape(
     expressive: androidx.compose.ui.graphics.Shape,
     ios: androidx.compose.ui.graphics.Shape = androidx.compose.foundation.shape.CircleShape,
 ): androidx.compose.ui.graphics.Shape = if (iosStyle) ios else expressive
+
+/**
+ * Il vetro dei controlli di iOS 26 dentro le pagine (chip, pulsanti, campo di ricerca, menu):
+ * riempimento traslucido, riflesso chiaro in alto e bordo luminoso che sfuma lungo il contorno.
+ * [fill] colora il vetro (es. l'accento per un controllo selezionato).
+ */
+@Composable
+fun Modifier.iosGlass(
+    shape: androidx.compose.ui.graphics.Shape,
+    fill: Color = Color.Unspecified,
+): Modifier {
+    val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val base = if (fill != Color.Unspecified) fill else if (dark) Color.White.copy(alpha = 0.11f) else Color.White.copy(alpha = 0.78f)
+    val rim =
+        androidx.compose.ui.graphics.Brush.linearGradient(
+            listOf(
+                Color.White.copy(alpha = if (dark) 0.42f else 1f),
+                Color.White.copy(alpha = if (dark) 0.05f else 0.35f),
+                Color.White.copy(alpha = if (dark) 0.24f else 0.8f),
+            ),
+        )
+    val sheen = androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color.White.copy(alpha = if (dark) 0.08f else 0.4f), Color.Transparent))
+    val shadow = Color.Black.copy(alpha = if (dark) 0.45f else 0.14f)
+    return this
+        .shadow(if (dark) 2.dp else 8.dp, shape, ambientColor = shadow, spotColor = shadow)
+        .clip(shape)
+        .background(base)
+        .background(sheen)
+        .border(0.8.dp, rim, shape)
+}
 
 /** Tema scuro (dal colore di sfondo). */
 private val isDark: Boolean
@@ -330,10 +361,9 @@ fun AtxSegmented(
     BoxWithConstraints(
         modifier
             .fillMaxWidth()
-            .height(36.dp)
-            .clip(CircleShape)
-            .background(iosFill)
-            .padding(2.dp),
+            .height(38.dp)
+            .iosGlass(CircleShape)
+            .padding(3.dp),
     ) {
         val segment = maxWidth / options.size.coerceAtLeast(1)
         val x by animateDpAsState(segment * selectedIndex, spring(dampingRatio = 0.8f, stiffness = 500f), label = "segment")
@@ -342,8 +372,7 @@ fun AtxSegmented(
                 .offset(x = x)
                 .width(segment)
                 .fillMaxSize()
-                .shadow(if (dark) 0.dp else 2.dp, CircleShape)
-                .background(if (dark) Color(0xFF636366) else Color.White, CircleShape),
+                .iosGlass(CircleShape, fill = if (dark) Color.White.copy(alpha = 0.2f) else Color.White),
         )
         Row(Modifier.fillMaxSize()) {
             options.forEachIndexed { index, label ->
@@ -402,8 +431,7 @@ fun AtxFilterChip(
     Row(
         modifier
             .height(34.dp)
-            .clip(CircleShape)
-            .background(background)
+            .iosGlass(CircleShape, fill = if (selected) background else Color.Unspecified)
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -616,8 +644,7 @@ fun AtxButton(
         modifier
             .height(50.dp)
             .graphicsLayer { alpha = if (enabled) 1f else 0.4f }
-            .clip(RoundedCornerShape(14.dp))
-            .background(background)
+            .iosGlass(CircleShape, fill = if (tonal && !highlighted) Color.Unspecified else background)
             .clickable(enabled = enabled, onClick = onClick)
             .padding(horizontal = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
@@ -765,7 +792,7 @@ fun AtxSearchField(
         modifier = modifier,
         decorationBox = { field ->
             Row(
-                Modifier.fillMaxWidth().height(40.dp).clip(CircleShape).background(iosFill).padding(horizontal = 10.dp),
+                Modifier.fillMaxWidth().height(44.dp).iosGlass(CircleShape).padding(horizontal = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
@@ -848,9 +875,16 @@ fun AtxDropdownMenu(
         onDismissRequest = onDismissRequest,
         modifier = modifier.widthIn(min = 250.dp),
         shape = RoundedCornerShape(26.dp),
-        containerColor = if (isDark) Color(0xF22C2C2E) else Color(0xF7F9F9FB),
+        containerColor = if (isDark) Color(0xEB2C2C2E) else Color(0xF2F9F9FB),
         tonalElevation = 0.dp,
         shadowElevation = 24.dp,
+        border =
+            androidx.compose.foundation.BorderStroke(
+                0.8.dp,
+                androidx.compose.ui.graphics.Brush.linearGradient(
+                    listOf(Color.White.copy(alpha = if (isDark) 0.4f else 1f), Color.White.copy(alpha = 0.06f), Color.White.copy(alpha = if (isDark) 0.22f else 0.8f)),
+                ),
+            ),
         content = content,
     )
 }

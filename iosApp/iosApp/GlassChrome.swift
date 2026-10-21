@@ -43,7 +43,11 @@ struct GlassChromeView: SwiftUI.View {
     var body: some SwiftUI.View {
         SwiftUI.Group {
             if let state = model.state {
-                chrome(state)
+                // L'altezza vera della vista: il mini player compare solo quando c'è il suo spazio
+                // (la vista diventa più alta un attimo dopo che parte il brano)
+                SwiftUI.GeometryReader { geometry in
+                    chrome(state, height: geometry.size.height)
+                }
                     .allowsHitTesting(state.visible)
                     .environment(\.colorScheme, state.dark ? .dark : .light)
             }
@@ -52,13 +56,14 @@ struct GlassChromeView: SwiftUI.View {
         .ignoresSafeArea()
     }
 
-    private func chrome(_ state: GlassChromeState) -> some SwiftUI.View {
+    private func chrome(_ state: GlassChromeState, height: CGFloat) -> some SwiftUI.View {
+        let room = height >= 50 + 10 + 62 + CGFloat(state.bottomPadding) - 1
         let accent = SwiftUI.Color(argb: state.accent)
         return GlassGroup {
             SwiftUI.VStack(spacing: 10) {
                 // Il vetro di iOS 26 lo disegna il contenitore, che non rispetta la trasparenza dei
                 // singoli elementi: per nasconderli si spegne il vetro o si tolgono dalla vista
-                if state.hasMini {
+                if state.hasMini && room {
                     MiniAccessory(state: state)
                         .frame(height: 50)
                         .contentShape(SwiftUI.Capsule())
@@ -68,7 +73,6 @@ struct GlassChromeView: SwiftUI.View {
                         .opacity(state.visible ? 1 : 0)
                         .glassCapsule(enabled: state.visible)
                         .animation(nil, value: state.visible)
-                        .background(MiniFrameReporter())
                         // Quando parte il primo brano sale da sotto
                         .transition(.asymmetric(insertion: .opacity.combined(with: .offset(y: 28)), removal: .opacity))
                 }
@@ -86,6 +90,7 @@ struct GlassChromeView: SwiftUI.View {
             .padding(.horizontal, 16)
             .padding(.bottom, CGFloat(state.bottomPadding))
             .animation(.spring(response: 0.45, dampingFraction: 0.85), value: state.hasMini)
+            .animation(.spring(response: 0.45, dampingFraction: 0.85), value: room)
             .animation(.spring(response: 0.42, dampingFraction: 0.88), value: state.visible)
         }
     }

@@ -1,5 +1,8 @@
 package com.justlorenzo.archivetunex
 
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.height
+import moe.rukamori.archivetune.ui.utils.resize
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
@@ -528,6 +531,26 @@ private fun AppContent(navigator: AtxNavigator) {
             val bottomStyle = LocalAtxStyle.current.miniLayout
             val glass = LocalAtxStyle.current.liquidGlass
             if (glass) {
+                // "Scroll edge effect" di iOS 26: il contenuto sfuma sotto la barra di stato in alto
+                // e dietro la barra di vetro in basso, così testi e vetro restano leggibili
+                val bg = MaterialTheme.colorScheme.background
+                val top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+                Box(
+                    Modifier
+                        .align(Alignment.TopCenter)
+                        .fillMaxWidth()
+                        .height(top + 14.dp)
+                        .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(bg.copy(alpha = 0.92f), bg.copy(alpha = 0.6f), bg.copy(alpha = 0f)))),
+                )
+                Box(
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .height(150.dp)
+                        .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(bg.copy(alpha = 0f), bg.copy(alpha = 0.55f), bg.copy(alpha = 0.85f)))),
+                )
+            }
+            if (glass) {
                 // Tema iOS: mini player, schede e ricerca nativi di vetro (Liquid Glass)
                 LiquidGlassBar(
                     navigator = navigator,
@@ -661,7 +684,8 @@ private fun LiquidGlassBar(
             hasMini = metadata != null,
             title = metadata?.title.orEmpty(),
             artist = metadata?.artists?.joinToString(", ") { it.name }.orEmpty(),
-            artworkUrl = metadata?.thumbnailUrl,
+            // Copertina nitida (la miniatura di YouTube è 60×60 e sul mini player si vedeva sgranata)
+            artworkUrl = metadata?.thumbnailUrl?.resize(240, 240),
             isPlaying = playing,
             dark = scheme.background.luminance() < 0.5f,
             visible = !covered,
@@ -681,10 +705,20 @@ private fun LiquidGlassBar(
                 onNext = { connection.seekToNext() },
             )
         }
+    // Dove sta il mini player di vetro: si calcola qui dalle misure fisse della barra (16 dai lati,
+    // alto 50, 10 sopra le schede alte 62), così il player si apre e si richiude sempre esattamente lì
+    val window = androidx.compose.ui.platform.LocalWindowInfo.current.containerSize
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val miniRect =
+        with(density) {
+            val bottom = window.height - (bottomPadding + 62.dp + 10.dp).toPx()
+            androidx.compose.ui.geometry.Rect(16.dp.toPx(), bottom - 50.dp.toPx(), window.width - 16.dp.toPx(), bottom)
+        }
+    androidx.compose.runtime.SideEffect { if (window.width > 0) onMiniBounds(miniRect) }
     com.justlorenzo.archivetunex.ui.glass.GlassBottomChrome(
         state = state,
         actions = glassActions,
-        onMiniBounds = onMiniBounds,
+        onMiniBounds = {},
         modifier = modifier,
     )
 }

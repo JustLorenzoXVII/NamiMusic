@@ -2,6 +2,8 @@
 
 package com.justlorenzo.archivetunex.ui.components
 
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.border
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -151,11 +153,24 @@ fun AtxModalSheet(
         onDispose { OpenSheets.closed() }
     }
     if (glassEnabled) {
+        // iOS 26: foglio staccato dai bordi, angoli grandi e bordo di vetro
+        val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+        val shape = RoundedCornerShape(38.dp)
         ModalBottomSheet(
             onDismissRequest = onDismissRequest,
             sheetState = sheetState,
-            shape = RoundedCornerShape(topStart = 38.dp, topEnd = 38.dp),
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            modifier =
+                Modifier
+                    .padding(horizontal = 8.dp)
+                    .border(
+                        0.8.dp,
+                        androidx.compose.ui.graphics.Brush.verticalGradient(
+                            listOf(Color.White.copy(alpha = if (dark) 0.35f else 0.9f), Color.White.copy(alpha = 0.04f)),
+                        ),
+                        shape,
+                    ),
+            shape = shape,
+            containerColor = if (dark) Color(0xF51C1C1E) else Color(0xF7F7F7FA),
             tonalElevation = 0.dp,
             content = content,
         )

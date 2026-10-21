@@ -2,6 +2,7 @@
 
 package com.justlorenzo.archivetunex.ui.components
 
+import com.justlorenzo.archivetunex.ui.ios.iosGlass
 import androidx.compose.foundation.layout.Spacer
 import org.jetbrains.compose.resources.DrawableResource
 import archivetunex.shared.generated.resources.more_vert
@@ -194,8 +195,7 @@ private fun IosActionCapsule(
                 scaleX = scale
                 scaleY = scale
                 alpha = if (pressed) 0.7f else 1f
-            }.clip(RoundedCornerShape(14.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            }.iosGlass(CircleShape)
             .clickable(interactionSource = source, indication = null, onClick = onClick),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
