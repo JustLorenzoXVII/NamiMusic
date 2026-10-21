@@ -11,6 +11,7 @@ struct PlayerView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var palette = ArtworkPalette.fallback
     @State private var scrubValue: TimeInterval?
+    @State private var addingToPlaylist: Track?
 
     private var track: Track? { player.state.track }
 
@@ -44,6 +45,9 @@ struct PlayerView: View {
         .onAppear { updatePalette() }
         .onChange(of: track?.largeArtworkURL) { _, _ in updatePalette() }
         .statusBarHidden(false)
+        .sheet(item: $addingToPlaylist) { song in
+            AddToPlaylistSheet(song: song)
+        }
     }
 
     // MARK: Parti
@@ -112,6 +116,14 @@ struct PlayerView: View {
                     player.cycleRepeat()
                 } label: {
                     Label(repeatLabel, systemImage: player.state.repeatMode == 1 ? "repeat.1" : "repeat")
+                }
+                if let track {
+                    Divider()
+                    Button {
+                        addingToPlaylist = track
+                    } label: {
+                        Label("Aggiungi a una playlist", systemImage: "text.badge.plus")
+                    }
                 }
             } label: {
                 GlassIconLabel(systemName: "ellipsis")

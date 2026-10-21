@@ -1,10 +1,16 @@
 import SwiftUI
 
-// Libreria: preferiti e playlist, pagina di una playlist con i suoi brani.
+// Libreria: preferiti e playlist (crea, rinomina, elimina), pagina di una playlist con i suoi brani
+// (togli, riordina), menu dei brani e scelta della playlist a cui aggiungere un brano.
 
 struct LibraryView: View {
     @ObservedObject private var library = LibraryStore.shared
     let onSettings: () -> Void
+
+    @State private var creating = false
+    @State private var renaming: PlaylistItem?
+    @State private var newName = ""
+    @State private var deleting: PlaylistItem?
 
     private let columns = [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)]
 
@@ -25,15 +31,36 @@ struct LibraryView: View {
                 .buttonStyle(.plain)
                 Divider().padding(.leading, 56)
 
-                Text("Playlist")
-                    .font(.title2.weight(.bold))
-                    .padding(.top, 24)
-                    .padding(.bottom, 12)
+                HStack {
+                    Text("Playlist")
+                        .font(.title2.weight(.bold))
+                    Spacer()
+                    Button {
+                        creating = true
+                    } label: {
+                        Label("Nuova", systemImage: "plus")
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    .tint(.namiAccent)
+                }
+                .padding(.top, 24)
+                .padding(.bottom, 12)
 
                 if library.playlists.isEmpty {
-                    Text("Nessuna playlist")
-                        .foregroundStyle(.secondary)
-                        .padding(.vertical, 24)
+                    Button {
+                        creating = true
+                    } label: {
+                        VStack(spacing: 10) {
+                            Image(systemName: "music.note.list")
+                                .font(.system(size: 40))
+                                .foregroundStyle(Color.namiAccent)
+                            Text("Crea la tua prima playlist")
+                                .font(.headline)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 40)
+                    }
+                    .buttonStyle(.plain)
                 } else {
                     LazyVGrid(columns: columns, alignment: .leading, spacing: 20) {
                         ForEach(library.playlists) { playlist in
@@ -43,15 +70,77 @@ struct LibraryView: View {
                                 PlaylistTile(playlist: playlist)
                             }
                             .buttonStyle(.plain)
+                            .contextMenu {
+                                Button {
+                                    library.playPlaylist(playlist)
+                                } label: {
+                                    Label("Riproduci", systemImage: "play.fill")
+                                }
+                                Button {
+                                    library.playPlaylist(playlist, shuffle: true)
+                                } label: {
+                                    Label("Casuale", systemImage: "shuffle")
+                                }
+                                if playlist.isEditable {
+                                    Button {
+                                        newName = playlist.title
+                                        renaming = playlist
+                                    } label: {
+                                        Label("Rinomina", systemImage: "pencil")
+                                    }
+                                }
+                                Button(role: .destructive) {
+                                    deleting = playlist
+                                } label: {
+                                    Label(playlist.isEditable ? "Elimina" : "Togli dalla Libreria", systemImage: "trash")
+                                }
+                            }
                         }
                     }
+                    .animation(.snappy, value: library.playlists)
                 }
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 24)
         }
         .navigationTitle("Libreria")
-        .toolbar { SettingsToolbar(onSettings: onSettings) }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    creating = true
+                } label: {
+                    Image(systemName: "plus")
+                }
+                .accessibilityLabel("Nuova playlist")
+            }
+            SettingsToolbar(onSettings: onSettings)
+        }
+        .sheet(isPresented: $creating) {
+            NewPlaylistSheet()
+        }
+        .alert("Rinomina playlist", isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
+            TextField("Nome", text: $newName)
+            Button("Annulla", role: .cancel) { renaming = nil }
+            Button("Salva") {
+                let name = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+                if let playlist = renaming, !name.isEmpty { library.rename(playlist, to: name) }
+                renaming = nil
+            }
+        }
+        .confirmationDialog(
+            deleting.map { "Eliminare \"\($0.title)\"?" } ?? "",
+            isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }),
+            titleVisibility: .visible
+        ) {
+            Button(deleting?.isEditable == false ? "Togli dalla Libreria" : "Elimina playlist", role: .destructive) {
+                if let playlist = deleting { library.delete(playlist) }
+                deleting = nil
+            }
+        } message: {
+            if deleting?.isEditable == true {
+                Text("Se è anche su YouTube Music, viene eliminata anche lì.")
+            }
+        }
     }
 }
 
@@ -86,6 +175,7 @@ private struct PlaylistTile: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             MosaicArtwork(urls: playlist.thumbnails, cornerRadius: 10)
+                .aspectRatio(1, contentMode: .fit)
                 .shadow(color: .black.opacity(0.12), radius: 6, y: 3)
             Text(playlist.title)
                 .font(.subheadline.weight(.medium))
@@ -94,6 +184,7 @@ private struct PlaylistTile: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }
+        .contentShape(.contextMenuPreview, RoundedRectangle(cornerRadius: 10, style: .continuous))
         .contentShape(Rectangle())
     }
 }
@@ -117,31 +208,89 @@ struct PlaylistPage: View {
     let playlist: PlaylistItem
     @StateObject private var store: PlaylistSongsStore
     @ObservedObject private var library = LibraryStore.shared
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var renaming = false
+    @State private var newName = ""
+    @State private var deleting = false
 
     init(playlist: PlaylistItem) {
         self.playlist = playlist
         _store = StateObject(wrappedValue: PlaylistSongsStore(playlistId: playlist.id))
     }
 
+    /// Il nome aggiornato (dopo una rinomina) e se si può modificare.
+    private var current: PlaylistItem {
+        library.playlists.first { $0.id == playlist.id } ?? playlist
+    }
+
     var body: some View {
         SongListPage(
-            title: playlist.title,
+            title: current.title,
             subtitle: "\(store.songs.count) brani",
-            artwork: { MosaicArtwork(urls: playlist.thumbnails, cornerRadius: 12) },
+            artwork: { MosaicArtwork(urls: current.thumbnails, cornerRadius: 12) },
             songs: store.songs,
-            play: { index, shuffle in library.playPlaylist(playlist, from: index, shuffle: shuffle) }
+            play: { index, shuffle in library.playPlaylist(current, from: index, shuffle: shuffle) },
+            onRemove: current.isEditable ? { index in library.remove(at: index, from: current) } : nil,
+            onMove: current.isEditable ? { from, to in library.move(in: current, from: from, to: to) } : nil
         )
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    if current.isEditable {
+                        Button {
+                            newName = current.title
+                            renaming = true
+                        } label: {
+                            Label("Rinomina", systemImage: "pencil")
+                        }
+                    }
+                    Button(role: .destructive) {
+                        deleting = true
+                    } label: {
+                        Label(current.isEditable ? "Elimina playlist" : "Togli dalla Libreria", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+                .accessibilityLabel("Altro")
+            }
+        }
+        .alert("Rinomina playlist", isPresented: $renaming) {
+            TextField("Nome", text: $newName)
+            Button("Annulla", role: .cancel) {}
+            Button("Salva") {
+                let name = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !name.isEmpty { library.rename(current, to: name) }
+            }
+        }
+        .confirmationDialog("Eliminare \"\(current.title)\"?", isPresented: $deleting, titleVisibility: .visible) {
+            Button(current.isEditable ? "Elimina playlist" : "Togli dalla Libreria", role: .destructive) {
+                library.delete(current)
+                dismiss()
+            }
+        } message: {
+            if current.isEditable {
+                Text("Se è anche su YouTube Music, viene eliminata anche lì.")
+            }
+        }
     }
 }
 
 /// Pagina con copertina, titolo, Riproduci/Casuale e l'elenco dei brani (come Apple Music).
+/// Con [onRemove] e [onMove] i brani si tolgono scorrendo e si riordinano con "Modifica".
 struct SongListPage<Artwork: View>: View {
     let title: String
     let subtitle: String
     @ViewBuilder let artwork: () -> Artwork
     let songs: [Track]
     let play: (_ index: Int, _ shuffle: Bool) -> Void
+    var onRemove: ((_ index: Int) -> Void)? = nil
+    var onMove: ((_ from: Int, _ to: Int) -> Void)? = nil
+
     @ObservedObject private var player = PlayerStore.shared
+    @State private var rows: [Track] = []
+    @State private var addingToPlaylist: Track?
 
     var body: some View {
         List {
@@ -161,15 +310,17 @@ struct SongListPage<Artwork: View>: View {
                     PlayActionButton(title: "Riproduci", systemImage: "play.fill") { play(0, false) }
                     PlayActionButton(title: "Casuale", systemImage: "shuffle") { play(0, true) }
                 }
-                .disabled(songs.isEmpty)
+                .disabled(rows.isEmpty)
                 .padding(.top, 4)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
             .listRowSeparator(.hidden)
             .listRowBackground(Color.clear)
+            .moveDisabled(true)
+            .deleteDisabled(true)
 
-            ForEach(Array(songs.enumerated()), id: \.offset) { index, song in
+            ForEach(Array(rows.enumerated()), id: \.offset) { index, song in
                 Button {
                     play(index, false)
                 } label: {
@@ -177,10 +328,101 @@ struct SongListPage<Artwork: View>: View {
                 }
                 .buttonStyle(.plain)
                 .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 16))
+                .contextMenu {
+                    SongMenuItems(song: song, onAddToPlaylist: { addingToPlaylist = song })
+                    if let onRemove {
+                        Divider()
+                        Button(role: .destructive) {
+                            removeRow(at: index, onRemove)
+                        } label: {
+                            Label("Togli dalla playlist", systemImage: "minus.circle")
+                        }
+                    }
+                }
+                .swipeActions(edge: .leading) {
+                    Button {
+                        LibraryStore.shared.playNext(song)
+                    } label: {
+                        Label("Dopo", systemImage: "text.line.first.and.arrowtriangle.forward")
+                    }
+                    .tint(.namiAccent)
+                }
             }
+            .onDelete(perform: deleteAction)
+            .onMove(perform: moveAction)
         }
         .listStyle(.plain)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if onMove != nil, !rows.isEmpty {
+                ToolbarItem(placement: .topBarTrailing) {
+                    EditButton()
+                }
+            }
+        }
+        .sheet(item: $addingToPlaylist) { song in
+            AddToPlaylistSheet(song: song)
+        }
+        .onAppear { rows = songs }
+        .onChange(of: songs) { _, newValue in
+            withAnimation(.snappy) { rows = newValue }
+        }
+    }
+
+    private var deleteAction: ((IndexSet) -> Void)? {
+        guard let onRemove else { return nil }
+        return { offsets in
+            for index in offsets.sorted(by: >) { removeRow(at: index, onRemove) }
+        }
+    }
+
+    private var moveAction: ((IndexSet, Int) -> Void)? {
+        guard let onMove else { return nil }
+        return { source, destination in
+            guard let from = source.first else { return }
+            let to = destination > from ? destination - 1 : destination
+            rows.move(fromOffsets: source, toOffset: destination)
+            onMove(from, to)
+        }
+    }
+
+    private func removeRow(at index: Int, _ remove: (Int) -> Void) {
+        guard rows.indices.contains(index) else { return }
+        _ = withAnimation(.snappy) { rows.remove(at: index) }
+        remove(index)
+    }
+}
+
+/// Le voci del menu di un brano (tenendo premuto).
+struct SongMenuItems: View {
+    let song: Track
+    let onAddToPlaylist: () -> Void
+    @ObservedObject private var library = LibraryStore.shared
+
+    var body: some View {
+        Button {
+            library.playNext(song)
+        } label: {
+            Label("Riproduci dopo", systemImage: "text.line.first.and.arrowtriangle.forward")
+        }
+        Button {
+            library.addToQueue(song)
+        } label: {
+            Label("Aggiungi in coda", systemImage: "text.line.last.and.arrowtriangle.forward")
+        }
+        Divider()
+        Button(action: onAddToPlaylist) {
+            Label("Aggiungi a una playlist", systemImage: "text.badge.plus")
+        }
+        Button {
+            library.toggleLike(song)
+        } label: {
+            if library.isLiked(song) {
+                Label("Togli dai preferiti", systemImage: "heart.slash")
+            } else {
+                Label("Aggiungi ai preferiti", systemImage: "heart")
+            }
+        }
     }
 }
 
@@ -246,6 +488,123 @@ struct SongRow: View {
             }
         }
         .contentShape(Rectangle())
+    }
+}
+
+// MARK: - Nuova playlist e "Aggiungi a una playlist"
+
+struct NewPlaylistSheet: View {
+    var firstSong: Track? = nil
+    var onCreated: (() -> Void)? = nil
+    @ObservedObject private var library = LibraryStore.shared
+    @Environment(\.dismiss) private var dismiss
+    @State private var name = ""
+    @State private var onYouTube = true
+    @FocusState private var focused: Bool
+
+    private var trimmed: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Nome della playlist", text: $name)
+                        .focused($focused)
+                        .submitLabel(.done)
+                        .onSubmit(create)
+                }
+                if library.isLoggedIn {
+                    Section {
+                        Toggle("Crea anche su YouTube Music", isOn: $onYouTube)
+                            .tint(.namiAccent)
+                    } footer: {
+                        Text("Così la trovi anche nelle altre app di YouTube Music.")
+                    }
+                }
+                if let firstSong {
+                    Section("Primo brano") {
+                        SongRow(song: firstSong)
+                    }
+                }
+            }
+            .navigationTitle("Nuova playlist")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Annulla") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Crea", action: create)
+                        .disabled(trimmed.isEmpty)
+                }
+            }
+            .onAppear { focused = true }
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    private func create() {
+        guard !trimmed.isEmpty else { return }
+        library.createPlaylist(name: trimmed, onYouTube: onYouTube, firstSong: firstSong)
+        dismiss()
+        onCreated?()
+    }
+}
+
+struct AddToPlaylistSheet: View {
+    let song: Track
+    @ObservedObject private var library = LibraryStore.shared
+    @Environment(\.dismiss) private var dismiss
+    @State private var creating = false
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    SongRow(song: song)
+                }
+                Section {
+                    Button {
+                        creating = true
+                    } label: {
+                        Label("Nuova playlist…", systemImage: "plus")
+                            .foregroundStyle(Color.namiAccent)
+                    }
+                    ForEach(library.editablePlaylists) { playlist in
+                        Button {
+                            library.add(song, to: playlist)
+                            dismiss()
+                        } label: {
+                            HStack(spacing: 12) {
+                                MosaicArtwork(urls: playlist.thumbnails, cornerRadius: 6)
+                                    .frame(width: 44, height: 44)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(playlist.title)
+                                        .lineLimit(1)
+                                    Text("\(playlist.songCount) brani")
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                } header: {
+                    Text("Le tue playlist")
+                }
+            }
+            .navigationTitle("Aggiungi a una playlist")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Annulla") { dismiss() }
+                }
+            }
+            .sheet(isPresented: $creating) {
+                NewPlaylistSheet(firstSong: song, onCreated: { dismiss() })
+            }
+        }
+        .presentationDetents([.medium, .large])
     }
 }
 

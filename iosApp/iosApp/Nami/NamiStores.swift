@@ -60,12 +60,15 @@ struct PlaylistItem: Identifiable, Equatable, Hashable {
     let title: String
     let songCount: Int
     let thumbnails: [Foundation.URL]
+    /// false = playlist di altri salvata da YouTube Music: non si modifica
+    let isEditable: Bool
 
     init(_ p: NamiPlaylist) {
         id = p.id
         title = p.title
         songCount = Int(p.songCount)
         thumbnails = p.thumbnails.compactMap { Foundation.URL(string: $0) }
+        isEditable = p.isEditable
     }
 }
 
@@ -149,12 +152,15 @@ final class LibraryStore: ObservableObject {
     static let shared = LibraryStore()
 
     @Published private(set) var liked: [Track] = []
+    @Published private(set) var likedIds: Set<String> = []
     @Published private(set) var playlists: [PlaylistItem] = []
     private var subscriptions: [NamiSubscription] = []
 
     private init() {
         subscriptions.append(NamiBridge.shared.observeLikedSongs { [weak self] songs in
-            self?.liked = songs.map { Track($0) }
+            let tracks = songs.map { Track($0) }
+            self?.liked = tracks
+            self?.likedIds = Set(tracks.map(\.id))
         })
         subscriptions.append(NamiBridge.shared.observePlaylists { [weak self] list in
             self?.playlists = list.map { PlaylistItem($0) }
@@ -168,6 +174,42 @@ final class LibraryStore: ObservableObject {
     func playPlaylist(_ playlist: PlaylistItem, from index: Int = 0, shuffle: Bool = false) {
         NamiBridge.shared.playPlaylist(playlistId: playlist.id, title: playlist.title, startIndex: Int32(index), shuffle: shuffle)
     }
+
+    // Modifica delle playlist
+
+    var isLoggedIn: Bool { NamiBridge.shared.isLoggedIn() }
+    var editablePlaylists: [PlaylistItem] { playlists.filter(\.isEditable) }
+
+    func createPlaylist(name: String, onYouTube: Bool, firstSong: Track? = nil) {
+        NamiBridge.shared.createPlaylist(name: name, onYouTube: onYouTube, firstSongId: firstSong?.id)
+    }
+
+    func rename(_ playlist: PlaylistItem, to name: String) {
+        NamiBridge.shared.renamePlaylist(playlistId: playlist.id, name: name)
+    }
+
+    func delete(_ playlist: PlaylistItem) {
+        NamiBridge.shared.deletePlaylist(playlistId: playlist.id)
+    }
+
+    func remove(at index: Int, from playlist: PlaylistItem) {
+        NamiBridge.shared.removeFromPlaylist(playlistId: playlist.id, index: Int32(index))
+    }
+
+    func move(in playlist: PlaylistItem, from: Int, to: Int) {
+        NamiBridge.shared.moveInPlaylist(playlistId: playlist.id, from: Int32(from), to: Int32(to))
+    }
+
+    func add(_ song: Track, to playlist: PlaylistItem) {
+        NamiBridge.shared.addToPlaylist(playlistId: playlist.id, songId: song.id)
+    }
+
+    // Menu dei brani
+
+    func isLiked(_ song: Track) -> Bool { likedIds.contains(song.id) }
+    func toggleLike(_ song: Track) { NamiBridge.shared.toggleLikeSong(songId: song.id) }
+    func playNext(_ song: Track) { NamiBridge.shared.playNext(songId: song.id) }
+    func addToQueue(_ song: Track) { NamiBridge.shared.addToQueue(songId: song.id) }
 }
 
 /// I brani di una playlist, osservati finché la pagina è aperta.

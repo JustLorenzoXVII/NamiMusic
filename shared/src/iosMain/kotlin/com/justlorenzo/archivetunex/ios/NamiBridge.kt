@@ -29,6 +29,7 @@ import moe.rukamori.archivetune.models.MediaMetadata
 import moe.rukamori.archivetune.models.toMediaMetadata
 import moe.rukamori.archivetune.ui.utils.resize
 import moe.rukamori.archivetune.utils.dataStore
+import moe.rukamori.archivetune.utils.toPlaybackAuthState
 
 /** Un brano, come lo mostra l'interfaccia SwiftUI. */
 data class NamiTrack(
@@ -62,6 +63,8 @@ data class NamiPlaylist(
     val title: String,
     val songCount: Int,
     val thumbnails: List<String>,
+    /** false = playlist di altri salvata da YouTube Music: non si modifica. */
+    val isEditable: Boolean,
 )
 
 /** Un elemento di YouTube Music (Home, ricerca): kind 0 brano, 1 album, 2 playlist, 3 artista, 4 altro. */
@@ -223,6 +226,7 @@ object NamiBridge {
                         title = p.title,
                         songCount = p.songCount,
                         thumbnails = p.thumbnails.take(4).map { it.resize(300, 300) },
+                        isEditable = p.playlist.isEditable,
                     )
                 }
             },
@@ -256,6 +260,111 @@ object NamiBridge {
         scope.launch {
             val songs = database.playlistSongs(playlistId).first().map { it.song.toMediaMetadata() }
             actions?.playList(songs, startIndex = startIndex, title = title, shuffle = shuffle)
+        }
+    }
+
+    // endregion
+
+    // region Modifica della Libreria e menu dei brani
+
+    /** Tutti i brani passati a Swift, per poterli poi far partire, aggiungere o mettere tra i preferiti dal loro id. */
+    internal val knownSongs = HashMap<String, MediaMetadata>()
+
+    /** true se l'account di YouTube Music è collegato (le playlist nuove possono nascere anche lì). */
+    fun isLoggedIn(): Boolean =
+        runBlocking { AppContext.dataStore.data.first().toPlaybackAuthState().hasLoginCookie }
+
+    fun createPlaylist(
+        name: String,
+        onYouTube: Boolean,
+        firstSongId: String?,
+    ) {
+        actions?.createPlaylist(name, onYouTube = onYouTube && isLoggedIn(), firstSong = firstSongId?.let { knownSongs[it] })
+    }
+
+    fun renamePlaylist(
+        playlistId: String,
+        name: String,
+    ) {
+        scope.launch {
+            val playlist = database.playlist(playlistId).first()?.playlist ?: return@launch
+            actions?.renamePlaylist(playlist, name)
+        }
+    }
+
+    fun deletePlaylist(playlistId: String) {
+        scope.launch {
+            val playlist = database.playlist(playlistId).first()?.playlist ?: return@launch
+            actions?.deletePlaylist(playlist)
+        }
+    }
+
+    /** Toglie il brano in posizione [index] (ordine dell'elenco mostrato). */
+    fun removeFromPlaylist(
+        playlistId: String,
+        index: Int,
+    ) {
+        scope.launch {
+            val playlist = database.playlist(playlistId).first()?.playlist ?: return@launch
+            val entry = database.playlistSongs(playlistId).first().getOrNull(index) ?: return@launch
+            actions?.removeFromPlaylist(playlist, entry.map)
+        }
+    }
+
+    /** Sposta un brano da [from] a [to] (anche su YouTube Music, se la playlist è lì). */
+    fun moveInPlaylist(
+        playlistId: String,
+        from: Int,
+        to: Int,
+    ) {
+        if (from == to) return
+        scope.launch {
+            val playlist = database.playlist(playlistId).first()?.playlist ?: return@launch
+            val entries = database.playlistSongs(playlistId).first()
+            val moved = entries.getOrNull(from) ?: return@launch
+            if (to !in entries.indices) return@launch
+            val successor = entries.getOrNull(if (from > to) to else to + 1)
+            actions?.moveInPlaylist(playlist, from, to, moved.map.setVideoId, successor?.map?.setVideoId)
+        }
+    }
+
+    fun addToPlaylist(
+        playlistId: String,
+        songId: String,
+    ) {
+        val song = knownSongs[songId] ?: return
+        actions?.addToPlaylist(playlistId, song)
+    }
+
+    fun playSong(songId: String) {
+        val song = knownSongs[songId] ?: return
+        actions?.playSong(song)
+    }
+
+    fun playNext(songId: String) {
+        val song = knownSongs[songId] ?: return
+        actions?.playNext(song)
+    }
+
+    fun addToQueue(songId: String) {
+        val song = knownSongs[songId] ?: return
+        actions?.addToQueue(song)
+    }
+
+    /** Mette o toglie il brano dai preferiti (anche se non sta suonando). */
+    fun toggleLikeSong(songId: String) {
+        val song = knownSongs[songId] ?: return
+        scope.launch {
+            withContext(Dispatchers.Default) {
+                database.withTransaction {
+                    val entity =
+                        getSongById(song.id) ?: run {
+                            insert(song)
+                            getSongById(song.id)
+                        } ?: return@withTransaction
+                    update(entity.song.toggleLike())
+                }
+            }
         }
     }
 
@@ -439,8 +548,9 @@ class NamiSubscription internal constructor(
     fun cancel() = job.cancel()
 }
 
-private fun MediaMetadata.toNamiTrack(): NamiTrack =
-    NamiTrack(
+private fun MediaMetadata.toNamiTrack(): NamiTrack {
+    NamiBridge.knownSongs[id] = this
+    return NamiTrack(
         id = id,
         title = title,
         artist = artists.joinToString(", ") { it.name },
@@ -449,3 +559,4 @@ private fun MediaMetadata.toNamiTrack(): NamiTrack =
         durationMs = duration * 1000L,
         isExplicit = explicit,
     )
+}

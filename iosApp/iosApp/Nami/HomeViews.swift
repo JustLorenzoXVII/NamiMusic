@@ -219,6 +219,7 @@ struct MixPage: View {
 private struct RecentSection: View {
     let songs: [Track]
     @ObservedObject private var home = HomeStore.shared
+    @State private var addingToPlaylist: Track?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -232,12 +233,18 @@ private struct RecentSection: View {
                             CardLabel(artworkURL: song.artworkURL, title: song.title, subtitle: song.artist, explicit: song.explicit)
                         }
                         .buttonStyle(.plain)
+                        .contextMenu {
+                            SongMenuItems(song: song, onAddToPlaylist: { addingToPlaylist = song })
+                        }
                     }
                 }
                 .padding(.horizontal, 20)
                 .scrollTargetLayout()
             }
             .scrollTargetBehavior(.viewAligned)
+        }
+        .sheet(item: $addingToPlaylist) { song in
+            AddToPlaylistSheet(song: song)
         }
     }
 }
