@@ -44,16 +44,18 @@ struct RemoteImage: View {
     @State private var shownURL: URL?
 
     var body: some View {
-        ZStack {
-            placeholder
-            if let image {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-                    .transition(.opacity)
+        // La misura la decide sempre il segnaposto: l'immagine si adatta dentro e viene ritagliata,
+        // così una copertina non quadrata (miniature 16:9 dei video) non allarga mai la schermata.
+        placeholder
+            .overlay {
+                if let image {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .transition(.opacity)
+                }
             }
-        }
-        .clipped()
+            .clipped()
         .onAppear { load() }
         .onChange(of: url) { _, _ in load() }
     }
