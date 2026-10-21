@@ -103,8 +103,8 @@ struct MiniPlayerView: View {
     let onOpen: () -> Void
 
     var body: some View {
-        HStack(spacing: 10) {
-            ArtworkView(url: player.state.track?.artworkURL, size: 32, cornerRadius: 6)
+        HStack(spacing: 12) {
+            ArtworkView(url: player.state.track?.artworkURL, size: 34, cornerRadius: 7)
             VStack(alignment: .leading, spacing: 0) {
                 Text(player.state.track?.title ?? "Niente in riproduzione")
                     .font(.subheadline.weight(.semibold))
@@ -135,8 +135,8 @@ struct MiniPlayerView: View {
         }
         .buttonStyle(.plain)
         .foregroundStyle(.primary)
-        .padding(.leading, 8)
-        .padding(.trailing, 10)
+        .padding(.leading, 14)
+        .padding(.trailing, 12)
         .contentShape(Rectangle())
         .onTapGesture { if player.state.track != nil { onOpen() } }
     }
