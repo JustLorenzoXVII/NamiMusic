@@ -122,8 +122,8 @@ data class NamiCollection(
  * sempre sul thread principale; restituiscono un [NamiSubscription] da cancellare.
  */
 object NamiBridge {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private var actions: AtxActions? = null
+    internal val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    internal var actions: AtxActions? = null
 
     /** Avvia motore, database e player (una volta sola). */
     fun start() {
@@ -159,8 +159,8 @@ object NamiBridge {
         }
     }
 
-    private val connection get() = ArchiveTuneXRuntime.playerConnection
-    private val database get() = ArchiveTuneXRuntime.database
+    internal val connection get() = ArchiveTuneXRuntime.playerConnection
+    internal val database get() = ArchiveTuneXRuntime.database
 
     // region Interfaccia iOS sì/no
 
@@ -395,8 +395,8 @@ object NamiBridge {
     // region Home
 
     /** Gli ultimi elementi caricati, per farli partire o aprirli dal loro [NamiItem.key]. */
-    private val items = HashMap<String, YTItem>()
-    private val collections = HashMap<String, Pair<String, List<MediaMetadata>>>()
+    internal val items = HashMap<String, YTItem>()
+    internal val collections = HashMap<String, Pair<String, List<MediaMetadata>>>()
 
     /** Carica la Home di YouTube Music (con il mood [params], o null per tutti). */
     fun loadHome(
@@ -530,6 +530,8 @@ object NamiBridge {
         actions?.playList(songs, startIndex = startIndex, title = title, shuffle = shuffle)
     }
 
+    internal fun namiItem(item: YTItem): NamiItem? = item.toNamiItem()
+
     private fun YTItem.toNamiItem(): NamiItem? {
         val (kind, subtitle) =
             when (this) {
@@ -554,7 +556,7 @@ object NamiBridge {
 
     // endregion
 
-    private fun <T> collect(
+    internal fun <T> collect(
         flow: kotlinx.coroutines.flow.Flow<T>,
         listener: (T) -> Unit,
     ): NamiSubscription {
@@ -570,7 +572,7 @@ class NamiSubscription internal constructor(
     fun cancel() = job.cancel()
 }
 
-private fun MediaMetadata.toNamiTrack(): NamiTrack {
+internal fun MediaMetadata.toNamiTrack(): NamiTrack {
     NamiBridge.knownSongs[id] = this
     return NamiTrack(
         id = id,
