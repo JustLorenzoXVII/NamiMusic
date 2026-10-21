@@ -273,7 +273,7 @@ val EnglishStrings: Map<String, String> =
         "Nel tema scuro lo sfondo è nero (schermi OLED)" to "In dark theme the background is black (OLED screens)",
         "Stile iOS" to "iOS style",
         "Tema iOS (Liquid Glass)" to "iOS theme (Liquid Glass)",
-        "Bianco o nero come Apple Music, barra e mini player di vetro. Il player prende i colori della copertina" to "White or black like Apple Music, glass tab bar and mini player. The player takes the artwork colors",
+        "Nuova interfaccia nativa iOS con il Liquid Glass vero. Per ora ci sono player e Libreria: le altre schermate arrivano una alla volta" to "New native iOS interface with real Liquid Glass. Player and Library for now: the other screens are coming one at a time",
         "Colori dell'app" to "App colors",
         "Su Android 12 o successivi usa i colori dello sfondo del telefono. Su iPhone, che non li ha, usa il colore personalizzato." to "On Android 12 or later it uses your wallpaper colors. On iPhone, which doesn't have them, it uses the custom color.",
         "Sfondi, pulsanti e schede cambiano con la copertina del brano che stai ascoltando." to "Backgrounds, buttons and tabs change with the artwork of the song you're listening to.",

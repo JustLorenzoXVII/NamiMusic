@@ -512,7 +512,7 @@ private fun AppearancePage() {
             SettingsGroup(tr("Stile iOS")) {
                 SwitchRow(
                     tr("Tema iOS (Liquid Glass)"),
-                    tr("Bianco o nero come Apple Music, barra e mini player di vetro. Il player prende i colori della copertina"),
+                    tr("Nuova interfaccia nativa iOS con il Liquid Glass vero. Per ora ci sono player e Libreria: le altre schermate arrivano una alla volta"),
                     style.liquidGlass,
                 ) { save(com.justlorenzo.archivetunex.ui.LiquidGlassKey, it) }
             }
