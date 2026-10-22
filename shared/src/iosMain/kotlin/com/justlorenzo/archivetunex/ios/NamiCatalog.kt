@@ -346,11 +346,22 @@ object NamiCatalog {
                 callback(null)
                 return@launch
             }
-            val entries = withContext(Dispatchers.Default) { runCatching { LyricsUtils.parseLyrics(raw) }.getOrDefault(emptyList()) }
+            val entries =
+                withContext(Dispatchers.Default) {
+                    runCatching {
+                        // Testi di Apple Music (TTML, parola per parola) oppure LRC
+                        if (LyricsUtils.isTtml(raw)) LyricsUtils.parseTtml(raw) else LyricsUtils.parseLyrics(raw)
+                    }.getOrDefault(emptyList())
+                }
             val lines = entries.filter { it.text.isNotBlank() }.map { NamiLyricLine(it.time, it.text.trim()) }
             if (lines.size >= 2) {
                 callback(NamiLyrics(songId, true, lines, null))
             } else {
+                if (LyricsUtils.isTtml(raw)) {
+                    // TTML senza tempi leggibili: meglio nessun testo che l'XML a schermo
+                    callback(null)
+                    return@launch
+                }
                 val plain = raw.lines().map { it.replace(Regex("^\\[[^]]*]\\s*"), "") }.joinToString("\n").trim()
                 callback(NamiLyrics(songId, false, emptyList(), plain))
             }
