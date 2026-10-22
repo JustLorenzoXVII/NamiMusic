@@ -52,6 +52,9 @@ struct RemoteImage: View {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFill()
+                        // L'immagine ritagliata sborda dalla cornice: senza questo i tocchi
+                        // sulla parte invisibile finivano sulla card (es. i filtri della Home)
+                        .allowsHitTesting(false)
                         .transition(.opacity)
                 }
             }

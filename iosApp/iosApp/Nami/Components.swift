@@ -381,6 +381,7 @@ private struct FeaturedCard: View {
             .padding(16)
         }
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .shadow(color: .black.opacity(0.18), radius: 12, y: 6)
         .contentShape(Rectangle())
     }

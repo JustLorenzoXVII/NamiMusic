@@ -232,6 +232,7 @@ private struct TopResultCard: View {
                     .animation(.easeInOut(duration: 0.6), value: palette)
             }
             .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             .shadow(color: palette.bottom.opacity(0.4), radius: 14, y: 8)
         }
         .onAppear {

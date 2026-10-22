@@ -195,6 +195,7 @@ private struct NowPlayingCard: View {
             .animation(.easeInOut(duration: 0.8), value: palette)
         }
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .shadow(color: palette.bottom.opacity(0.45), radius: 18, y: 10)
         .onAppear(perform: update)
         .onChange(of: track?.artworkURL) { _, _ in update() }
@@ -311,6 +312,7 @@ private struct ForYouHero: View {
             }
             .frame(height: 190)
             .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             .shadow(color: palette.bottom.opacity(0.45), radius: 18, y: 10)
             .animation(.easeInOut(duration: 0.6), value: palette)
         }
