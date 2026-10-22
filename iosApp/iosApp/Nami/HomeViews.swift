@@ -8,45 +8,70 @@ struct HomeView: View {
     @ObservedObject private var player = PlayerStore.shared
     let onSettings: () -> Void
 
-    var body: some View {
-        ScrollView {
-            LazyVStack(alignment: .leading, spacing: 30) {
-                Text(Self.dateLine)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, -18)
+    /// Con un filtro attivo la Home mostra solo i risultati del filtro, dall'inizio.
+    private var filtering: Bool { home.selectedChip != nil }
 
-                if player.state.track != nil {
-                    NowPlayingCard()
+    /// "Per te adesso": il primo brano consigliato, come su Android.
+    private var heroSong: HomeItem? {
+        home.sections.lazy.flatMap(\.items).first { $0.kind == .song }
+    }
+
+    var body: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 30) {
+                    Text(Self.dateLine)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.secondary)
                         .padding(.horizontal, 20)
-                        .transition(.asymmetric(insertion: .scale(scale: 0.92).combined(with: .opacity), removal: .opacity))
-                }
-                if !home.chips.isEmpty {
-                    ChipsRow(chips: home.chips, selected: home.selectedChip, onSelect: { chip in
-                        withAnimation(.snappy) { home.select(chip: chip) }
-                    })
-                }
-                if !home.mixes.isEmpty {
-                    MixesSection(mixes: home.mixes)
-                }
-                if !home.recent.isEmpty {
-                    RecentSection(songs: home.recent)
-                }
-                if home.sections.isEmpty {
-                    if home.loading {
+                        .padding(.bottom, -18)
+                        .id("top")
+
+                    if !filtering, player.state.track != nil {
+                        NowPlayingCard()
+                            .padding(.horizontal, 20)
+                            .transition(.asymmetric(insertion: .scale(scale: 0.92).combined(with: .opacity), removal: .opacity))
+                    }
+                    if !home.chips.isEmpty {
+                        ChipsRow(chips: home.chips, selected: home.selectedChip, onSelect: { chip in
+                            withAnimation(.snappy) { home.select(chip: chip) }
+                        })
+                    }
+                    if !filtering {
+                        if let hero = heroSong {
+                            ForYouHero(item: hero)
+                                .padding(.horizontal, 20)
+                                .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                        }
+                        if !home.mixes.isEmpty {
+                            MixesSection(mixes: home.mixes)
+                                .transition(.opacity.combined(with: .move(edge: .leading)))
+                        }
+                        if !home.recent.isEmpty {
+                            RecentSection(songs: home.recent)
+                                .transition(.opacity.combined(with: .move(edge: .leading)))
+                        }
+                    }
+                    if home.loading && (home.sections.isEmpty || filtering) {
                         LoadingView()
-                    } else if let error = home.error {
+                            .frame(minHeight: 120)
+                    } else if home.sections.isEmpty, let error = home.error {
                         ErrorView(title: "Home non disponibile", message: error) { home.load() }
                     }
+                    SectionsList(sections: home.sections, featureFirstCarousel: true)
+                        .opacity(home.loading && !home.sections.isEmpty ? 0.35 : 1)
                 }
-                SectionsList(sections: home.sections)
-                    .opacity(home.loading && !home.sections.isEmpty ? 0.45 : 1)
+                .padding(.top, 4)
+                .padding(.bottom, 32)
+                .animation(.smooth(duration: 0.4), value: home.sections.map(\.id))
+                .animation(.spring(response: 0.45, dampingFraction: 0.85), value: filtering)
+                .animation(.spring(response: 0.45, dampingFraction: 0.8), value: player.state.track?.id)
             }
-            .padding(.top, 4)
-            .padding(.bottom, 32)
-            .animation(.smooth(duration: 0.4), value: home.sections.map(\.id))
-            .animation(.spring(response: 0.45, dampingFraction: 0.8), value: player.state.track?.id)
+            .onChange(of: home.selectedChip) { _, _ in
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.9)) {
+                    proxy.scrollTo("top", anchor: .top)
+                }
+            }
         }
         .background(alignment: .top) { AmbientGlow() }
         .navigationTitle(Self.greeting)
@@ -78,12 +103,13 @@ struct HomeView: View {
 /// (l'accento di Nami se non suona niente). Cambia colore con un'animazione lenta.
 struct AmbientGlow: View {
     @ObservedObject private var player = PlayerStore.shared
+    @ObservedObject private var accent = AccentStore.shared
     @State private var palette: ArtworkPalette?
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
-        let first = palette?.top ?? Color.namiAccent
-        let second = palette?.bottom ?? Color.namiAccent.opacity(0.4)
+        let first = palette?.top ?? accent.color
+        let second = palette?.bottom ?? accent.color.opacity(0.4)
         ZStack {
             RadialGradient(colors: [first.opacity(scheme == .dark ? 0.75 : 0.45), .clear], center: .topLeading, startRadius: 10, endRadius: 380)
             RadialGradient(colors: [second.opacity(scheme == .dark ? 0.6 : 0.3), .clear], center: .topTrailing, startRadius: 10, endRadius: 320)
@@ -171,6 +197,15 @@ private struct NowPlayingCard: View {
 }
 
 private extension View {
+    /// Capsula di vetro (iOS 26), materiale sfocato prima.
+    @ViewBuilder func glassCapsule() -> some View {
+        if #available(iOS 26.0, *) {
+            glassEffect(.regular.interactive(), in: Capsule())
+        } else {
+            background(.ultraThinMaterial, in: Capsule())
+        }
+    }
+
     /// Cerchio di vetro (iOS 26), materiale sfocato prima.
     @ViewBuilder func glassCircle() -> some View {
         if #available(iOS 26.0, *) {
@@ -178,6 +213,78 @@ private extension View {
         } else {
             background(.ultraThinMaterial, in: Circle())
         }
+    }
+}
+
+// MARK: - Per te adesso
+
+/// Il primo brano consigliato, grande: copertina sfocata come sfondo, copertina nitida a destra,
+/// colori presi dall'immagine e un pulsante di vetro per farlo partire (con la radio dopo).
+private struct ForYouHero: View {
+    let item: HomeItem
+    @State private var palette = ArtworkPalette.fallback
+
+    var body: some View {
+        Button {
+            HomeStore.shared.play(item)
+        } label: {
+            ZStack(alignment: .leading) {
+                LinearGradient(colors: [palette.top, palette.bottom], startPoint: .topLeading, endPoint: .bottomTrailing)
+                RemoteImage(url: item.artworkURL, placeholder: .clear)
+                    .blur(radius: 50, opaque: true)
+                    .opacity(0.4)
+                HStack(spacing: 0) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("PER TE ADESSO")
+                            .font(.caption.weight(.heavy))
+                            .tracking(1.2)
+                            .foregroundStyle(.white.opacity(0.75))
+                        Text(item.title)
+                            .font(.title2.weight(.heavy))
+                            .foregroundStyle(.white)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.8)
+                        Text(item.subtitle)
+                            .font(.subheadline)
+                            .foregroundStyle(.white.opacity(0.8))
+                            .lineLimit(1)
+                        Spacer(minLength: 10)
+                        HStack(spacing: 6) {
+                            Image(systemName: "play.fill")
+                            Text("Ascolta")
+                        }
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 9)
+                        .glassCapsule()
+                    }
+                    .padding(18)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    ArtworkView(url: item.artworkURL, size: 132, cornerRadius: 14)
+                        .shadow(color: .black.opacity(0.4), radius: 14, y: 8)
+                        .rotationEffect(.degrees(4))
+                        .padding(.trailing, 18)
+                }
+            }
+            .frame(height: 190)
+            .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+            .shadow(color: palette.bottom.opacity(0.45), radius: 18, y: 10)
+            .animation(.easeInOut(duration: 0.6), value: palette)
+        }
+        .buttonStyle(.squishy)
+        .contextMenu {
+            if let track = ItemActions.track(for: item) {
+                SongMenuItems(song: track, onAddToPlaylist: { NamiRouter.shared.addingToPlaylist = track })
+            }
+        }
+        .onAppear(perform: update)
+        .onChange(of: item.artworkURL) { _, _ in update() }
+    }
+
+    private func update() {
+        guard let url = item.artworkURL else { return }
+        PaletteExtractor.palette(for: url) { palette = $0 }
     }
 }
 
@@ -214,7 +321,6 @@ struct ChipButton: View {
             if selected {
                 Button(title, action: action)
                     .buttonStyle(.glassProminent)
-                    .tint(.namiAccent)
             } else {
                 Button(title, action: action)
                     .buttonStyle(.glass)
@@ -223,7 +329,6 @@ struct ChipButton: View {
             if selected {
                 Button(title, action: action)
                     .buttonStyle(.borderedProminent)
-                    .tint(.namiAccent)
             } else {
                 Button(title, action: action)
                     .buttonStyle(.bordered)
@@ -255,7 +360,7 @@ private struct MixesSection: View {
                 } label: {
                     Image(systemName: "arrow.clockwise")
                         .font(.headline)
-                        .foregroundStyle(Color.namiAccent)
+                        .foregroundStyle(.tint)
                         .rotationEffect(.degrees(Double(spins) * 360))
                         .animation(.spring(response: 0.6, dampingFraction: 0.7), value: spins)
                         .frame(width: 36, height: 36)
@@ -457,7 +562,10 @@ struct CollectionPage: View {
                     songs: store.tracks,
                     play: { index, shuffle in store.play(from: index, shuffle: shuffle) },
                     loading: store.loading,
-                    tintURL: store.artworkURL ?? item.artworkURL
+                    tintURL: store.artworkURL ?? item.artworkURL,
+                    saved: store.loading ? nil : store.saved,
+                    onToggleSave: store.toggleSave,
+                    sortable: item.kind == .playlist
                 )
             }
         }

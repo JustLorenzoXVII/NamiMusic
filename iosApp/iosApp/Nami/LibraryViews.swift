@@ -6,6 +6,7 @@ import SwiftUI
 struct LibraryView: View {
     @ObservedObject private var library = LibraryStore.shared
     @ObservedObject private var downloads = DownloadsStore.shared
+    @ObservedObject private var saved = SavedStore.shared
     let onSettings: () -> Void
 
     @State private var creating = false
@@ -25,7 +26,8 @@ struct LibraryView: View {
                             subtitle: "\(library.liked.count) brani",
                             artwork: { LikedArtwork() },
                             songs: library.liked,
-                            play: { index, shuffle in library.playLiked(from: index, shuffle: shuffle) }
+                            play: { index, shuffle in library.playLiked(from: index, shuffle: shuffle) },
+                            sortable: true
                         )
                         .zoomDestination("library:liked")
                     } label: {
@@ -64,7 +66,6 @@ struct LibraryView: View {
                         Label("Nuova", systemImage: "plus")
                             .font(.subheadline.weight(.semibold))
                     }
-                    .tint(.namiAccent)
                 }
                 .padding(.top, 24)
                 .padding(.bottom, 12)
@@ -76,7 +77,7 @@ struct LibraryView: View {
                         VStack(spacing: 10) {
                             Image(systemName: "music.note.list")
                                 .font(.system(size: 40))
-                                .foregroundStyle(Color.namiAccent)
+                                .foregroundStyle(.tint)
                             Text("Crea la tua prima playlist")
                                 .font(.headline)
                         }
@@ -123,6 +124,17 @@ struct LibraryView: View {
                     }
                     .animation(.snappy, value: library.playlists)
                 }
+
+                if !saved.albums.isEmpty {
+                    SectionView(section: HomeSection(id: "saved-albums", title: "Album", items: saved.albums, allSongs: false))
+                        .padding(.horizontal, -20)
+                        .padding(.top, 30)
+                }
+                if !saved.artists.isEmpty {
+                    SectionView(section: HomeSection(id: "saved-artists", title: "Artisti", items: saved.artists, allSongs: false))
+                        .padding(.horizontal, -20)
+                        .padding(.top, 30)
+                }
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 24)
@@ -141,6 +153,7 @@ struct LibraryView: View {
         }
         .sheet(isPresented: $creating) {
             NewPlaylistSheet()
+                .namiTint()
         }
         .alert("Rinomina playlist", isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
             TextField("Nome", text: $newName)
@@ -209,7 +222,7 @@ private struct LibraryRow: View {
         HStack(spacing: 14) {
             Image(systemName: systemImage)
                 .font(.title3)
-                .foregroundStyle(Color.namiAccent)
+                .foregroundStyle(.tint)
                 .frame(width: 30)
             Text(title)
                 .font(.title3)
@@ -290,7 +303,8 @@ struct PlaylistPage: View {
             play: { index, shuffle in library.playPlaylist(current, from: index, shuffle: shuffle) },
             onRemove: current.isEditable ? { index in library.remove(at: index, from: current) } : nil,
             onMove: current.isEditable ? { from, to in library.move(in: current, from: from, to: to) } : nil,
-            tintURL: current.thumbnails.first
+            tintURL: current.thumbnails.first,
+            sortable: true
         )
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -335,7 +349,23 @@ struct PlaylistPage: View {
     }
 }
 
+/// Ordine dei brani in una pagina (come su Android).
+enum SongSort: Int, CaseIterable {
+    case custom, title, artist, album, duration
+
+    var label: String {
+        switch self {
+        case .custom: return "Personalizzato"
+        case .title: return "Titolo"
+        case .artist: return "Artista"
+        case .album: return "Album"
+        case .duration: return "Durata"
+        }
+    }
+}
+
 /// Pagina con copertina, titolo, Riproduci/Casuale e l'elenco dei brani (come Apple Music).
+/// Sotto i pulsanti: Salva (album e playlist di YouTube Music), Scarica tutto e Ordina.
 /// Con [onRemove] e [onMove] i brani si tolgono scorrendo e si riordinano con "Modifica".
 struct SongListPage<Artwork: View>: View {
     let title: String
@@ -348,14 +378,52 @@ struct SongListPage<Artwork: View>: View {
     var loading: Bool = false
     /// Copertina da cui prendere i colori del bagliore in alto
     var tintURL: URL? = nil
+    /// Salva in Libreria (album e playlist di YouTube Music)
+    var saved: Bool? = nil
+    var onToggleSave: (() -> Void)? = nil
+    /// Mostra il pulsante "Ordina"
+    var sortable: Bool = false
 
     @ObservedObject private var player = PlayerStore.shared
+    @ObservedObject private var downloads = DownloadsStore.shared
     @State private var rows: [Track] = []
     @State private var palette: ArtworkPalette?
     @State private var appeared = false
+    @AppStorage("nami.sort") private var sortRaw = 0
+    @AppStorage("nami.sortDescending") private var descending = false
     @Environment(\.colorScheme) private var scheme
 
+    private var sort: SongSort { sortable ? (SongSort(rawValue: sortRaw) ?? .custom) : .custom }
+    private var sorted: Bool { sort != .custom || (sortable && descending) }
+
+    /// Brani nell'ordine mostrato, con la loro posizione originale.
+    private var displayed: [(index: Int, track: Track)] {
+        let base = Array(rows.enumerated()).map { (index: $0.offset, track: $0.element) }
+        let ordered: [(index: Int, track: Track)]
+        switch sort {
+        case .custom: ordered = base
+        case .title: ordered = base.sorted { $0.track.title.localizedCaseInsensitiveCompare($1.track.title) == .orderedAscending }
+        case .artist: ordered = base.sorted { $0.track.artist.localizedCaseInsensitiveCompare($1.track.artist) == .orderedAscending }
+        case .album: ordered = base.sorted { ($0.track.albumTitle ?? "").localizedCaseInsensitiveCompare($1.track.albumTitle ?? "") == .orderedAscending }
+        case .duration: ordered = base.sorted { $0.track.duration < $1.track.duration }
+        }
+        return sortable && descending ? ordered.reversed() : ordered
+    }
+
+    private var allDownloaded: Bool {
+        !rows.isEmpty && rows.allSatisfy { downloads.info($0)?.completed == true }
+    }
+
+    private func start(_ position: Int, shuffle: Bool) {
+        if sorted {
+            NamiPlayTracks(displayed.map(\.track), title: title, from: position, shuffle: shuffle)
+        } else {
+            play(position, shuffle)
+        }
+    }
+
     var body: some View {
+        let list = displayed
         List {
             VStack(spacing: 14) {
                 artwork()
@@ -373,11 +441,43 @@ struct SongListPage<Artwork: View>: View {
                         .contentTransition(.numericText())
                 }
                 HStack(spacing: 14) {
-                    PlayActionButton(title: "Riproduci", systemImage: "play.fill") { play(0, false) }
-                    PlayActionButton(title: "Casuale", systemImage: "shuffle") { play(0, true) }
+                    PlayActionButton(title: "Riproduci", systemImage: "play.fill") { start(0, shuffle: false) }
+                    PlayActionButton(title: "Casuale", systemImage: "shuffle") { start(0, shuffle: true) }
                 }
                 .disabled(rows.isEmpty)
                 .padding(.top, 4)
+                HStack(spacing: 10) {
+                    if let saved, let onToggleSave {
+                        SmallActionButton(
+                            title: saved ? "Salvato" : "Salva",
+                            systemImage: saved ? "checkmark" : "plus",
+                            active: saved,
+                            action: onToggleSave
+                        )
+                    }
+                    SmallActionButton(
+                        title: allDownloaded ? "Scaricato" : "Scarica",
+                        systemImage: allDownloaded ? "arrow.down.circle.fill" : "arrow.down.circle",
+                        active: allDownloaded
+                    ) {
+                        if !allDownloaded { downloads.downloadAll(rows) }
+                    }
+                    .disabled(rows.isEmpty)
+                    if sortable {
+                        Menu {
+                            Picker("Ordina per", selection: $sortRaw) {
+                                ForEach(SongSort.allCases, id: \.rawValue) { option in
+                                    Text(option.label).tag(option.rawValue)
+                                }
+                            }
+                            Divider()
+                            Toggle("Ordine inverso", systemImage: "arrow.up.arrow.down", isOn: $descending)
+                        } label: {
+                            SmallActionLabel(title: sort == .custom ? "Ordina" : sort.label, systemImage: "arrow.up.arrow.down", active: sorted)
+                        }
+                    }
+                }
+                .padding(.top, 2)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
@@ -392,9 +492,10 @@ struct SongListPage<Artwork: View>: View {
                     .listRowBackground(Color.clear)
             }
 
-            ForEach(Array(rows.enumerated()), id: \.offset) { index, song in
+            ForEach(Array(list.enumerated()), id: \.element.index) { position, entry in
+                let song = entry.track
                 Button {
-                    play(index, false)
+                    start(sorted ? position : entry.index, shuffle: false)
                 } label: {
                     SongRow(song: song, playing: player.state.track?.id == song.id)
                 }
@@ -406,7 +507,7 @@ struct SongListPage<Artwork: View>: View {
                     if let onRemove {
                         Divider()
                         Button(role: .destructive) {
-                            removeRow(at: index, onRemove)
+                            removeRow(at: entry.index, onRemove)
                         } label: {
                             Label("Togli dalla playlist", systemImage: "minus.circle")
                         }
@@ -418,11 +519,11 @@ struct SongListPage<Artwork: View>: View {
                     } label: {
                         Label("Dopo", systemImage: "text.line.first.and.arrowtriangle.forward")
                     }
-                    .tint(.namiAccent)
+                    .tint(.indigo)
                 }
             }
-            .onDelete(perform: deleteAction)
-            .onMove(perform: moveAction)
+            .onDelete(perform: deleteAction(list))
+            .onMove(perform: sorted ? nil : moveAction)
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
@@ -441,12 +542,15 @@ struct SongListPage<Artwork: View>: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if onMove != nil, !rows.isEmpty {
+            if onMove != nil, !rows.isEmpty, !sorted {
                 ToolbarItem(placement: .topBarTrailing) {
                     EditButton()
                 }
             }
         }
+        .animation(.snappy, value: sortRaw)
+        .animation(.snappy, value: descending)
+        .sensoryFeedback(.selection, trigger: sortRaw)
         .onAppear {
             rows = songs
             appeared = true
@@ -463,10 +567,11 @@ struct SongListPage<Artwork: View>: View {
         PaletteExtractor.palette(for: url) { palette = $0 }
     }
 
-    private var deleteAction: ((IndexSet) -> Void)? {
+    private func deleteAction(_ list: [(index: Int, track: Track)]) -> ((IndexSet) -> Void)? {
         guard let onRemove else { return nil }
         return { offsets in
-            for index in offsets.sorted(by: >) { removeRow(at: index, onRemove) }
+            let originals = offsets.compactMap { list.indices.contains($0) ? list[$0].index : nil }
+            for index in originals.sorted(by: >) { removeRow(at: index, onRemove) }
         }
     }
 
@@ -487,6 +592,41 @@ struct SongListPage<Artwork: View>: View {
     }
 }
 
+/// Pulsantino a capsula sotto Riproduci/Casuale (Salva, Scarica, Ordina).
+struct SmallActionButton: View {
+    let title: String
+    let systemImage: String
+    var active = false
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            SmallActionLabel(title: title, systemImage: systemImage, active: active)
+        }
+        .buttonStyle(.squishy)
+        .sensoryFeedback(.success, trigger: active) { old, new in !old && new }
+    }
+}
+
+struct SmallActionLabel: View {
+    let title: String
+    let systemImage: String
+    var active = false
+
+    var body: some View {
+        Label(title, systemImage: systemImage)
+            .font(.subheadline.weight(.semibold))
+            .contentTransition(.symbolEffect(.replace))
+            .foregroundStyle(active ? AnyShapeStyle(.white) : AnyShapeStyle(.tint))
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background {
+                Capsule().fill(active ? AnyShapeStyle(.tint) : AnyShapeStyle(.tint.opacity(0.14)))
+            }
+            .animation(.snappy, value: active)
+    }
+}
+
 /// Le voci del menu di un brano (tenendo premuto).
 struct SongMenuItems: View {
     let song: Track
@@ -494,6 +634,11 @@ struct SongMenuItems: View {
     @ObservedObject private var library = LibraryStore.shared
 
     var body: some View {
+        Button {
+            NamiCatalog_startRadio(song)
+        } label: {
+            Label("Avvia radio del brano", systemImage: "dot.radiowaves.left.and.right")
+        }
         Button {
             library.playNext(song)
         } label: {
@@ -515,6 +660,26 @@ struct SongMenuItems: View {
                 Label("Togli dai preferiti", systemImage: "heart.slash")
             } else {
                 Label("Aggiungi ai preferiti", systemImage: "heart")
+            }
+        }
+        Divider()
+        if let artistId = song.artistId {
+            Button {
+                NamiRouter.shared.open(.artist(key: artistId, title: song.artist))
+            } label: {
+                Label("Vai all'artista", systemImage: "music.microphone")
+            }
+        }
+        if let albumId = song.albumId {
+            Button {
+                NamiRouter.shared.open(.album(id: albumId, title: song.albumTitle ?? "Album"))
+            } label: {
+                Label("Vai all'album", systemImage: "square.stack")
+            }
+        }
+        if let url = URL(string: "https://music.youtube.com/watch?v=" + song.id) {
+            ShareLink(item: url, subject: Text(song.title), message: Text("\(song.title) – \(song.artist)")) {
+                Label("Condividi", systemImage: "square.and.arrow.up")
             }
         }
         let download = DownloadsStore.shared.info(song)
@@ -549,8 +714,7 @@ struct PlayActionButton: View {
             }
             .buttonStyle(.glass)
             .controlSize(.large)
-            .tint(.namiAccent)
-            .foregroundStyle(Color.namiAccent)
+            .foregroundStyle(.tint)
         } else {
             Button(action: action) {
                 Label(title, systemImage: systemImage)
@@ -559,7 +723,6 @@ struct PlayActionButton: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.large)
-            .tint(.namiAccent)
         }
     }
 }
@@ -575,7 +738,7 @@ struct SongRow: View {
                 HStack(spacing: 4) {
                     Text(song.title)
                         .font(.body)
-                        .foregroundStyle(playing ? Color.namiAccent : .primary)
+                        .foregroundStyle(playing ? AnyShapeStyle(.tint) : AnyShapeStyle(.primary))
                         .lineLimit(1)
                     if song.explicit {
                         Image(systemName: "e.square.fill")
@@ -592,7 +755,7 @@ struct SongRow: View {
             DownloadBadge(song: song)
             if playing {
                 Image(systemName: "waveform")
-                    .foregroundStyle(Color.namiAccent)
+                    .foregroundStyle(.tint)
                     .symbolEffect(.variableColor.iterative, options: .repeating)
             }
         }
@@ -625,7 +788,6 @@ struct NewPlaylistSheet: View {
                 if library.isLoggedIn {
                     Section {
                         Toggle("Crea anche su YouTube Music", isOn: $onYouTube)
-                            .tint(.namiAccent)
                     } footer: {
                         Text("Così la trovi anche nelle altre app di YouTube Music.")
                     }
@@ -677,7 +839,7 @@ struct AddToPlaylistSheet: View {
                         creating = true
                     } label: {
                         Label("Nuova playlist…", systemImage: "plus")
-                            .foregroundStyle(Color.namiAccent)
+                            .foregroundStyle(.tint)
                     }
                     ForEach(library.editablePlaylists) { playlist in
                         Button {
@@ -714,33 +876,5 @@ struct AddToPlaylistSheet: View {
             }
         }
         .presentationDetents([.medium, .large])
-    }
-}
-
-// MARK: - Impostazioni
-
-struct SettingsView: View {
-    @ObservedObject private var app = NamiApp.shared
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    Toggle(isOn: Binding(get: { app.iosUI }, set: { app.setIosUI($0) })) {
-                        Label("Interfaccia iOS (Liquid Glass)", systemImage: "sparkles")
-                    }
-                } footer: {
-                    Text("Spenta, Nami torna all'interfaccia di sempre.")
-                }
-            }
-            .navigationTitle("Impostazioni")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Fine") { dismiss() }
-                }
-            }
-        }
     }
 }

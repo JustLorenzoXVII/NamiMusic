@@ -23,16 +23,25 @@ struct NamiRootView: View {
                 legacyTabs
             }
         }
-        .tint(.namiAccent)
+        .namiTint()
+        .onChange(of: tab) { _, newTab in router.activeTab = newTab }
+        .onChange(of: router.pending) { _, route in
+            // Dal player: prima si chiude, poi si apre la pagina
+            if route != nil, showPlayer { showPlayer = false }
+        }
+        .onAppear { AccentStore.shared.update(for: player.state.track?.artworkURL) }
+        .onChange(of: player.state.track?.artworkURL) { _, url in AccentStore.shared.update(for: url) }
         .fullScreenCover(isPresented: $showPlayer) {
             PlayerView()
                 .modifier(ZoomFromMiniPlayer(namespace: playerNamespace))
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
+                .namiTint()
         }
         .sheet(item: $router.addingToPlaylist) { song in
             AddToPlaylistSheet(song: song)
+                .namiTint()
         }
     }
 
@@ -42,16 +51,16 @@ struct NamiRootView: View {
     private var modernTabs: some View {
         TabView(selection: $tab) {
             Tab("Home", systemImage: "house.fill", value: NamiTab.home) {
-                ZoomingStack { HomeView(onSettings: { showSettings = true }) }
+                ZoomingStack(tab: .home) { HomeView(onSettings: { showSettings = true }) }
             }
             Tab("Statistiche", systemImage: "chart.bar.fill", value: NamiTab.stats) {
-                ZoomingStack { StatsView(onSettings: { showSettings = true }) }
+                ZoomingStack(tab: .stats) { StatsView(onSettings: { showSettings = true }) }
             }
             Tab("Libreria", systemImage: "square.stack.fill", value: NamiTab.library) {
-                ZoomingStack { LibraryView(onSettings: { showSettings = true }) }
+                ZoomingStack(tab: .library) { LibraryView(onSettings: { showSettings = true }) }
             }
             Tab(value: NamiTab.search, role: .search) {
-                ZoomingStack { SearchView() }
+                ZoomingStack(tab: .search) { SearchView() }
             }
         }
         .tabBarMinimizeBehavior(.onScrollDown)
@@ -65,16 +74,16 @@ struct NamiRootView: View {
 
     private var legacyTabs: some View {
         TabView(selection: $tab) {
-            ZoomingStack { HomeView(onSettings: { showSettings = true }) }
+            ZoomingStack(tab: .home) { HomeView(onSettings: { showSettings = true }) }
                 .tabItem { Label("Home", systemImage: "house.fill") }
                 .tag(NamiTab.home)
-            ZoomingStack { StatsView(onSettings: { showSettings = true }) }
+            ZoomingStack(tab: .stats) { StatsView(onSettings: { showSettings = true }) }
                 .tabItem { Label("Statistiche", systemImage: "chart.bar.fill") }
                 .tag(NamiTab.stats)
-            ZoomingStack { LibraryView(onSettings: { showSettings = true }) }
+            ZoomingStack(tab: .library) { LibraryView(onSettings: { showSettings = true }) }
                 .tabItem { Label("Libreria", systemImage: "square.stack.fill") }
                 .tag(NamiTab.library)
-            ZoomingStack { SearchView() }
+            ZoomingStack(tab: .search) { SearchView() }
                 .tabItem { Label("Cerca", systemImage: "magnifyingglass") }
                 .tag(NamiTab.search)
         }
@@ -148,16 +157,17 @@ struct MiniPlayerView: View {
 
 // MARK: - Schede ancora in arrivo
 
-/// Pulsante impostazioni in alto a destra (vetro su iOS 26).
+/// In alto a destra: il tuo account (iniziale colorata) che apre account e impostazioni,
+/// come il profilo di Apple Music.
 struct SettingsToolbar: ToolbarContent {
     let onSettings: () -> Void
 
     var body: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             Button(action: onSettings) {
-                Image(systemName: "gearshape")
+                AccountAvatar(size: 30)
             }
-            .accessibilityLabel("Impostazioni")
+            .accessibilityLabel("Account e impostazioni")
         }
     }
 }

@@ -142,7 +142,7 @@ private struct HoursChart: View {
             Chart {
                 ForEach(Array(byHour.enumerated()), id: \.offset) { hour, minutes in
                     BarMark(x: .value("Ora", hour), y: .value("Minuti", minutes), width: .ratio(0.7))
-                        .foregroundStyle(hour == peak ? Color.namiAccent : Color.namiAccent.opacity(0.35))
+                        .foregroundStyle(hour == peak ? AnyShapeStyle(.tint) : AnyShapeStyle(.tint.opacity(0.35)))
                         .cornerRadius(4)
                 }
             }
@@ -180,7 +180,7 @@ private struct TopArtists: View {
                                         .font(.system(size: 20, weight: .heavy, design: .rounded))
                                         .foregroundStyle(.white)
                                         .frame(width: 36, height: 36)
-                                        .background(Circle().fill(Color.namiAccent.gradient))
+                                        .background(Circle().fill(.tint))
                                         .overlay(Circle().strokeBorder(Color(.systemBackground), lineWidth: 3))
                                 }
                                 Text(row.title)
@@ -226,12 +226,12 @@ private struct TopSongs: View {
                         HStack(spacing: 12) {
                             Text("\(index + 1)")
                                 .font(.headline.monospacedDigit())
-                                .foregroundStyle(index < 3 ? Color.namiAccent : .secondary)
+                                .foregroundStyle(index < 3 ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
                                 .frame(width: 24)
                             ArtworkView(url: row.artworkURL, size: 48, cornerRadius: 6)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(row.title)
-                                    .foregroundStyle(player.state.track?.id == row.id ? Color.namiAccent : .primary)
+                                    .foregroundStyle(player.state.track?.id == row.id ? AnyShapeStyle(.tint) : AnyShapeStyle(.primary))
                                     .lineLimit(1)
                                 Text(row.subtitle)
                                     .font(.subheadline)
@@ -273,7 +273,7 @@ private struct GenresView: View {
                             .lineLimit(1)
                         GeometryReader { geo in
                             Capsule()
-                                .fill(Color.namiAccent.opacity(1 - Double(index) * 0.09).gradient)
+                                .fill(.tint.opacity(1 - Double(index) * 0.09))
                                 .frame(width: max(8, geo.size.width * (appeared ? genre.1 / (genres.first?.1 ?? 1) : 0)))
                         }
                         .frame(height: 14)
@@ -311,7 +311,7 @@ struct DownloadBadge: View {
                     Circle().stroke(Color.secondary.opacity(0.3), lineWidth: 2)
                     Circle()
                         .trim(from: 0, to: max(0.05, info.progress))
-                        .stroke(Color.namiAccent, style: StrokeStyle(lineWidth: 2, lineCap: .round))
+                        .stroke(.tint, style: StrokeStyle(lineWidth: 2, lineCap: .round))
                         .rotationEffect(.degrees(-90))
                         .animation(.linear(duration: 0.3), value: info.progress)
                 }
@@ -342,7 +342,8 @@ struct DownloadsPage: View {
                     onRemove: { index in
                         guard downloads.songs.indices.contains(index) else { return }
                         downloads.remove(downloads.songs[index])
-                    }
+                    },
+                    sortable: true
                 )
             }
         }

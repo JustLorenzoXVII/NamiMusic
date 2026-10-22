@@ -183,12 +183,97 @@ enum PaletteExtractor {
 // MARK: - Colori di Nami
 
 extension Color {
-    /// Accento dell'icona: rosa del fiore nel tema scuro, prugna nel tema chiaro.
-    static let namiAccent = Color(UIColor { traits in
+    /// Accento quando non suona niente: indaco (più chiaro nel tema scuro).
+    static let namiFallbackAccent = Color(UIColor { traits in
         traits.userInterfaceStyle == .dark
-            ? UIColor(red: 1.0, green: 0.71, blue: 0.81, alpha: 1)
-            : UIColor(red: 0.42, green: 0.18, blue: 0.39, alpha: 1)
+            ? UIColor(red: 0.55, green: 0.56, blue: 1.0, alpha: 1)
+            : UIColor(red: 0.33, green: 0.32, blue: 0.85, alpha: 1)
     })
+}
+
+/// L'accento di Nami segue la copertina in riproduzione: il colore più vivo dell'immagine,
+/// schiarito nel tema scuro e scurito in quello chiaro, così resta sempre leggibile.
+final class AccentStore: ObservableObject {
+    static let shared = AccentStore()
+
+    @Published private(set) var color: Color = .namiFallbackAccent
+    private var currentURL: URL?
+    private static var cache: [URL: Color] = [:]
+
+    func update(for url: URL?) {
+        guard url != currentURL else { return }
+        currentURL = url
+        guard let url else {
+            withAnimation(.easeInOut(duration: 0.8)) { color = .namiFallbackAccent }
+            return
+        }
+        if let cached = Self.cache[url] {
+            withAnimation(.easeInOut(duration: 0.8)) { color = cached }
+            return
+        }
+        ImageCache.shared.load(url) { [weak self] image in
+            guard let image else { return }
+            DispatchQueue.global(qos: .userInitiated).async {
+                let result = Self.vivid(from: image)
+                DispatchQueue.main.async {
+                    guard let self, self.currentURL == url else { return }
+                    let accent = result ?? .namiFallbackAccent
+                    Self.cache[url] = accent
+                    withAnimation(.easeInOut(duration: 0.8)) { self.color = accent }
+                }
+            }
+        }
+    }
+
+    /// Colore più vivo dell'immagine (rimpicciolita a 20×20), o nil se è quasi in bianco e nero.
+    private static func vivid(from image: UIImage) -> Color? {
+        guard let cg = image.cgImage else { return nil }
+        let side = 20
+        var pixels = [UInt8](repeating: 0, count: side * side * 4)
+        guard let context = CGContext(
+            data: &pixels, width: side, height: side, bitsPerComponent: 8, bytesPerRow: side * 4,
+            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ) else { return nil }
+        context.draw(cg, in: CGRect(x: 0, y: 0, width: side, height: side))
+        var candidates: [(score: CGFloat, h: CGFloat, s: CGFloat)] = []
+        for i in stride(from: 0, to: pixels.count, by: 4) {
+            let color = UIColor(red: CGFloat(pixels[i]) / 255, green: CGFloat(pixels[i + 1]) / 255, blue: CGFloat(pixels[i + 2]) / 255, alpha: 1)
+            var h: CGFloat = 0, s: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+            color.getHue(&h, saturation: &s, brightness: &b, alpha: &a)
+            guard b > 0.18 else { continue }
+            candidates.append((s * min(b, 0.9), h, s))
+        }
+        let top = candidates.sorted { $0.score > $1.score }.prefix(max(4, candidates.count / 8))
+        guard let best = top.first, best.s > 0.22 else { return nil }
+        // Tinta media dei pixel più vivi (media sul cerchio, così rosso 0.98 e 0.02 non fanno verde)
+        var x: CGFloat = 0, y: CGFloat = 0, sat: CGFloat = 0
+        for c in top {
+            x += cos(c.h * 2 * .pi) * c.score
+            y += sin(c.h * 2 * .pi) * c.score
+            sat += c.s
+        }
+        var hue = atan2(y, x) / (2 * .pi)
+        if hue < 0 { hue += 1 }
+        let saturation = min(max(sat / CGFloat(top.count), 0.5), 0.85)
+        return Color(UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(hue: hue, saturation: saturation * 0.85, brightness: 0.95, alpha: 1)
+                : UIColor(hue: hue, saturation: saturation, brightness: 0.62, alpha: 1)
+        })
+    }
+}
+
+/// Applica l'accento dinamico (anche dentro i fogli, che non sempre lo ereditano).
+struct NamiTint: ViewModifier {
+    @ObservedObject private var accent = AccentStore.shared
+
+    func body(content: Content) -> some View {
+        content.tint(accent.color)
+    }
+}
+
+extension View {
+    func namiTint() -> some View { modifier(NamiTint()) }
 }
 
 /// "3:07" da secondi.

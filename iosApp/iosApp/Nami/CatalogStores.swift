@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 import SwiftUI
 import Shared
 
@@ -119,6 +120,16 @@ extension String {
 
 // MARK: - Elementi (Home, ricerca, artisti)
 
+/// Radio del brano (da SongMenuItems, che non vede il framework Kotlin).
+func NamiCatalog_startRadio(_ song: Track) {
+    NamiCatalog.shared.startRadio(songId: song.id)
+}
+
+/// Fa partire brani già mostrati (per esempio una playlist ordinata per titolo).
+func NamiPlayTracks(_ tracks: [Track], title: String, from index: Int, shuffle: Bool) {
+    NamiCatalog.shared.playSongs(songIds: tracks.map(\.id), title: title, startIndex: Int32(index), shuffle: shuffle)
+}
+
 enum ItemActions {
     /// Il brano di un elemento, per il menu "tieni premuto".
     static func track(for item: HomeItem) -> Track? {
@@ -226,14 +237,25 @@ final class PageStore: ObservableObject {
     @Published private(set) var page: PageData?
     @Published private(set) var loading = true
     @Published private(set) var error: String?
+    @Published private(set) var followed = false
     let key: String
     let kind: Kind
+    private var followSubscription: NamiSubscription?
 
     init(key: String, kind: Kind) {
         self.key = key
         self.kind = kind
         load()
+        if kind == .artist {
+            followSubscription = NamiCatalog.shared.observeArtistFollowed(key: key) { [weak self] value in
+                withAnimation(.snappy) { self?.followed = value.boolValue }
+            }
+        }
     }
+
+    deinit { followSubscription?.cancel() }
+
+    func toggleFollow() { NamiCatalog.shared.toggleFollowArtist(key: key) }
 
     func load() {
         loading = true
@@ -252,6 +274,25 @@ final class PageStore: ObservableObject {
     }
 
     func playArtist(shuffle: Bool) { NamiCatalog.shared.playArtist(key: key, shuffle: shuffle) }
+}
+
+// MARK: - Album e artisti in Libreria
+
+final class SavedStore: ObservableObject {
+    static let shared = SavedStore()
+
+    @Published private(set) var albums: [HomeItem] = []
+    @Published private(set) var artists: [HomeItem] = []
+    private var subscriptions: [NamiSubscription] = []
+
+    private init() {
+        subscriptions.append(NamiCatalog.shared.observeSavedAlbums { [weak self] list in
+            self?.albums = list.map { HomeItem($0) }
+        })
+        subscriptions.append(NamiCatalog.shared.observeFollowedArtists { [weak self] list in
+            self?.artists = list.map { HomeItem($0) }
+        })
+    }
 }
 
 // MARK: - Testi
@@ -389,4 +430,79 @@ final class StatsStore: ObservableObject {
         guard let stats else { return }
         NamiCatalog.shared.playSongs(songIds: stats.topSongs.map(\.id), title: "I più ascoltati", startIndex: Int32(index), shuffle: false)
     }
+}
+
+// MARK: - Impostazioni e account
+
+struct AccountInfo: Equatable {
+    let name: String
+    let email: String?
+}
+
+struct OptionItem: Identifiable, Hashable {
+    let id: String
+    let name: String
+}
+
+final class SettingsStore: ObservableObject {
+    static let shared = SettingsStore()
+
+    @Published private(set) var account: AccountInfo?
+    @Published var audioQuality: Int { didSet { if audioQuality != oldValue { NamiSettings.shared.setAudioQuality(index: Int32(audioQuality)) } } }
+    @Published var language: String { didSet { if language != oldValue { NamiSettings.shared.setContentLanguage(code: language) } } }
+    @Published var country: String { didSet { if country != oldValue { NamiSettings.shared.setContentCountry(code: country) } } }
+    @Published private(set) var downloadsBytes: Int64 = 0
+    let languages: [OptionItem]
+    let countries: [OptionItem]
+    let version: String
+    private var subscription: NamiSubscription?
+    private var started = false
+
+    static let qualities = ["Massima", "Alta", "Automatica", "Bassa (risparmia dati)"]
+
+    private init() {
+        audioQuality = Int(NamiSettings.shared.audioQuality())
+        language = NamiSettings.shared.contentLanguage()
+        country = NamiSettings.shared.contentCountry()
+        languages = NamiSettings.shared.languages().map { OptionItem(id: $0.code, name: $0.name) }
+        countries = NamiSettings.shared.countries().map { OptionItem(id: $0.code, name: $0.name) }
+        version = NamiSettings.shared.version()
+        subscription = NamiSettings.shared.observeAccount { [weak self] account in
+            guard let self else { return }
+            let new = account.map { AccountInfo(name: $0.name, email: $0.email) }
+            let changed = (self.account == nil) != (new == nil)
+            withAnimation(.snappy) { self.account = new }
+            // Entrato o uscito: la Home cambia (con l'account è quella personale)
+            if changed && self.started { HomeStore.shared.load() }
+            self.started = true
+        }
+    }
+
+    func languageName(_ code: String) -> String { languages.first { $0.id == code }?.name ?? code }
+    func countryName(_ code: String) -> String { countries.first { $0.id == code }?.name ?? code }
+
+    func refreshDownloadsSize() {
+        NamiSettings.shared.downloadsSize { [weak self] bytes in
+            self?.downloadsBytes = bytes.int64Value
+        }
+    }
+
+    func removeAllDownloads() {
+        NamiSettings.shared.removeAllDownloads()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in self?.refreshDownloadsSize() }
+    }
+
+    func logout() { NamiSettings.shared.logout() }
+    func clearSearchHistory() { NamiCatalog.shared.clearSearchHistory() }
+}
+
+/// La pagina di accesso di Google (la stessa di Android, dentro l'app).
+struct GoogleLoginView: UIViewControllerRepresentable {
+    let onDone: () -> Void
+
+    func makeUIViewController(context: Self.Context) -> UIViewController {
+        NamiSettings.shared.loginController(onDone: onDone)
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewController, context: Self.Context) {}
 }

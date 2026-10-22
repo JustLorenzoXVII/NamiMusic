@@ -5,10 +5,42 @@ import SwiftUI
 
 // MARK: - Router (fogli aperti da qualsiasi schermata)
 
+enum NamiRoute: Hashable {
+    case artist(key: String, title: String)
+    case album(id: String, title: String)
+}
+
 final class NamiRouter: ObservableObject {
     static let shared = NamiRouter()
     /// Brano da aggiungere a una playlist: apre il foglio "Aggiungi a una playlist".
     @Published var addingToPlaylist: Track?
+    /// Pagina da aprire nella scheda visibile (da un menu, anche dal player).
+    @Published var pending: NamiRoute?
+    var activeTab: NamiTab = .home
+
+    func open(_ route: NamiRoute) { pending = route }
+}
+
+extension HomeItem {
+    /// Elemento costruito a mano (per esempio "Vai all'album"): la chiave "1:<id>" apre l'album.
+    init(key: String, kind: Kind, title: String, subtitle: String = "", artworkURL: URL? = nil) {
+        self.id = key
+        self.kind = kind
+        self.title = title
+        self.subtitle = subtitle
+        self.artworkURL = artworkURL
+        self.explicit = false
+    }
+}
+
+@ViewBuilder
+func routeDestination(for route: NamiRoute) -> some View {
+    switch route {
+    case let .artist(key, title):
+        ArtistPageView(key: key, title: title, artworkURL: nil)
+    case let .album(id, title):
+        CollectionPage(item: HomeItem(key: "1:" + id, kind: .album, title: title))
+    }
 }
 
 // MARK: - Transizione a zoom (iOS 18): la copertina si allarga nella pagina che apre
@@ -59,14 +91,25 @@ extension View {
 
 /// Ogni scheda ha il suo NavigationStack con il suo spazio per lo zoom.
 struct ZoomingStack<Content: View>: View {
+    let tab: NamiTab
     @ViewBuilder let content: () -> Content
     @Namespace private var namespace
+    @State private var path = NavigationPath()
+    @ObservedObject private var router = NamiRouter.shared
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             content()
+                .navigationDestination(for: NamiRoute.self) { route in
+                    routeDestination(for: route)
+                }
         }
         .environment(\.zoomNamespace, namespace)
+        .onChange(of: router.pending) { _, route in
+            guard let route, router.activeTab == tab else { return }
+            path.append(route)
+            router.pending = nil
+        }
     }
 }
 
@@ -115,7 +158,7 @@ struct SectionTitle: View {
                 if showsChevron {
                     Image(systemName: "chevron.forward")
                         .font(.headline.weight(.bold))
-                        .foregroundStyle(Color.namiAccent)
+                        .foregroundStyle(.tint)
                 }
             }
             if let subtitle {
@@ -171,11 +214,93 @@ struct ExplicitBadge: View {
 
 struct SectionsList: View {
     let sections: [HomeSection]
+    /// La prima sezione di copertine diventa un carosello grande (come su Android)
+    var featureFirstCarousel = false
+
+    private var featuredID: String? {
+        guard featureFirstCarousel else { return nil }
+        return sections.first { !$0.allSongs && $0.items.count >= 3 }?.id
+    }
 
     var body: some View {
+        let featured = featuredID
         ForEach(sections) { section in
-            SectionView(section: section)
+            if section.id == featured {
+                FeaturedCarousel(section: section)
+            } else {
+                SectionView(section: section)
+            }
         }
+    }
+}
+
+/// Carosello grande: copertine quasi a tutta larghezza con il titolo sopra, che si fermano una alla volta.
+struct FeaturedCarousel: View {
+    let section: HomeSection
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            NavigationLink {
+                SectionGridPage(section: section)
+            } label: {
+                SectionTitle(title: section.title)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: 12) {
+                    ForEach(section.items) { item in
+                        ItemButton(item: item) {
+                            FeaturedCard(item: item)
+                        }
+                        .containerRelativeFrame(.horizontal) { width, _ in width * 0.8 }
+                        .scrollTransition(.interactive, axis: .horizontal) { content, phase in
+                            content
+                                .scaleEffect(phase.isIdentity ? 1 : 0.9)
+                                .opacity(phase.isIdentity ? 1 : 0.6)
+                                .rotation3DEffect(.degrees(phase.value * -8), axis: (x: 0, y: 1, z: 0))
+                        }
+                    }
+                }
+                .scrollTargetLayout()
+            }
+            .contentMargins(.horizontal, 20, for: .scrollContent)
+            .scrollTargetBehavior(.viewAligned)
+        }
+    }
+}
+
+private struct FeaturedCard: View {
+    let item: HomeItem
+
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            Group {
+                if item.kind == .artist {
+                    RemoteImage(url: item.artworkURL)
+                } else {
+                    RemoteImage(url: item.artworkURL)
+                }
+            }
+            .aspectRatio(1, contentMode: .fit)
+            LinearGradient(colors: [.clear, .clear, .black.opacity(0.75)], startPoint: .top, endPoint: .bottom)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.title)
+                    .font(.title3.weight(.heavy))
+                    .foregroundStyle(.white)
+                    .lineLimit(2)
+                if !item.subtitle.isEmpty {
+                    Text(item.subtitle)
+                        .font(.subheadline)
+                        .foregroundStyle(.white.opacity(0.8))
+                        .lineLimit(1)
+                }
+            }
+            .padding(16)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .shadow(color: .black.opacity(0.18), radius: 12, y: 6)
+        .contentShape(Rectangle())
     }
 }
 
@@ -272,7 +397,7 @@ struct ItemRowLabel: View {
                 HStack(spacing: 4) {
                     Text(item.title)
                         .font(.body)
-                        .foregroundStyle(playing ? Color.namiAccent : .primary)
+                        .foregroundStyle(playing ? AnyShapeStyle(.tint) : AnyShapeStyle(.primary))
                         .lineLimit(1)
                     if item.explicit { ExplicitBadge() }
                 }
@@ -287,7 +412,7 @@ struct ItemRowLabel: View {
             Spacer(minLength: 0)
             if playing {
                 Image(systemName: "waveform")
-                    .foregroundStyle(Color.namiAccent)
+                    .foregroundStyle(.tint)
                     .symbolEffect(.variableColor.iterative, options: .repeating)
             } else if item.kind != .song && item.kind != .other {
                 Image(systemName: "chevron.forward")
@@ -439,7 +564,6 @@ struct LoadingView: View {
     var body: some View {
         ProgressView()
             .controlSize(.large)
-            .tint(.namiAccent)
             .frame(maxWidth: .infinity, minHeight: 200)
     }
 }
@@ -457,7 +581,6 @@ struct ErrorView: View {
         } actions: {
             Button("Riprova", action: retry)
                 .buttonStyle(.borderedProminent)
-                .tint(.namiAccent)
         }
     }
 }

@@ -27,10 +27,23 @@ struct ArtistPageView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
                 hero
-                if let page, page.canPlay {
-                    HStack(spacing: 14) {
-                        PlayActionButton(title: "Casuale", systemImage: "shuffle") { store.playArtist(shuffle: true) }
-                        PlayActionButton(title: "Radio", systemImage: "dot.radiowaves.left.and.right") { store.playArtist(shuffle: false) }
+                if let page {
+                    VStack(spacing: 12) {
+                        if page.canPlay {
+                            HStack(spacing: 14) {
+                                PlayActionButton(title: "Casuale", systemImage: "shuffle") { store.playArtist(shuffle: true) }
+                                PlayActionButton(title: "Radio", systemImage: "dot.radiowaves.left.and.right") { store.playArtist(shuffle: false) }
+                            }
+                        }
+                        HStack {
+                            SmallActionButton(
+                                title: store.followed ? "Segui già" : "Segui",
+                                systemImage: store.followed ? "checkmark" : "plus",
+                                active: store.followed,
+                                action: store.toggleFollow
+                            )
+                            Spacer()
+                        }
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, -12)

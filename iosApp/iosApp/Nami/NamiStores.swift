@@ -16,6 +16,9 @@ struct Track: Identifiable, Equatable, Hashable {
     let largeArtworkURL: Foundation.URL?
     let duration: Foundation.TimeInterval
     let explicit: Bool
+    let artistId: String?
+    let albumId: String?
+    let albumTitle: String?
 
     init(_ t: NamiTrack) {
         id = t.id
@@ -25,6 +28,9 @@ struct Track: Identifiable, Equatable, Hashable {
         largeArtworkURL = t.largeArtworkUrl.flatMap { Foundation.URL(string: $0) }
         duration = Foundation.TimeInterval(t.durationMs) / 1000
         explicit = t.isExplicit
+        artistId = t.artistId
+        albumId = t.albumId
+        albumTitle = t.albumTitle
     }
 }
 
@@ -357,12 +363,21 @@ final class CollectionStore: ObservableObject {
     @Published private(set) var tracks: [Track] = []
     @Published private(set) var loading = true
     @Published private(set) var error: String?
+    @Published private(set) var saved = false
     let key: String
+    private var savedSubscription: NamiSubscription?
 
     init(key: String) {
         self.key = key
         load()
+        savedSubscription = NamiBridge.shared.observeCollectionSaved(key: key) { [weak self] value in
+            withAnimation(.snappy) { self?.saved = value.boolValue }
+        }
     }
+
+    deinit { savedSubscription?.cancel() }
+
+    func toggleSave() { NamiBridge.shared.toggleSaveCollection(key: key) }
 
     func load() {
         loading = true

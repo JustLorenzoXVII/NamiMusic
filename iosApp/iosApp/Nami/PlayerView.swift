@@ -221,6 +221,26 @@ struct PlayerView: View {
                         Label("Scarica", systemImage: "arrow.down.circle")
                     }
                 }
+                Divider()
+                if let artistId = track.artistId {
+                    Button {
+                        NamiRouter.shared.open(.artist(key: artistId, title: track.artist))
+                    } label: {
+                        Label("Vai all'artista", systemImage: "music.microphone")
+                    }
+                }
+                if let albumId = track.albumId {
+                    Button {
+                        NamiRouter.shared.open(.album(id: albumId, title: track.albumTitle ?? "Album"))
+                    } label: {
+                        Label("Vai all'album", systemImage: "square.stack")
+                    }
+                }
+                if let url = URL(string: "https://music.youtube.com/watch?v=" + track.id) {
+                    ShareLink(item: url) {
+                        Label("Condividi", systemImage: "square.and.arrow.up")
+                    }
+                }
             }
         } label: {
             GlassMenuLabel(systemName: "ellipsis")
