@@ -481,7 +481,7 @@ internal class IosAudioEngine : AudioEngine {
             val loaded = image?.let { squareImage(it, 600.0) } ?: return null
             val item = MPMediaItemArtwork(boundsSize = loaded.size) { _ -> loaded }
             artworkCache[url] = item
-            if (artworkCache.size > 30) artworkCache.remove(artworkCache.keys.first())
+            if (artworkCache.size > 8) artworkCache.remove(artworkCache.keys.first())
             return item
         } finally {
             fetching.remove(url)

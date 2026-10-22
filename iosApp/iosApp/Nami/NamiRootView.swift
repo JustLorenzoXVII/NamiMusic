@@ -33,6 +33,7 @@ struct NamiRootView: View {
         .namiTint()
         .toastHost()
         .onChange(of: tab) { _, newTab in router.activeTab = newTab }
+        .onChange(of: showPlayer) { _, open in PlayerPresence.shared.open = open }
         .onChange(of: router.pending) { _, route in
             // Dal player: prima si chiude, poi si apre la pagina
             if route != nil, showPlayer { showPlayer = false }

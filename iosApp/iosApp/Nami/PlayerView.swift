@@ -463,18 +463,20 @@ struct PlayerView: View {
                 }
             }
             .padding(.top, 22)
-            EditionScrub(
-                value: (scrubValue ?? player.position) / max(player.duration, 1),
-                onChanged: { fraction in
-                    player.scrubbing = true
-                    scrubValue = fraction * max(player.duration, 1)
-                },
-                onEnded: { fraction in
-                    player.seek(to: fraction * max(player.duration, 1))
-                    scrubValue = nil
-                    player.scrubbing = false
-                }
-            )
+            WithClock {
+                EditionScrub(
+                    value: (scrubValue ?? player.position) / max(player.duration, 1),
+                    onChanged: { fraction in
+                        player.scrubbing = true
+                        scrubValue = fraction * max(player.duration, 1)
+                    },
+                    onEnded: { fraction in
+                        player.seek(to: fraction * max(player.duration, 1))
+                        scrubValue = nil
+                        player.scrubbing = false
+                    }
+                )
+            }
             .padding(.top, 10)
             timesRow
             Spacer(minLength: 12)
@@ -544,24 +546,26 @@ struct PlayerView: View {
     private func glassControlBar(showsProgress: Bool) -> some View {
         VStack(spacing: 6) {
             if showsProgress {
-                HStack(spacing: 10) {
-                    Text(formatTime(scrubValue ?? player.position))
-                    ScrubBar(
-                        value: (scrubValue ?? player.position) / max(player.duration, 1),
-                        onChanged: { fraction in
-                            player.scrubbing = true
-                            scrubValue = fraction * max(player.duration, 1)
-                        },
-                        onEnded: { fraction in
-                            player.seek(to: fraction * max(player.duration, 1))
-                            scrubValue = nil
-                            player.scrubbing = false
-                        }
-                    )
-                    Text("-" + formatTime(max(0, player.duration - (scrubValue ?? player.position))))
+                WithClock {
+                    HStack(spacing: 10) {
+                        Text(formatTime(scrubValue ?? player.position))
+                        ScrubBar(
+                            value: (scrubValue ?? player.position) / max(player.duration, 1),
+                            onChanged: { fraction in
+                                player.scrubbing = true
+                                scrubValue = fraction * max(player.duration, 1)
+                            },
+                            onEnded: { fraction in
+                                player.seek(to: fraction * max(player.duration, 1))
+                                scrubValue = nil
+                                player.scrubbing = false
+                            }
+                        )
+                        Text("-" + formatTime(max(0, player.duration - (scrubValue ?? player.position))))
+                    }
+                    .font(.caption2.weight(.semibold).monospacedDigit())
+                    .foregroundStyle(ink.opacity(0.7))
                 }
-                .font(.caption2.weight(.semibold).monospacedDigit())
-                .foregroundStyle(ink.opacity(0.7))
             }
             HStack {
                 PanelToggle(systemName: "quote.bubble", active: panel == .lyrics) { toggle(.lyrics) }
@@ -644,6 +648,10 @@ struct PlayerView: View {
     }
 
     private var progress: some View {
+        WithClock { progressContent }
+    }
+
+    private var progressContent: some View {
         let total = max(player.duration, 1)
         let current = scrubValue ?? player.position
         return VStack(spacing: 8) {
@@ -664,6 +672,10 @@ struct PlayerView: View {
     }
 
     private var timesRow: some View {
+        WithClock { timesRowContent }
+    }
+
+    private var timesRowContent: some View {
         let total = max(player.duration, 1)
         let current = scrubValue ?? player.position
         return HStack {

@@ -26,7 +26,7 @@ struct LyricsPanel: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let lyrics = store.lyrics {
                 if lyrics.synced {
-                    synced(lyrics.lines)
+                    WithClock { synced(lyrics.lines) }
                 } else {
                     ScrollView {
                         Text(lyrics.plain ?? "")

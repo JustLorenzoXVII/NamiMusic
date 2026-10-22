@@ -135,34 +135,29 @@ final class NamiApp: ObservableObject {
 final class PlayerStore: ObservableObject {
     static let shared = PlayerStore()
 
+    /// Solo i cambi "veri" (brano, play/pausa, coda, mi piace): il tempo che scorre sta in
+    /// [PlaybackClock], così l'interfaccia non si ridisegna tutta più volte al secondo.
     @Published private(set) var state = PlayerSnapshot.empty
-    @Published private(set) var position: Foundation.TimeInterval = 0
-    @Published private(set) var duration: Foundation.TimeInterval = 0
+
+    /// Posizione e durata (lette dall'orologio; per aggiornarsi la vista deve osservare l'orologio).
+    var position: Foundation.TimeInterval { PlaybackClock.shared.position }
+    var duration: Foundation.TimeInterval { PlaybackClock.shared.duration }
     /// Mentre si trascina la barra la posizione non si aggiorna da sola
-    var scrubbing = false
+    var scrubbing: Bool {
+        get { PlaybackClock.shared.scrubbing }
+        set { PlaybackClock.shared.scrubbing = newValue }
+    }
 
     private var subscription: NamiSubscription?
-    private var timer: Foundation.Timer?
 
     private init() {
         subscription = NamiBridge.shared.observePlayer { [weak self] newState in
             guard let self else { return }
             let snapshot = PlayerSnapshot(newState)
             if snapshot != self.state { self.state = snapshot }
-            self.tick()
+            PlaybackClock.shared.tick()
         }
-        let timer = Foundation.Timer(timeInterval: 0.25, repeats: true) { [weak self] _ in self?.tick() }
-        Foundation.RunLoop.main.add(timer, forMode: .common)
-        self.timer = timer
-    }
-
-    private func tick() {
-        guard !scrubbing else { return }
-        let pos = Foundation.TimeInterval(NamiBridge.shared.positionMs()) / 1000
-        if abs(pos - position) > 0.05 { position = pos }
-        let d = Foundation.TimeInterval(NamiBridge.shared.durationMs()) / 1000
-        let total = d > 0 ? d : (state.track?.duration ?? 0)
-        if total != duration { duration = total }
+        PlaybackClock.shared.start()
     }
 
     func togglePlayPause() { NamiBridge.shared.togglePlayPause() }
@@ -173,9 +168,70 @@ final class PlayerStore: ObservableObject {
     func cycleRepeat() { NamiBridge.shared.cycleRepeat() }
 
     func seek(to seconds: Foundation.TimeInterval) {
-        position = seconds
+        PlaybackClock.shared.position = seconds
         NamiBridge.shared.seekTo(positionMs: Int64(seconds * 1000))
     }
+}
+
+/// Il tempo del brano che scorre. Lo osservano solo le barre di avanzamento e il testo
+/// (con [WithClock]); si ferma quando l'app va in background, dove non c'è niente da disegnare
+/// (schermata di blocco e auto le aggiorna il motore audio).
+final class PlaybackClock: ObservableObject {
+    static let shared = PlaybackClock()
+
+    @Published fileprivate(set) var position: Foundation.TimeInterval = 0
+    @Published private(set) var duration: Foundation.TimeInterval = 0
+    var scrubbing = false
+
+    private var timer: Foundation.Timer?
+    private var observers: [NSObjectProtocol] = []
+
+    private init() {
+        let center = NotificationCenter.default
+        observers.append(center.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.stopTimer()
+        })
+        observers.append(center.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.tick()
+            self?.start()
+        })
+    }
+
+    func start() {
+        guard timer == nil, UIApplication.shared.applicationState != .background else { return }
+        let timer = Foundation.Timer(timeInterval: 0.25, repeats: true) { [weak self] _ in self?.tick() }
+        timer.tolerance = 0.05
+        Foundation.RunLoop.main.add(timer, forMode: .common)
+        self.timer = timer
+    }
+
+    private func stopTimer() {
+        timer?.invalidate()
+        timer = nil
+    }
+
+    func tick() {
+        guard !scrubbing, UIApplication.shared.applicationState != .background else { return }
+        let pos = Foundation.TimeInterval(NamiBridge.shared.positionMs()) / 1000
+        if abs(pos - position) > 0.1 { position = pos }
+        let d = Foundation.TimeInterval(NamiBridge.shared.durationMs()) / 1000
+        let total = d > 0 ? d : (PlayerStore.shared.state.track?.duration ?? 0)
+        if total != duration { duration = total }
+    }
+}
+
+/// Ridisegna solo il proprio contenuto quando il tempo del brano cambia.
+struct WithClock<Content: View>: View {
+    @ObservedObject private var clock = PlaybackClock.shared
+    @ViewBuilder let content: () -> Content
+
+    var body: some View { content() }
+}
+
+/// Il player a schermo intero è aperto: le animazioni continue sotto di lui si fermano.
+final class PlayerPresence: ObservableObject {
+    static let shared = PlayerPresence()
+    @Published var open = false
 }
 
 // MARK: - Libreria

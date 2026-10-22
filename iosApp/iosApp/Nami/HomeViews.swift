@@ -107,13 +107,19 @@ struct AmbientGlow: View {
     @ObservedObject private var accent = AccentStore.shared
     @State private var palette: ArtworkPalette?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.scenePhase) private var scenePhase
+    @ObservedObject private var presence = PlayerPresence.shared
+    @State private var visible = false
+
+    /// Si muove solo se si vede davvero: niente animazione sotto il player, in un'altra scheda o a schermo spento.
+    private var paused: Bool { !visible || presence.open || scenePhase != .active }
 
     var body: some View {
         let first = palette?.top ?? accent.color
         let second = palette?.bottom ?? accent.color.opacity(0.5)
         let strength = scheme == .dark ? 0.85 : 0.5
         // Una "lava" di colore che si muove piano: punti della griglia che oscillano nel tempo
-        TimelineView(.animation(minimumInterval: 1.0 / 20.0)) { context in
+        TimelineView(.animation(minimumInterval: 1.0 / 15.0, paused: paused)) { context in
             let t = context.date.timeIntervalSinceReferenceDate
             let wobble = { (speed: Double, amount: Double) -> Float in Float(sin(t * speed) * amount) }
             MeshGradient(
@@ -137,7 +143,8 @@ struct AmbientGlow: View {
         .ignoresSafeArea()
         .allowsHitTesting(false)
         .animation(.easeInOut(duration: 1.2), value: palette)
-        .onAppear(perform: update)
+        .onAppear { visible = true; update() }
+        .onDisappear { visible = false }
         .onChange(of: player.state.track?.artworkURL) { _, _ in update() }
     }
 
@@ -175,7 +182,9 @@ private struct NowPlayingCard: View {
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.75))
                     .lineLimit(1)
-                ProgressView(value: player.duration > 0 ? min(player.position / player.duration, 1) : 0)
+                WithClock {
+                    ProgressView(value: player.duration > 0 ? min(player.position / player.duration, 1) : 0)
+                }
                     .tint(.white)
                     .scaleEffect(x: 1, y: 0.7, anchor: .center)
                     .padding(.top, 4)
