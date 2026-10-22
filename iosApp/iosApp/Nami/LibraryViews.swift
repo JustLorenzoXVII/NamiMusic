@@ -19,11 +19,28 @@ struct LibraryView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
+                PageHeader(overline: L("La tua musica"), title: L("Libreria"), horizontalPadding: 0) {
+                    HStack(spacing: 10) {
+                        Button {
+                            creating = true
+                        } label: {
+                            Image(systemName: "plus")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundStyle(.white)
+                                .frame(width: 40, height: 40)
+                                .background(Circle().fill(.tint))
+                        }
+                        .buttonStyle(.squishy)
+                        .accessibilityLabel(L("Nuova playlist"))
+                        AvatarButton(action: onSettings)
+                    }
+                }
+                .padding(.bottom, 18)
                 HStack(spacing: 14) {
                     NavigationLink {
                         SongListPage(
-                            title: "Preferiti",
-                            subtitle: "\(library.liked.count) brani",
+                            title: L("Preferiti"),
+                            subtitle: LF("{0} brani", library.liked.count),
                             artwork: { LikedArtwork() },
                             songs: library.liked,
                             play: { index, shuffle in library.playLiked(from: index, shuffle: shuffle) },
@@ -32,8 +49,8 @@ struct LibraryView: View {
                         .zoomDestination("library:liked")
                     } label: {
                         LibraryTile(
-                            title: "Preferiti",
-                            detail: "\(library.liked.count) brani",
+                            title: L("Preferiti"),
+                            detail: LF("{0} brani", library.liked.count),
                             systemImage: "heart.fill",
                             colors: [Color(red: 0.98, green: 0.45, blue: 0.62), Color(red: 0.45, green: 0.2, blue: 0.55)]
                         )
@@ -45,8 +62,8 @@ struct LibraryView: View {
                             .zoomDestination("library:downloads")
                     } label: {
                         LibraryTile(
-                            title: "Scaricati",
-                            detail: "\(downloads.songs.count) brani",
+                            title: L("Scaricati"),
+                            detail: LF("{0} brani", downloads.songs.count),
                             systemImage: "arrow.down.circle.fill",
                             colors: [Color(red: 0.36, green: 0.55, blue: 0.98), Color(red: 0.2, green: 0.2, blue: 0.55)]
                         )
@@ -57,13 +74,13 @@ struct LibraryView: View {
                 .padding(.top, 8)
 
                 HStack {
-                    Text("Playlist")
+                    Text(L("Playlist"))
                         .font(.title2.weight(.bold))
                     Spacer()
                     Button {
                         creating = true
                     } label: {
-                        Label("Nuova", systemImage: "plus")
+                        Label(L("Nuova"), systemImage: "plus")
                             .font(.subheadline.weight(.semibold))
                     }
                 }
@@ -78,7 +95,7 @@ struct LibraryView: View {
                             Image(systemName: "music.note.list")
                                 .font(.system(size: 40))
                                 .foregroundStyle(.tint)
-                            Text("Crea la tua prima playlist")
+                            Text(L("Crea la tua prima playlist"))
                                 .font(.headline)
                         }
                         .frame(maxWidth: .infinity)
@@ -99,25 +116,25 @@ struct LibraryView: View {
                                 Button {
                                     library.playPlaylist(playlist)
                                 } label: {
-                                    Label("Riproduci", systemImage: "play.fill")
+                                    Label(L("Riproduci"), systemImage: "play.fill")
                                 }
                                 Button {
                                     library.playPlaylist(playlist, shuffle: true)
                                 } label: {
-                                    Label("Casuale", systemImage: "shuffle")
+                                    Label(L("Casuale"), systemImage: "shuffle")
                                 }
                                 if playlist.isEditable {
                                     Button {
                                         newName = playlist.title
                                         renaming = playlist
                                     } label: {
-                                        Label("Rinomina", systemImage: "pencil")
+                                        Label(L("Rinomina"), systemImage: "pencil")
                                     }
                                 }
                                 Button(role: .destructive) {
                                     deleting = playlist
                                 } label: {
-                                    Label(playlist.isEditable ? "Elimina" : "Togli dalla Libreria", systemImage: "trash")
+                                    Label(playlist.isEditable ? L("Elimina") : L("Togli dalla Libreria"), systemImage: "trash")
                                 }
                             }
                         }
@@ -139,43 +156,33 @@ struct LibraryView: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 24)
         }
-        .navigationTitle("Libreria")
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    creating = true
-                } label: {
-                    Image(systemName: "plus")
-                }
-                .accessibilityLabel("Nuova playlist")
-            }
-            SettingsToolbar(onSettings: onSettings)
-        }
+        .background(alignment: .top) { AmbientGlow() }
+        .barlessPage(title: L("Libreria"))
         .sheet(isPresented: $creating) {
             NewPlaylistSheet()
                 .namiTint()
         }
-        .alert("Rinomina playlist", isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
-            TextField("Nome", text: $newName)
-            Button("Annulla", role: .cancel) { renaming = nil }
-            Button("Salva") {
+        .alert(L("Rinomina playlist"), isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
+            TextField(L("Nome"), text: $newName)
+            Button(L("Annulla"), role: .cancel) { renaming = nil }
+            Button(L("Salva")) {
                 let name = newName.trimmingCharacters(in: .whitespacesAndNewlines)
                 if let playlist = renaming, !name.isEmpty { library.rename(playlist, to: name) }
                 renaming = nil
             }
         }
         .confirmationDialog(
-            deleting.map { "Eliminare \"\($0.title)\"?" } ?? "",
+            deleting.map { LF("Eliminare \"{0}\"?", $0.title) } ?? "",
             isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }),
             titleVisibility: .visible
         ) {
-            Button(deleting?.isEditable == false ? "Togli dalla Libreria" : "Elimina playlist", role: .destructive) {
+            Button(deleting?.isEditable == false ? L("Togli dalla Libreria") : L("Elimina playlist"), role: .destructive) {
                 if let playlist = deleting { library.delete(playlist) }
                 deleting = nil
             }
         } message: {
             if deleting?.isEditable == true {
-                Text("Se è anche su YouTube Music, viene eliminata anche lì.")
+                Text(L("Se è anche su YouTube Music, viene eliminata anche lì."))
             }
         }
     }
@@ -195,7 +202,7 @@ private struct LibraryTile: View {
                 .foregroundStyle(.white)
                 .symbolEffect(.bounce, value: detail)
             Spacer(minLength: 18)
-            Text(title)
+            Text(L(title))
                 .font(.headline)
                 .foregroundStyle(.white)
             Text(detail)
@@ -250,7 +257,7 @@ private struct PlaylistTile: View {
             Text(playlist.title)
                 .font(.subheadline.weight(.medium))
                 .lineLimit(1)
-            Text("\(playlist.songCount) brani")
+            Text(LF("{0} brani", playlist.songCount))
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }
@@ -297,7 +304,7 @@ struct PlaylistPage: View {
     var body: some View {
         SongListPage(
             title: current.title,
-            subtitle: "\(store.songs.count) brani",
+            subtitle: LF("{0} brani", store.songs.count),
             artwork: { MosaicArtwork(urls: current.thumbnails, cornerRadius: 12) },
             songs: store.songs,
             play: { index, shuffle in library.playPlaylist(current, from: index, shuffle: shuffle) },
@@ -314,36 +321,36 @@ struct PlaylistPage: View {
                             newName = current.title
                             renaming = true
                         } label: {
-                            Label("Rinomina", systemImage: "pencil")
+                            Label(L("Rinomina"), systemImage: "pencil")
                         }
                     }
                     Button(role: .destructive) {
                         deleting = true
                     } label: {
-                        Label(current.isEditable ? "Elimina playlist" : "Togli dalla Libreria", systemImage: "trash")
+                        Label(current.isEditable ? L("Elimina playlist") : L("Togli dalla Libreria"), systemImage: "trash")
                     }
                 } label: {
                     Image(systemName: "ellipsis")
                 }
-                .accessibilityLabel("Altro")
+                .accessibilityLabel(L("Altro"))
             }
         }
-        .alert("Rinomina playlist", isPresented: $renaming) {
-            TextField("Nome", text: $newName)
-            Button("Annulla", role: .cancel) {}
-            Button("Salva") {
+        .alert(L("Rinomina playlist"), isPresented: $renaming) {
+            TextField(L("Nome"), text: $newName)
+            Button(L("Annulla"), role: .cancel) {}
+            Button(L("Salva")) {
                 let name = newName.trimmingCharacters(in: .whitespacesAndNewlines)
                 if !name.isEmpty { library.rename(current, to: name) }
             }
         }
-        .confirmationDialog("Eliminare \"\(current.title)\"?", isPresented: $deleting, titleVisibility: .visible) {
-            Button(current.isEditable ? "Elimina playlist" : "Togli dalla Libreria", role: .destructive) {
+        .confirmationDialog(LF("Eliminare \"{0}\"?", current.title), isPresented: $deleting, titleVisibility: .visible) {
+            Button(current.isEditable ? L("Elimina playlist") : L("Togli dalla Libreria"), role: .destructive) {
                 library.delete(current)
                 dismiss()
             }
         } message: {
             if current.isEditable {
-                Text("Se è anche su YouTube Music, viene eliminata anche lì.")
+                Text(L("Se è anche su YouTube Music, viene eliminata anche lì."))
             }
         }
     }
@@ -355,11 +362,11 @@ enum SongSort: Int, CaseIterable {
 
     var label: String {
         switch self {
-        case .custom: return "Personalizzato"
-        case .title: return "Titolo"
-        case .artist: return "Artista"
-        case .album: return "Album"
-        case .duration: return "Durata"
+        case .custom: return L("Personalizzato")
+        case .title: return L("Titolo")
+        case .artist: return L("Artista")
+        case .album: return L("Album")
+        case .duration: return L("Durata")
         }
     }
 }
@@ -449,14 +456,14 @@ struct SongListPage<Artwork: View>: View {
                 HStack(spacing: 10) {
                     if let saved, let onToggleSave {
                         SmallActionButton(
-                            title: saved ? "Salvato" : "Salva",
+                            title: saved ? L("Salvato") : L("Salva"),
                             systemImage: saved ? "checkmark" : "plus",
                             active: saved,
                             action: onToggleSave
                         )
                     }
                     SmallActionButton(
-                        title: allDownloaded ? "Scaricato" : "Scarica",
+                        title: allDownloaded ? L("Scaricato") : L("Scarica"),
                         systemImage: allDownloaded ? "arrow.down.circle.fill" : "arrow.down.circle",
                         active: allDownloaded
                     ) {
@@ -465,13 +472,13 @@ struct SongListPage<Artwork: View>: View {
                     .disabled(rows.isEmpty)
                     if sortable {
                         Menu {
-                            Picker("Ordina per", selection: $sortRaw) {
+                            Picker(L("Ordina per"), selection: $sortRaw) {
                                 ForEach(SongSort.allCases, id: \.rawValue) { option in
                                     Text(option.label).tag(option.rawValue)
                                 }
                             }
                             Divider()
-                            Toggle("Ordine inverso", systemImage: "arrow.up.arrow.down", isOn: $descending)
+                            Toggle(L("Ordine inverso"), systemImage: "arrow.up.arrow.down", isOn: $descending)
                         } label: {
                             SmallActionLabel(title: sort == .custom ? "Ordina" : sort.label, systemImage: "arrow.up.arrow.down", active: sorted)
                         }
@@ -509,7 +516,7 @@ struct SongListPage<Artwork: View>: View {
                         Button(role: .destructive) {
                             removeRow(at: entry.index, onRemove)
                         } label: {
-                            Label("Togli dalla playlist", systemImage: "minus.circle")
+                            Label(L("Togli dalla playlist"), systemImage: "minus.circle")
                         }
                     }
                 }
@@ -517,7 +524,7 @@ struct SongListPage<Artwork: View>: View {
                     Button {
                         LibraryStore.shared.playNext(song)
                     } label: {
-                        Label("Dopo", systemImage: "text.line.first.and.arrowtriangle.forward")
+                        Label(L("Dopo"), systemImage: "text.line.first.and.arrowtriangle.forward")
                     }
                     .tint(.indigo)
                 }
@@ -614,7 +621,7 @@ struct SmallActionLabel: View {
     var active = false
 
     var body: some View {
-        Label(title, systemImage: systemImage)
+        Label(L(title), systemImage: systemImage)
             .font(.subheadline.weight(.semibold))
             .contentTransition(.symbolEffect(.replace))
             .foregroundStyle(active ? AnyShapeStyle(.white) : AnyShapeStyle(.tint))
@@ -637,29 +644,29 @@ struct SongMenuItems: View {
         Button {
             NamiCatalog_startRadio(song)
         } label: {
-            Label("Avvia radio del brano", systemImage: "dot.radiowaves.left.and.right")
+            Label(L("Avvia radio del brano"), systemImage: "dot.radiowaves.left.and.right")
         }
         Button {
             library.playNext(song)
         } label: {
-            Label("Riproduci dopo", systemImage: "text.line.first.and.arrowtriangle.forward")
+            Label(L("Riproduci dopo"), systemImage: "text.line.first.and.arrowtriangle.forward")
         }
         Button {
             library.addToQueue(song)
         } label: {
-            Label("Aggiungi in coda", systemImage: "text.line.last.and.arrowtriangle.forward")
+            Label(L("Aggiungi in coda"), systemImage: "text.line.last.and.arrowtriangle.forward")
         }
         Divider()
         Button(action: onAddToPlaylist) {
-            Label("Aggiungi a una playlist", systemImage: "text.badge.plus")
+            Label(L("Aggiungi a una playlist"), systemImage: "text.badge.plus")
         }
         Button {
             library.toggleLike(song)
         } label: {
             if library.isLiked(song) {
-                Label("Togli dai preferiti", systemImage: "heart.slash")
+                Label(L("Togli dai preferiti"), systemImage: "heart.slash")
             } else {
-                Label("Aggiungi ai preferiti", systemImage: "heart")
+                Label(L("Aggiungi ai preferiti"), systemImage: "heart")
             }
         }
         Divider()
@@ -667,19 +674,19 @@ struct SongMenuItems: View {
             Button {
                 NamiRouter.shared.open(.artist(key: artistId, title: song.artist))
             } label: {
-                Label("Vai all'artista", systemImage: "music.microphone")
+                Label(L("Vai all'artista"), systemImage: "music.microphone")
             }
         }
         if let albumId = song.albumId {
             Button {
                 NamiRouter.shared.open(.album(id: albumId, title: song.albumTitle ?? "Album"))
             } label: {
-                Label("Vai all'album", systemImage: "square.stack")
+                Label(L("Vai all'album"), systemImage: "square.stack")
             }
         }
         if let url = URL(string: "https://music.youtube.com/watch?v=" + song.id) {
             ShareLink(item: url, subject: Text(song.title), message: Text("\(song.title) – \(song.artist)")) {
-                Label("Condividi", systemImage: "square.and.arrow.up")
+                Label(L("Condividi"), systemImage: "square.and.arrow.up")
             }
         }
         let download = DownloadsStore.shared.info(song)
@@ -687,13 +694,13 @@ struct SongMenuItems: View {
             Button(role: .destructive) {
                 DownloadsStore.shared.remove(song)
             } label: {
-                Label(download?.completed == true ? "Rimuovi download" : "Annulla download", systemImage: "xmark.circle")
+                Label(download?.completed == true ? L("Rimuovi download") : L("Annulla download"), systemImage: "xmark.circle")
             }
         } else {
             Button {
                 DownloadsStore.shared.download(song)
             } label: {
-                Label("Scarica", systemImage: "arrow.down.circle")
+                Label(L("Scarica"), systemImage: "arrow.down.circle")
             }
         }
     }
@@ -708,7 +715,7 @@ struct PlayActionButton: View {
     var body: some View {
         if #available(iOS 26.0, *) {
             Button(action: action) {
-                Label(title, systemImage: systemImage)
+                Label(L(title), systemImage: systemImage)
                     .font(.body.weight(.semibold))
                     .frame(maxWidth: .infinity, minHeight: 34)
             }
@@ -717,7 +724,7 @@ struct PlayActionButton: View {
             .foregroundStyle(.tint)
         } else {
             Button(action: action) {
-                Label(title, systemImage: systemImage)
+                Label(L(title), systemImage: systemImage)
                     .font(.body.weight(.semibold))
                     .frame(maxWidth: .infinity, minHeight: 34)
             }
@@ -780,32 +787,32 @@ struct NewPlaylistSheet: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("Nome della playlist", text: $name)
+                    TextField(L("Nome della playlist"), text: $name)
                         .focused($focused)
                         .submitLabel(.done)
                         .onSubmit(create)
                 }
                 if library.isLoggedIn {
                     Section {
-                        Toggle("Crea anche su YouTube Music", isOn: $onYouTube)
+                        Toggle(L("Crea anche su YouTube Music"), isOn: $onYouTube)
                     } footer: {
-                        Text("Così la trovi anche nelle altre app di YouTube Music.")
+                        Text(L("Così la trovi anche nelle altre app di YouTube Music."))
                     }
                 }
                 if let firstSong {
-                    Section("Primo brano") {
+                    Section(L("Primo brano")) {
                         SongRow(song: firstSong)
                     }
                 }
             }
-            .navigationTitle("Nuova playlist")
+            .navigationTitle(L("Nuova playlist"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Annulla") { dismiss() }
+                    Button(L("Annulla")) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Crea", action: create)
+                    Button(L("Crea"), action: create)
                         .disabled(trimmed.isEmpty)
                 }
             }
@@ -838,7 +845,7 @@ struct AddToPlaylistSheet: View {
                     Button {
                         creating = true
                     } label: {
-                        Label("Nuova playlist…", systemImage: "plus")
+                        Label(L("Nuova playlist…"), systemImage: "plus")
                             .foregroundStyle(.tint)
                     }
                     ForEach(library.editablePlaylists) { playlist in
@@ -852,7 +859,7 @@ struct AddToPlaylistSheet: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(playlist.title)
                                         .lineLimit(1)
-                                    Text("\(playlist.songCount) brani")
+                                    Text(LF("{0} brani", playlist.songCount))
                                         .font(.footnote)
                                         .foregroundStyle(.secondary)
                                 }
@@ -861,14 +868,14 @@ struct AddToPlaylistSheet: View {
                         .buttonStyle(.plain)
                     }
                 } header: {
-                    Text("Le tue playlist")
+                    Text(L("Le tue playlist"))
                 }
             }
-            .navigationTitle("Aggiungi a una playlist")
+            .navigationTitle(L("Aggiungi a una playlist"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Annulla") { dismiss() }
+                    Button(L("Annulla")) { dismiss() }
                 }
             }
             .sheet(isPresented: $creating) {

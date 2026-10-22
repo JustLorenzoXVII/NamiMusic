@@ -42,7 +42,7 @@ struct LyricsPanel: View {
                     Image(systemName: "quote.bubble")
                         .font(.system(size: 40, weight: .semibold))
                         .foregroundStyle(.white.opacity(0.5))
-                    Text("Testo non disponibile")
+                    Text(L("Testo non disponibile"))
                         .font(.headline)
                         .foregroundStyle(.white.opacity(0.7))
                 }
@@ -115,10 +115,10 @@ struct QueuePanel: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Successivi")
+                    Text(L("Successivi"))
                         .font(.title3.weight(.bold))
                     if let title = store.queue.title, !title.isEmpty {
-                        Text("Da " + title)
+                        Text(LF("Da {0}", title))
                             .font(.subheadline)
                             .foregroundStyle(.white.opacity(0.6))
                             .lineLimit(1)
@@ -132,7 +132,7 @@ struct QueuePanel: View {
             .padding(.top, 16)
 
             if upNext.isEmpty {
-                Text("Non c'è altro in coda")
+                Text(L("Non c'è altro in coda"))
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.6))
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -165,7 +165,7 @@ struct QueuePanel: View {
                             Button(role: .destructive) {
                                 store.remove(at: entry.index)
                             } label: {
-                                Label("Rimuovi dalla coda", systemImage: "minus.circle")
+                                Label(L("Rimuovi dalla coda"), systemImage: "minus.circle")
                             }
                         }
                     }

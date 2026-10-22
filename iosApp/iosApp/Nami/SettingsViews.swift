@@ -54,13 +54,13 @@ struct SettingsView: View {
                     .padding(.vertical, 4)
                 }
 
-                Section("Riproduzione") {
+                Section(L("Riproduzione")) {
                     Picker(selection: $settings.audioQuality) {
                         ForEach(Array(SettingsStore.qualities.enumerated()), id: \.offset) { index, label in
                             Text(label).tag(index)
                         }
                     } label: {
-                        SettingsLabel("Qualità audio", systemImage: "waveform", color: .orange)
+                        SettingsLabel(L("Qualità audio"), systemImage: "waveform", color: .orange)
                     }
                 }
 
@@ -71,7 +71,7 @@ struct SettingsView: View {
                         LabeledContent {
                             Text(settings.languageName(settings.language))
                         } label: {
-                            SettingsLabel("Lingua dei contenuti", systemImage: "character.bubble", color: .blue)
+                            SettingsLabel(L("Lingua dei contenuti"), systemImage: "character.bubble", color: .blue)
                         }
                     }
                     NavigationLink {
@@ -80,13 +80,13 @@ struct SettingsView: View {
                         LabeledContent {
                             Text(settings.countryName(settings.country))
                         } label: {
-                            SettingsLabel("Paese dei contenuti", systemImage: "globe.europe.africa.fill", color: .green)
+                            SettingsLabel(L("Paese dei contenuti"), systemImage: "globe.europe.africa.fill", color: .green)
                         }
                     }
                 } header: {
-                    Text("Contenuti")
+                    Text(L("Contenuti"))
                 } footer: {
-                    Text("Decidono la Home, le classifiche e i consigli di YouTube Music.")
+                    Text(L("Decidono la Home, le classifiche e i consigli di YouTube Music."))
                 }
 
                 Section {
@@ -94,73 +94,86 @@ struct SettingsView: View {
                         Text(ByteCountFormatter.string(fromByteCount: settings.downloadsBytes, countStyle: .file))
                             .contentTransition(.numericText())
                     } label: {
-                        SettingsLabel("Spazio dei download", systemImage: "internaldrive.fill", color: .gray)
+                        SettingsLabel(L("Spazio dei download"), systemImage: "internaldrive.fill", color: .gray)
                     }
                     Button(role: .destructive) {
                         confirmDeleteDownloads = true
                     } label: {
-                        SettingsLabel("Elimina tutti i download", systemImage: "trash.fill", color: .red)
+                        SettingsLabel(L("Elimina tutti i download"), systemImage: "trash.fill", color: .red)
                     }
                     .disabled(downloads.songs.isEmpty)
                 } header: {
-                    Text("Spazio")
+                    Text(L("Spazio"))
                 }
 
-                Section("Privacy") {
+                Section(L("Privacy")) {
                     Button(role: .destructive) {
                         confirmClearHistory = true
                     } label: {
-                        SettingsLabel("Cancella cronologia ricerche", systemImage: "clock.arrow.circlepath", color: .purple)
+                        SettingsLabel(L("Cancella cronologia ricerche"), systemImage: "clock.arrow.circlepath", color: .purple)
                     }
+                }
+
+                Section {
+                    Picker(L("Lingua dell'app"), selection: Binding(get: { app.language }, set: { app.setLanguage($0) })) {
+                        Text(L("Sistema")).tag(0)
+                        Text("Italiano").tag(1)
+                        Text("English").tag(2)
+                    }
+                    .pickerStyle(.segmented)
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
+                } header: {
+                    Text(L("Lingua dell'app"))
                 }
 
                 Section {
                     Toggle(isOn: Binding(get: { app.iosUI }, set: { app.setIosUI($0) })) {
-                        SettingsLabel("Interfaccia iOS (Liquid Glass)", systemImage: "sparkles", color: .indigo)
+                        SettingsLabel(L("Interfaccia iOS (Liquid Glass)"), systemImage: "sparkles", color: .indigo)
                     }
                 } header: {
-                    Text("Aspetto")
+                    Text(L("Aspetto"))
                 } footer: {
-                    Text("Spenta, Nami torna all'interfaccia di sempre (con tutte le personalizzazioni di colori e player).")
+                    Text(L("Spenta, Nami torna all'interfaccia di sempre (con tutte le personalizzazioni di colori e player)."))
                 }
 
                 Section {
-                    LabeledContent("Versione", value: "Nami · motore \(settings.version)")
+                    LabeledContent(L("Versione"), value: LF("Nami · motore {0}", settings.version))
                 }
             }
-            .navigationTitle("Account")
+            .navigationTitle(L("Account"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Fine") { dismiss() }
+                    Button(L("Fine")) { dismiss() }
                 }
             }
             .sheet(isPresented: $loggingIn) {
                 NavigationStack {
                     GoogleLoginView(onDone: { loggingIn = false })
                         .ignoresSafeArea(edges: .bottom)
-                        .navigationTitle("Accedi con Google")
+                        .navigationTitle(L("Accedi con Google"))
                         .navigationBarTitleDisplayMode(.inline)
                         .toolbar {
                             ToolbarItem(placement: .cancellationAction) {
-                                Button("Annulla") { loggingIn = false }
+                                Button(L("Annulla")) { loggingIn = false }
                             }
                         }
                 }
                 .namiTint()
             }
-            .confirmationDialog("Uscire dall'account?", isPresented: $confirmLogout, titleVisibility: .visible) {
-                Button("Esci", role: .destructive) { settings.logout() }
+            .confirmationDialog(L("Uscire dall'account?"), isPresented: $confirmLogout, titleVisibility: .visible) {
+                Button(L("Esci"), role: .destructive) { settings.logout() }
             } message: {
-                Text("La Home e le playlist torneranno quelle senza account. I brani scaricati restano.")
+                Text(L("La Home e le playlist torneranno quelle senza account. I brani scaricati restano."))
             }
-            .confirmationDialog("Eliminare tutti i download?", isPresented: $confirmDeleteDownloads, titleVisibility: .visible) {
-                Button("Elimina", role: .destructive) { settings.removeAllDownloads() }
+            .confirmationDialog(L("Eliminare tutti i download?"), isPresented: $confirmDeleteDownloads, titleVisibility: .visible) {
+                Button(L("Elimina"), role: .destructive) { settings.removeAllDownloads() }
             } message: {
-                Text("I brani scaricati vengono tolti dal telefono. Potrai riscaricarli quando vuoi.")
+                Text(L("I brani scaricati vengono tolti dal telefono. Potrai riscaricarli quando vuoi."))
             }
-            .confirmationDialog("Cancellare la cronologia delle ricerche?", isPresented: $confirmClearHistory, titleVisibility: .visible) {
-                Button("Cancella", role: .destructive) { settings.clearSearchHistory() }
+            .confirmationDialog(L("Cancellare la cronologia delle ricerche?"), isPresented: $confirmClearHistory, titleVisibility: .visible) {
+                Button(L("Cancella"), role: .destructive) { settings.clearSearchHistory() }
             }
             .onAppear { settings.refreshDownloadsSize() }
         }
@@ -180,7 +193,7 @@ struct SettingsView: View {
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
-                        Text("Collegato a YouTube Music")
+                        Text(L("Collegato a YouTube Music"))
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.tint)
                     }
@@ -189,16 +202,16 @@ struct SettingsView: View {
                 Button(role: .destructive) {
                     confirmLogout = true
                 } label: {
-                    Text("Esci dall'account")
+                    Text(L("Esci dall'account"))
                 }
             } else {
                 HStack(spacing: 14) {
                     AccountAvatar(size: 58)
                         .foregroundStyle(.secondary)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Ospite")
+                        Text(L("Ospite"))
                             .font(.title3.weight(.semibold))
-                        Text("Accedi per avere la tua Home, le tue playlist e i tuoi Mi piace di YouTube Music.")
+                        Text(L("Accedi per avere la tua Home, le tue playlist e i tuoi Mi piace di YouTube Music."))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
@@ -207,7 +220,7 @@ struct SettingsView: View {
                 Button {
                     loggingIn = true
                 } label: {
-                    Label("Accedi con Google", systemImage: "person.badge.key.fill")
+                    Label(L("Accedi con Google"), systemImage: "person.badge.key.fill")
                         .font(.body.weight(.semibold))
                 }
             }
@@ -229,7 +242,7 @@ private struct SettingsLabel: View {
 
     var body: some View {
         Label {
-            Text(title)
+            Text(L(title))
                 .foregroundStyle(.primary)
         } icon: {
             Image(systemName: systemImage)
@@ -254,7 +267,7 @@ private struct Stat: View {
             Text("\(value)")
                 .font(.title3.weight(.bold).monospacedDigit())
                 .contentTransition(.numericText())
-            Text(label)
+            Text(L(label))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -295,7 +308,7 @@ private struct OptionPicker: View {
             }
         }
         .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always))
-        .navigationTitle(title)
+        .navigationTitle(L(title))
         .navigationBarTitleDisplayMode(.inline)
     }
 }

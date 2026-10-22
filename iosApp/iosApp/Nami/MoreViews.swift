@@ -13,6 +13,10 @@ struct StatsView: View {
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 28) {
+                PageHeader(overline: L("Il tuo ascolto"), title: L("Statistiche")) {
+                    AvatarButton(action: onSettings)
+                }
+                .padding(.bottom, -8)
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach(Array(StatsStore.periods.enumerated()), id: \.offset) { index, label in
@@ -29,9 +33,9 @@ struct StatsView: View {
                 if let stats = store.stats {
                     if stats.plays == 0 {
                         ContentUnavailableView(
-                            "Ancora niente da contare",
+                            L("Ancora niente da contare"),
                             systemImage: "chart.bar",
-                            description: Text("Ascolta un po' di musica: qui vedrai quanto, quando e cosa ascolti.")
+                            description: Text(L("Ascolta un po' di musica: qui vedrai quanto, quando e cosa ascolti."))
                         )
                     } else {
                         TotalsCard(stats: stats)
@@ -51,8 +55,7 @@ struct StatsView: View {
             .animation(.smooth, value: store.loading)
         }
         .background(alignment: .top) { AmbientGlow() }
-        .navigationTitle("Statistiche")
-        .toolbar { SettingsToolbar(onSettings: onSettings) }
+        .barlessPage(title: L("Statistiche"))
         .refreshable { store.load() }
         .onAppear { store.load() }
     }
@@ -60,9 +63,9 @@ struct StatsView: View {
 
 private func hoursText(_ seconds: TimeInterval) -> (String, String) {
     let minutes = Int(seconds / 60)
-    if minutes < 120 { return ("\(minutes)", minutes == 1 ? "minuto" : "minuti") }
+    if minutes < 120 { return ("\(minutes)", minutes == 1 ? L("minuto") : L("minuti")) }
     let hours = minutes / 60
-    return ("\(hours)", "ore")
+    return ("\(hours)", L("ore"))
 }
 
 private struct TotalsCard: View {
@@ -72,7 +75,7 @@ private struct TotalsCard: View {
         let (value, unit) = hoursText(stats.total)
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 0) {
-                Text("HAI ASCOLTATO")
+                Text(L("HAI ASCOLTATO"))
                     .font(.caption.weight(.bold))
                     .tracking(1)
                     .foregroundStyle(.white.opacity(0.75))
@@ -114,7 +117,7 @@ private struct TotalsCard: View {
                 Text("\(value)")
                     .font(.title2.weight(.bold).monospacedDigit())
                     .contentTransition(.numericText())
-                Text(label)
+                Text(L(label))
                     .font(.footnote)
                     .foregroundStyle(.white.opacity(0.75))
             }
@@ -136,7 +139,7 @@ private struct HoursChart: View {
         VStack(alignment: .leading, spacing: 12) {
             SectionTitle(
                 title: "Quando ascolti",
-                subtitle: peak.map { "Il tuo momento: verso le \($0):00" },
+                subtitle: peak.map { LF("Il tuo momento: verso le {0}:00", $0) },
                 showsChevron: false
             )
             Chart {
@@ -328,14 +331,14 @@ struct DownloadsPage: View {
         Group {
             if downloads.songs.isEmpty {
                 ContentUnavailableView(
-                    "Niente di scaricato",
+                    L("Niente di scaricato"),
                     systemImage: "arrow.down.circle",
-                    description: Text("Tieni premuto su un brano e scegli \"Scarica\": lo ascolti anche senza connessione.")
+                    description: Text(L("Tieni premuto su un brano e scegli \"Scarica\": lo ascolti anche senza connessione."))
                 )
             } else {
                 SongListPage(
-                    title: "Scaricati",
-                    subtitle: "\(downloads.songs.count) brani sul telefono",
+                    title: L("Scaricati"),
+                    subtitle: LF("{0} brani sul telefono", downloads.songs.count),
                     artwork: { DownloadsArtwork() },
                     songs: downloads.songs,
                     play: { index, shuffle in downloads.play(from: index, shuffle: shuffle) },

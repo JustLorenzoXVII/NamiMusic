@@ -167,7 +167,7 @@ struct PlayerView: View {
             .frame(maxWidth: .infinity)
             .contentShape(Rectangle())
             .onTapGesture { dismiss() }
-            .accessibilityLabel("Chiudi")
+            .accessibilityLabel(L("Chiudi"))
     }
 
     private var titleRow: some View {
@@ -200,7 +200,7 @@ struct PlayerView: View {
             Button {
                 player.toggleShuffle()
             } label: {
-                Label(player.state.shuffle ? "Disattiva casuale" : "Casuale", systemImage: "shuffle")
+                Label(player.state.shuffle ? L("Disattiva casuale") : L("Casuale"), systemImage: "shuffle")
             }
             Button {
                 player.cycleRepeat()
@@ -212,13 +212,13 @@ struct PlayerView: View {
                 Button {
                     addingToPlaylist = track
                 } label: {
-                    Label("Aggiungi a una playlist", systemImage: "text.badge.plus")
+                    Label(L("Aggiungi a una playlist"), systemImage: "text.badge.plus")
                 }
                 if DownloadsStore.shared.info(track)?.completed != true {
                     Button {
                         DownloadsStore.shared.download(track)
                     } label: {
-                        Label("Scarica", systemImage: "arrow.down.circle")
+                        Label(L("Scarica"), systemImage: "arrow.down.circle")
                     }
                 }
                 Divider()
@@ -226,19 +226,19 @@ struct PlayerView: View {
                     Button {
                         NamiRouter.shared.open(.artist(key: artistId, title: track.artist))
                     } label: {
-                        Label("Vai all'artista", systemImage: "music.microphone")
+                        Label(L("Vai all'artista"), systemImage: "music.microphone")
                     }
                 }
                 if let albumId = track.albumId {
                     Button {
                         NamiRouter.shared.open(.album(id: albumId, title: track.albumTitle ?? "Album"))
                     } label: {
-                        Label("Vai all'album", systemImage: "square.stack")
+                        Label(L("Vai all'album"), systemImage: "square.stack")
                     }
                 }
                 if let url = URL(string: "https://music.youtube.com/watch?v=" + track.id) {
                     ShareLink(item: url) {
-                        Label("Condividi", systemImage: "square.and.arrow.up")
+                        Label(L("Condividi"), systemImage: "square.and.arrow.up")
                     }
                 }
             }
@@ -250,9 +250,9 @@ struct PlayerView: View {
 
     private var repeatLabel: String {
         switch player.state.repeatMode {
-        case 2: return "Ripeti il brano"
-        case 1: return "Non ripetere"
-        default: return "Ripeti tutto"
+        case 2: return L("Ripeti il brano")
+        case 1: return L("Non ripetere")
+        default: return L("Ripeti tutto")
         }
     }
 

@@ -140,8 +140,47 @@ object NamiBridge {
                     downloads = ArchiveTuneXRuntime.downloadUtil,
                 )
             recoverHiddenPlaylists()
+            // La lingua dell'app vale anche per l'interfaccia SwiftUI (e per i testi fatti in Kotlin)
+            com.justlorenzo.archivetunex.ui.I18n.language = appLanguageNow()
+            scope.launch {
+                AppContext.dataStore.data
+                    .map { it[com.justlorenzo.archivetunex.ui.AppLanguageKey].toAppLanguage() }
+                    .distinctUntilChanged()
+                    .collect { com.justlorenzo.archivetunex.ui.I18n.language = it }
+            }
         }
     }
+
+    // region Lingua
+
+    private fun String?.toAppLanguage(): com.justlorenzo.archivetunex.ui.AppLanguage =
+        com.justlorenzo.archivetunex.ui.AppLanguage.entries.firstOrNull { it.name == this } ?: com.justlorenzo.archivetunex.ui.AppLanguage.System
+
+    private fun appLanguageNow(): com.justlorenzo.archivetunex.ui.AppLanguage =
+        runBlocking { AppContext.dataStore.data.first()[com.justlorenzo.archivetunex.ui.AppLanguageKey].toAppLanguage() }
+
+    /** Traduce un testo dell'interfaccia (scritto in italiano) nella lingua scelta. */
+    fun tr(text: String): String = com.justlorenzo.archivetunex.ui.tr(text)
+
+    /** 0 sistema, 1 italiano, 2 inglese. */
+    fun appLanguage(): Int = com.justlorenzo.archivetunex.ui.I18n.language.ordinal
+
+    /** true se i testi sono in inglese (lingua scelta o del telefono). */
+    fun isEnglish(): Boolean = com.justlorenzo.archivetunex.ui.I18n.resolved == com.justlorenzo.archivetunex.ui.AppLanguage.English
+
+    fun setAppLanguage(index: Int) {
+        val language = com.justlorenzo.archivetunex.ui.AppLanguage.entries.getOrElse(index) { com.justlorenzo.archivetunex.ui.AppLanguage.System }
+        com.justlorenzo.archivetunex.ui.I18n.language = language
+        scope.launch { AppContext.dataStore.edit { it[com.justlorenzo.archivetunex.ui.AppLanguageKey] = language.name } }
+    }
+
+    fun observeAppLanguage(listener: (Int) -> Unit): NamiSubscription =
+        collect(
+            AppContext.dataStore.data.map { it[com.justlorenzo.archivetunex.ui.AppLanguageKey].toAppLanguage().ordinal }.distinctUntilChanged(),
+            listener,
+        )
+
+    // endregion
 
     /**
      * Le playlist create nei giorni scorsi finivano nel database senza "bookmarkedAt" e quindi
@@ -650,8 +689,8 @@ internal fun friendlyError(error: Throwable): String {
     return when {
         name.contains("Timeout", true) || name.contains("UnresolvedAddress", true) || name.contains("IOException", true) ||
             text.contains("offline", true) || text.contains("Unable to resolve", true) ->
-            "Sembra che tu sia offline. Controlla la connessione e riprova."
-        text.contains("Non disponibile") -> "Questo contenuto non è disponibile."
-        else -> "YouTube Music non ha risposto come previsto. Riprova tra poco."
+            com.justlorenzo.archivetunex.ui.tr("Sembra che tu sia offline. Controlla la connessione e riprova.")
+        text.contains("Non disponibile") -> com.justlorenzo.archivetunex.ui.tr("Questo contenuto non è disponibile.")
+        else -> com.justlorenzo.archivetunex.ui.tr("YouTube Music non ha risposto come previsto. Riprova tra poco.")
     }
 }

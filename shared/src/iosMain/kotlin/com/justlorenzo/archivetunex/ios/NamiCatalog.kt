@@ -188,9 +188,9 @@ object NamiCatalog {
                                     if (items.isNotEmpty()) sections += s.title to items
                                 }
                                 val official = featured.await().filter { seen.add(it.id) }.take(10)
-                                if (official.isNotEmpty()) sections += "Playlist in evidenza" to official
+                                if (official.isNotEmpty()) sections += com.justlorenzo.archivetunex.ui.tr("Playlist in evidenza") to official
                                 val users = community.await().filter { seen.add(it.id) }.take(10)
-                                if (users.isNotEmpty()) sections += "Playlist degli utenti" to users
+                                if (users.isNotEmpty()) sections += com.justlorenzo.archivetunex.ui.tr("Playlist degli utenti") to users
                                 sections
                             }
                         } else {

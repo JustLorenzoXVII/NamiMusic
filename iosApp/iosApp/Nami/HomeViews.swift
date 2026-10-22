@@ -20,12 +20,11 @@ struct HomeView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 30) {
-                    Text(Self.dateLine)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, -18)
-                        .id("top")
+                    PageHeader(overline: Self.dateLine, title: Self.greeting) {
+                        AvatarButton(action: onSettings)
+                    }
+                    .padding(.bottom, -10)
+                    .id("top")
 
                     // I filtri subito sotto il titolo: toccandone uno la Home mostra solo quello
                     if !home.chips.isEmpty {
@@ -76,9 +75,7 @@ struct HomeView: View {
             }
         }
         .background(alignment: .top) { AmbientGlow() }
-        .softScrollEdges()
-        .navigationTitle(Self.greeting)
-        .toolbar { SettingsToolbar(onSettings: onSettings) }
+        .barlessPage(title: L("Home"))
         .refreshable { await home.reload() }
         .onAppear { home.loadIfNeeded() }
     }
@@ -86,17 +83,18 @@ struct HomeView: View {
     static var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
-        case 5..<13: return "Buongiorno"
-        case 13..<18: return "Buon pomeriggio"
-        default: return "Buonasera"
+        case 5..<13: return L("Buongiorno")
+        case 13..<18: return L("Buon pomeriggio")
+        default: return L("Buonasera")
         }
     }
 
     static var dateLine: String {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "it_IT")
-        formatter.dateFormat = "EEEE d MMMM"
-        return formatter.string(from: Date()).capitalized(with: Locale(identifier: "it_IT"))
+        let locale = Locale(identifier: L("Buongiorno") == "Buongiorno" ? "it_IT" : "en_US")
+        formatter.locale = locale
+        formatter.setLocalizedDateFormatFromTemplate("EEEEdMMMM")
+        return formatter.string(from: Date())
     }
 }
 
@@ -112,13 +110,30 @@ struct AmbientGlow: View {
 
     var body: some View {
         let first = palette?.top ?? accent.color
-        let second = palette?.bottom ?? accent.color.opacity(0.4)
-        ZStack {
-            RadialGradient(colors: [first.opacity(scheme == .dark ? 0.75 : 0.45), .clear], center: .topLeading, startRadius: 10, endRadius: 380)
-            RadialGradient(colors: [second.opacity(scheme == .dark ? 0.6 : 0.3), .clear], center: .topTrailing, startRadius: 10, endRadius: 320)
+        let second = palette?.bottom ?? accent.color.opacity(0.5)
+        let strength = scheme == .dark ? 0.85 : 0.5
+        // Una "lava" di colore che si muove piano: punti della griglia che oscillano nel tempo
+        TimelineView(.animation(minimumInterval: 1.0 / 20.0)) { context in
+            let t = context.date.timeIntervalSinceReferenceDate
+            let wobble = { (speed: Double, amount: Double) -> Float in Float(sin(t * speed) * amount) }
+            MeshGradient(
+                width: 3,
+                height: 3,
+                points: [
+                    [0, 0], [0.5 + wobble(0.31, 0.12), 0], [1, 0],
+                    [0, 0.45 + wobble(0.23, 0.1)], [0.5 + wobble(0.27, 0.15), 0.5 + wobble(0.19, 0.12)], [1, 0.5 + wobble(0.21, 0.1)],
+                    [0, 1], [0.5 + wobble(0.17, 0.12), 1], [1, 1],
+                ],
+                colors: [
+                    first.opacity(strength), accent.color.opacity(strength * 0.7), second.opacity(strength),
+                    second.opacity(strength * 0.6), first.opacity(strength * 0.5), accent.color.opacity(strength * 0.4),
+                    .clear, .clear, .clear,
+                ],
+                smoothsColors: true
+            )
         }
-        .frame(height: 460)
-        .mask(LinearGradient(colors: [.black, .black.opacity(0.6), .clear], startPoint: .top, endPoint: .bottom))
+        .frame(height: 520)
+        .mask(LinearGradient(colors: [.black, .black.opacity(0.7), .clear], startPoint: .top, endPoint: .bottom))
         .ignoresSafeArea()
         .allowsHitTesting(false)
         .animation(.easeInOut(duration: 1.2), value: palette)
@@ -147,7 +162,7 @@ private struct NowPlayingCard: View {
                 .scaleEffect(player.state.isPlaying ? 1 : 0.9)
                 .animation(.spring(response: 0.45, dampingFraction: 0.65), value: player.state.isPlaying)
             VStack(alignment: .leading, spacing: 3) {
-                Text(player.state.isPlaying ? "IN RIPRODUZIONE" : "IN PAUSA")
+                Text(player.state.isPlaying ? L("IN RIPRODUZIONE") : L("IN PAUSA"))
                     .font(.caption2.weight(.bold))
                     .tracking(0.8)
                     .foregroundStyle(.white.opacity(0.7))
@@ -262,7 +277,7 @@ private struct ForYouHero: View {
                     .opacity(0.4)
                 HStack(spacing: 0) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("PER TE ADESSO")
+                        Text(L("PER TE ADESSO"))
                             .font(.caption.weight(.heavy))
                             .tracking(1.2)
                             .foregroundStyle(.white.opacity(0.75))
@@ -278,7 +293,7 @@ private struct ForYouHero: View {
                         Spacer(minLength: 10)
                         HStack(spacing: 6) {
                             Image(systemName: "play.fill")
-                            Text("Ascolta")
+                            Text(L("Ascolta"))
                         }
                         .font(.subheadline.weight(.bold))
                         .foregroundStyle(.white)
@@ -346,18 +361,18 @@ struct ChipButton: View {
     var body: some View {
         if #available(iOS 26.0, *) {
             if selected {
-                Button(title, action: action)
+                Button(L(title), action: action)
                     .buttonStyle(.glassProminent)
             } else {
-                Button(title, action: action)
+                Button(L(title), action: action)
                     .buttonStyle(.glass)
             }
         } else {
             if selected {
-                Button(title, action: action)
+                Button(L(title), action: action)
                     .buttonStyle(.borderedProminent)
             } else {
-                Button(title, action: action)
+                Button(L(title), action: action)
                     .buttonStyle(.bordered)
             }
         }
@@ -393,7 +408,7 @@ private struct MixesSection: View {
                         .frame(width: 36, height: 36)
                 }
                 .padding(.trailing, 14)
-                .accessibilityLabel("Rifai i mix")
+                .accessibilityLabel(L("Rifai i mix"))
                 .sensoryFeedback(.impact(weight: .light), trigger: spins)
             }
             ScrollView(.horizontal, showsIndicators: false) {
@@ -500,7 +515,7 @@ private struct MixesPage: View {
             .padding(.horizontal, 20)
         }
         .contentMargins(.vertical, 12, for: .scrollContent)
-        .navigationTitle("Fatte per te")
+        .navigationTitle(L("Fatte per te"))
     }
 }
 
@@ -524,7 +539,7 @@ private struct RecentPage: View {
             }
         }
         .listStyle(.plain)
-        .navigationTitle("Ascoltati di recente")
+        .navigationTitle(L("Ascoltati di recente"))
     }
 }
 
@@ -584,7 +599,7 @@ struct CollectionPage: View {
             } else {
                 SongListPage(
                     title: store.title.isEmpty ? item.title : store.title,
-                    subtitle: store.loading ? item.subtitle : (store.subtitle.isEmpty ? "\(store.tracks.count) brani" : "\(store.subtitle) · \(store.tracks.count) brani"),
+                    subtitle: store.loading ? item.subtitle : (store.subtitle.isEmpty ? LF("{0} brani", store.tracks.count) : store.subtitle + " · " + LF("{0} brani", store.tracks.count)),
                     artwork: { ArtworkView(url: store.artworkURL ?? item.artworkURL, cornerRadius: 12) },
                     songs: store.tracks,
                     play: { index, shuffle in store.play(from: index, shuffle: shuffle) },

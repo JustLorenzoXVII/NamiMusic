@@ -11,18 +11,12 @@ struct ComposeView: UIViewControllerRepresentable {
 }
 
 /// Interruttore "Tema iOS" acceso: la nuova interfaccia in SwiftUI (Nami/…);
-/// spento: l'interfaccia completa di sempre, in Compose.
+/// spento: l'interfaccia completa di sempre, in Compose. Il passaggio è animato (InterfaceSwitcher).
 struct ContentView: SwiftUI.View {
-    @StateObject private var app = NamiApp.shared
-
     var body: some SwiftUI.View {
-        if app.iosUI {
-            NamiRootView()
-                .transition(.opacity)
-        } else {
-            ComposeView()
-                .ignoresSafeArea()
-                .transition(.opacity)
-        }
+        InterfaceSwitcher(
+            ios: { NamiRootView() },
+            compose: { ComposeView().ignoresSafeArea() }
+        )
     }
 }

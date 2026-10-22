@@ -78,6 +78,19 @@ struct PlaylistItem: Identifiable, Equatable, Hashable {
     }
 }
 
+// MARK: - Lingua
+
+/// Traduce un testo dell'interfaccia (scritto in italiano) nella lingua scelta, con lo stesso
+/// dizionario dell'app Android.
+func L(_ text: String) -> String { NamiBridge.shared.tr(text: text) }
+
+/// Come [L] con dei valori dentro: LF("{0} brani", 12) → "12 brani" / "12 songs".
+func LF(_ template: String, _ args: Any...) -> String {
+    var out = L(template)
+    for (i, value) in args.enumerated() { out = out.replacingOccurrences(of: "{\(i)}", with: "\(value)") }
+    return out
+}
+
 // MARK: - App
 
 /// Avvio del motore Kotlin e scelta dell'interfaccia (SwiftUI o quella di sempre).
@@ -86,11 +99,19 @@ final class NamiApp: ObservableObject {
 
     /// true = interfaccia SwiftUI (interruttore "Tema iOS" acceso)
     @Published private(set) var iosUI: Bool
+    /// 0 sistema, 1 italiano, 2 inglese: cambiandola l'interfaccia si ridisegna
+    @Published private(set) var language: Int
     private var subscription: NamiSubscription?
+    private var languageSubscription: NamiSubscription?
 
     private init() {
         NamiBridge.shared.start()
         iosUI = NamiBridge.shared.isIosUiEnabled()
+        language = Int(NamiBridge.shared.appLanguage())
+        languageSubscription = NamiBridge.shared.observeAppLanguage { [weak self] value in
+            let index = value.intValue
+            if self?.language != index { self?.language = index }
+        }
         subscription = NamiBridge.shared.observeIosUi { [weak self] value in
             let enabled = value.boolValue
             if self?.iosUI != enabled {
@@ -101,6 +122,11 @@ final class NamiApp: ObservableObject {
 
     func setIosUI(_ enabled: Bool) {
         NamiBridge.shared.setIosUiEnabled(enabled: enabled)
+    }
+
+    func setLanguage(_ index: Int) {
+        NamiBridge.shared.setAppLanguage(index: Int32(index))
+        language = index
     }
 }
 

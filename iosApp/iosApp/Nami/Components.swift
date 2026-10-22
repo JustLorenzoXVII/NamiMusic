@@ -154,6 +154,76 @@ extension View {
     }
 }
 
+// MARK: - Intestazione delle schede
+
+/// Titolo grande della scheda (largo e pesante, con una riga colorata sopra) e il tuo avatar.
+/// Scorre via insieme al contenuto: in alto non resta nessuna barra.
+struct PageHeader<Trailing: View>: View {
+    let overline: String
+    let title: String
+    var horizontalPadding: CGFloat = 20
+    @ViewBuilder var trailing: () -> Trailing
+
+    var body: some View {
+        HStack(alignment: .bottom, spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(overline.uppercased())
+                    .font(.caption.weight(.heavy))
+                    .tracking(1.6)
+                    .foregroundStyle(.tint)
+                Text(title)
+                    .font(.system(size: 40, weight: .black).width(.expanded))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+            }
+            Spacer(minLength: 0)
+            trailing()
+                .padding(.bottom, 6)
+        }
+        .padding(.horizontal, horizontalPadding)
+        .padding(.top, 6)
+    }
+}
+
+/// Sotto l'ora e la batteria: una sfumatura di vetro, così il contenuto che scorre sotto
+/// non si sovrappone ai simboli in alto.
+struct StatusBarScrim: View {
+    var body: some View {
+        GeometryReader { geo in
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .mask(LinearGradient(colors: [.black, .black.opacity(0.7), .clear], startPoint: .top, endPoint: .bottom))
+                .frame(height: geo.safeAreaInsets.top + 18)
+                .ignoresSafeArea(edges: .top)
+        }
+        .allowsHitTesting(false)
+    }
+}
+
+extension View {
+    /// Scheda senza barra in alto: titolo dentro al contenuto e sfumatura sotto la barra di stato.
+    func barlessPage(title: String) -> some View {
+        self
+            .navigationTitle(title)
+            .toolbar(.hidden, for: .navigationBar)
+            .overlay(alignment: .top) { StatusBarScrim() }
+    }
+}
+
+/// Avatar che apre account e impostazioni (dentro l'intestazione delle schede).
+struct AvatarButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            AccountAvatar(size: 40)
+                .shadow(color: .black.opacity(0.2), radius: 6, y: 3)
+        }
+        .buttonStyle(.squishy)
+        .accessibilityLabel(L("Account e impostazioni"))
+    }
+}
+
 // MARK: - Titoli
 
 struct SectionTitle: View {
@@ -164,8 +234,8 @@ struct SectionTitle: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 4) {
-                Text(title)
-                    .font(.title2.weight(.bold))
+                Text(L(title))
+                    .font(.title3.weight(.heavy).width(.expanded))
                     .lineLimit(1)
                 if showsChevron {
                     Image(systemName: "chevron.forward")
@@ -174,7 +244,7 @@ struct SectionTitle: View {
                 }
             }
             if let subtitle {
-                Text(subtitle)
+                Text(L(subtitle))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -388,11 +458,11 @@ struct ItemRowLabel: View {
 
     private var typeLabel: String {
         switch item.kind {
-        case .song: return "Brano"
-        case .album: return "Album"
-        case .playlist: return "Playlist"
-        case .artist: return "Artista"
-        case .other: return "Video"
+        case .song: return L("Brano")
+        case .album: return L("Album")
+        case .playlist: return L("Playlist")
+        case .artist: return L("Artista")
+        case .other: return L("Video")
         }
     }
 
@@ -587,11 +657,11 @@ struct ErrorView: View {
 
     var body: some View {
         ContentUnavailableView {
-            Label(title, systemImage: "wifi.exclamationmark")
+            Label(L(title), systemImage: "wifi.exclamationmark")
         } description: {
             Text(message)
         } actions: {
-            Button("Riprova", action: retry)
+            Button(L("Riprova"), action: retry)
                 .buttonStyle(.borderedProminent)
         }
     }

@@ -15,6 +15,13 @@ struct NamiRootView: View {
     @ObservedObject private var router = NamiRouter.shared
     @Namespace private var playerNamespace
 
+    init() {
+        // Titoli delle pagine larghi e pesanti, come le intestazioni delle schede
+        let navigationBar = UINavigationBar.appearance()
+        navigationBar.largeTitleTextAttributes = [.font: UIFont.systemFont(ofSize: 32, weight: .black, width: .expanded)]
+        navigationBar.titleTextAttributes = [.font: UIFont.systemFont(ofSize: 17, weight: .bold, width: .expanded)]
+    }
+
     var body: some View {
         Group {
             if #available(iOS 26.0, *) {
@@ -50,13 +57,13 @@ struct NamiRootView: View {
     @available(iOS 26.0, *)
     private var modernTabs: some View {
         TabView(selection: $tab) {
-            Tab("Home", systemImage: "house.fill", value: NamiTab.home) {
+            Tab(L("Home"), systemImage: "house.fill", value: NamiTab.home) {
                 ZoomingStack(tab: .home) { HomeView(onSettings: { showSettings = true }) }
             }
-            Tab("Statistiche", systemImage: "chart.bar.fill", value: NamiTab.stats) {
+            Tab(L("Statistiche"), systemImage: "chart.bar.fill", value: NamiTab.stats) {
                 ZoomingStack(tab: .stats) { StatsView(onSettings: { showSettings = true }) }
             }
-            Tab("Libreria", systemImage: "square.stack.fill", value: NamiTab.library) {
+            Tab(L("Libreria"), systemImage: "square.stack.fill", value: NamiTab.library) {
                 ZoomingStack(tab: .library) { LibraryView(onSettings: { showSettings = true }) }
             }
             Tab(value: NamiTab.search, role: .search) {
@@ -75,16 +82,16 @@ struct NamiRootView: View {
     private var legacyTabs: some View {
         TabView(selection: $tab) {
             ZoomingStack(tab: .home) { HomeView(onSettings: { showSettings = true }) }
-                .tabItem { Label("Home", systemImage: "house.fill") }
+                .tabItem { Label(L("Home"), systemImage: "house.fill") }
                 .tag(NamiTab.home)
             ZoomingStack(tab: .stats) { StatsView(onSettings: { showSettings = true }) }
-                .tabItem { Label("Statistiche", systemImage: "chart.bar.fill") }
+                .tabItem { Label(L("Statistiche"), systemImage: "chart.bar.fill") }
                 .tag(NamiTab.stats)
             ZoomingStack(tab: .library) { LibraryView(onSettings: { showSettings = true }) }
-                .tabItem { Label("Libreria", systemImage: "square.stack.fill") }
+                .tabItem { Label(L("Libreria"), systemImage: "square.stack.fill") }
                 .tag(NamiTab.library)
             ZoomingStack(tab: .search) { SearchView() }
-                .tabItem { Label("Cerca", systemImage: "magnifyingglass") }
+                .tabItem { Label(L("Cerca"), systemImage: "magnifyingglass") }
                 .tag(NamiTab.search)
         }
         .safeAreaInset(edge: .bottom) {
@@ -119,7 +126,7 @@ struct MiniPlayerView: View {
         HStack(spacing: 12) {
             ArtworkView(url: player.state.track?.artworkURL, size: 34, cornerRadius: 7)
             VStack(alignment: .leading, spacing: 0) {
-                Text(player.state.track?.title ?? "Niente in riproduzione")
+                Text(player.state.track?.title ?? L("Niente in riproduzione"))
                     .font(.subheadline.weight(.semibold))
                     .lineLimit(1)
                 if let artist = player.state.track?.artist, !artist.isEmpty {
@@ -168,7 +175,7 @@ struct SettingsToolbar: ToolbarContent {
                 .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
         }
         .buttonStyle(.squishy)
-        .accessibilityLabel("Account e impostazioni")
+        .accessibilityLabel(L("Account e impostazioni"))
     }
 
     var body: some ToolbarContent {
@@ -197,7 +204,7 @@ struct ComingSoonView: View {
         } description: {
             Text(text)
         } actions: {
-            Button("Usa l'interfaccia completa") { app.setIosUI(false) }
+            Button(L("Usa l'interfaccia completa")) { app.setIosUI(false) }
                 .buttonStyle(.borderedProminent)
         }
     }

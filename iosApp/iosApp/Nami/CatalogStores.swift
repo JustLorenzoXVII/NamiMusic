@@ -156,7 +156,7 @@ final class SearchStore: ObservableObject {
     private var suggestionToken = 0
     private var searchToken = 0
 
-    static let kinds = ["Migliori risultati", "Brani", "Album", "Artisti", "Playlist", "Playlist utenti", "Video"]
+    static var kinds: [String] { ["Migliori risultati", "Brani", "Album", "Artisti", "Playlist", "Playlist utenti", "Video"].map(L) }
 
     private init() {
         subscription = NamiCatalog.shared.observeSearchHistory { [weak self] list in
@@ -376,7 +376,7 @@ final class DownloadsStore: ObservableObject {
     func remove(_ song: Track) { NamiCatalog.shared.removeDownload(songId: song.id) }
 
     func play(from index: Int, shuffle: Bool) {
-        NamiCatalog.shared.playSongs(songIds: songs.map(\.id), title: "Scaricati", startIndex: Int32(index), shuffle: shuffle)
+        NamiCatalog.shared.playSongs(songIds: songs.map(\.id), title: L("Scaricati"), startIndex: Int32(index), shuffle: shuffle)
     }
 }
 
@@ -390,7 +390,7 @@ final class StatsStore: ObservableObject {
     @Published var period = 1 { didSet { if period != oldValue { load() } } }
     private var token = 0
 
-    static let periods = ["7 giorni", "30 giorni", "Anno", "Sempre"]
+    static var periods: [String] { ["7 giorni", "30 giorni", "Anno", "Sempre"].map(L) }
 
     func load() {
         token += 1
@@ -428,7 +428,7 @@ final class StatsStore: ObservableObject {
     /// I brani più ascoltati, da far partire.
     func playTopSongs(from index: Int) {
         guard let stats else { return }
-        NamiCatalog.shared.playSongs(songIds: stats.topSongs.map(\.id), title: "I più ascoltati", startIndex: Int32(index), shuffle: false)
+        NamiCatalog.shared.playSongs(songIds: stats.topSongs.map(\.id), title: L("I più ascoltati"), startIndex: Int32(index), shuffle: false)
     }
 }
 
@@ -458,7 +458,7 @@ final class SettingsStore: ObservableObject {
     private var subscription: NamiSubscription?
     private var started = false
 
-    static let qualities = ["Massima", "Alta", "Automatica", "Bassa (risparmia dati)"]
+    static var qualities: [String] { ["Massima", "Alta", "Automatica", "Bassa (risparmia dati)"].map(L) }
 
     private init() {
         audioQuality = Int(NamiSettings.shared.audioQuality())

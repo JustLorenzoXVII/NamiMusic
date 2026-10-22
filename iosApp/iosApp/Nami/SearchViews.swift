@@ -23,8 +23,8 @@ struct SearchView: View {
             .animation(.smooth(duration: 0.35), value: showingResults)
             .padding(.bottom, 32)
         }
-        .navigationTitle("Cerca")
-        .searchable(text: $query, prompt: "Artisti, brani, album e altro")
+        .navigationTitle(L("Cerca"))
+        .searchable(text: $query, prompt: Text(L("Artisti, brani, album e altro")))
         .searchSuggestions {
             if !showingResults || query != store.searchedQuery {
                 ForEach(store.suggestions, id: \.self) { suggestion in
@@ -67,7 +67,7 @@ private struct SearchHomeView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
                         SectionTitle(title: "Ricerche recenti", showsChevron: false)
-                        Button("Cancella") {
+                        Button(L("Cancella")) {
                             withAnimation(.snappy) { store.clearHistory() }
                         }
                         .font(.subheadline.weight(.semibold))
@@ -242,11 +242,11 @@ private struct TopResultCard: View {
 
     private var kindLabel: String {
         switch item.kind {
-        case .song: return "Brano"
-        case .album: return "Album"
-        case .playlist: return "Playlist"
-        case .artist: return "Artista"
-        case .other: return "Video"
+        case .song: return L("Brano")
+        case .album: return L("Album")
+        case .playlist: return L("Playlist")
+        case .artist: return L("Artista")
+        case .other: return L("Video")
         }
     }
 }

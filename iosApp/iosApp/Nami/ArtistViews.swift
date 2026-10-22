@@ -37,7 +37,7 @@ struct ArtistPageView: View {
                         }
                         HStack {
                             SmallActionButton(
-                                title: store.followed ? "Segui già" : "Segui",
+                                title: store.followed ? L("Segui già") : L("Segui"),
                                 systemImage: store.followed ? "checkmark" : "plus",
                                 active: store.followed,
                                 action: store.toggleFollow
@@ -65,7 +65,7 @@ struct ArtistPageView: View {
                                 .padding(.horizontal, 20)
                                 .onTapGesture { withAnimation(.smooth) { expandedBio.toggle() } }
                             if !expandedBio {
-                                Button("Altro") { withAnimation(.smooth) { expandedBio = true } }
+                                Button(L("Altro")) { withAnimation(.smooth) { expandedBio = true } }
                                     .font(.callout.weight(.semibold))
                                     .padding(.horizontal, 20)
                             }
