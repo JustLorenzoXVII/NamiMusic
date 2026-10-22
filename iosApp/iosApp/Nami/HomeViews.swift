@@ -27,15 +27,17 @@ struct HomeView: View {
                         .padding(.bottom, -18)
                         .id("top")
 
-                    if !filtering, player.state.track != nil {
-                        NowPlayingCard()
-                            .padding(.horizontal, 20)
-                            .transition(.asymmetric(insertion: .scale(scale: 0.92).combined(with: .opacity), removal: .opacity))
-                    }
+                    // I filtri subito sotto il titolo: toccandone uno la Home mostra solo quello
                     if !home.chips.isEmpty {
                         ChipsRow(chips: home.chips, selected: home.selectedChip, onSelect: { chip in
                             withAnimation(.snappy) { home.select(chip: chip) }
                         })
+                        .padding(.bottom, -8)
+                    }
+                    if !filtering, player.state.track != nil {
+                        NowPlayingCard()
+                            .padding(.horizontal, 20)
+                            .transition(.asymmetric(insertion: .scale(scale: 0.92).combined(with: .opacity), removal: .opacity))
                     }
                     if !filtering {
                         if let hero = heroSong {
@@ -74,6 +76,7 @@ struct HomeView: View {
             }
         }
         .background(alignment: .top) { AmbientGlow() }
+        .softScrollEdges()
         .navigationTitle(Self.greeting)
         .toolbar { SettingsToolbar(onSettings: onSettings) }
         .refreshable { await home.reload() }
@@ -163,16 +166,8 @@ private struct NowPlayingCard: View {
                     .padding(.top, 4)
             }
             Spacer(minLength: 4)
-            Button(action: player.togglePlayPause) {
-                Image(systemName: player.state.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.title2)
-                    .foregroundStyle(.white)
-                    .contentTransition(.symbolEffect(.replace))
-                    .frame(width: 52, height: 52)
-            }
-            .buttonStyle(.squishy)
-            .glassCircle()
-            .sensoryFeedback(.impact(weight: .medium), trigger: player.state.isPlaying)
+            GlassPlayButton(isPlaying: player.state.isPlaying, action: player.togglePlayPause)
+                .sensoryFeedback(.impact(weight: .medium), trigger: player.state.isPlaying)
         }
         .padding(14)
         .background {
@@ -200,7 +195,7 @@ private extension View {
     /// Capsula di vetro (iOS 26), materiale sfocato prima.
     @ViewBuilder func glassCapsule() -> some View {
         if #available(iOS 26.0, *) {
-            glassEffect(.regular.interactive(), in: Capsule())
+            glassEffect(.regular, in: Capsule())
         } else {
             background(.ultraThinMaterial, in: Capsule())
         }
@@ -209,9 +204,41 @@ private extension View {
     /// Cerchio di vetro (iOS 26), materiale sfocato prima.
     @ViewBuilder func glassCircle() -> some View {
         if #available(iOS 26.0, *) {
-            glassEffect(.regular.interactive(), in: Circle())
+            glassEffect(.regular, in: Circle())
         } else {
             background(.ultraThinMaterial, in: Circle())
+        }
+    }
+}
+
+/// Play/pausa tondo di vetro: su iOS 26 è un vero pulsante di vetro di sistema (il tocco
+/// vale solo dentro il cerchio).
+private struct GlassPlayButton: View {
+    let isPlaying: Bool
+    let action: () -> Void
+
+    var body: some View {
+        if #available(iOS 26.0, *) {
+            Button(action: action) {
+                Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                    .font(.title2)
+                    .foregroundStyle(.white)
+                    .contentTransition(.symbolEffect(.replace))
+                    .frame(width: 36, height: 36)
+            }
+            .buttonStyle(.glass)
+            .buttonBorderShape(.circle)
+            .controlSize(.large)
+        } else {
+            Button(action: action) {
+                Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                    .font(.title2)
+                    .foregroundStyle(.white)
+                    .contentTransition(.symbolEffect(.replace))
+                    .frame(width: 52, height: 52)
+                    .background(.ultraThinMaterial, in: Circle())
+            }
+            .buttonStyle(.squishy)
         }
     }
 }

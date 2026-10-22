@@ -162,12 +162,25 @@ struct MiniPlayerView: View {
 struct SettingsToolbar: ToolbarContent {
     let onSettings: () -> Void
 
+    private var avatarButton: some View {
+        Button(action: onSettings) {
+            AccountAvatar(size: 36)
+                .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
+        }
+        .buttonStyle(.squishy)
+        .accessibilityLabel("Account e impostazioni")
+    }
+
     var body: some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) {
-            Button(action: onSettings) {
-                AccountAvatar(size: 30)
+        if #available(iOS 26.0, *) {
+            ToolbarItem(placement: .topBarTrailing) {
+                avatarButton
             }
-            .accessibilityLabel("Account e impostazioni")
+            .sharedBackgroundVisibility(.hidden)
+        } else {
+            ToolbarItem(placement: .topBarTrailing) {
+                avatarButton
+            }
         }
     }
 }

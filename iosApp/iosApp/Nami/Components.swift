@@ -113,6 +113,18 @@ struct ZoomingStack<Content: View>: View {
     }
 }
 
+// MARK: - Bordo morbido sotto la barra in alto (iOS 26)
+
+extension View {
+    @ViewBuilder func softScrollEdges() -> some View {
+        if #available(iOS 26.0, *) {
+            scrollEdgeEffectStyle(.soft, for: .top)
+        } else {
+            self
+        }
+    }
+}
+
 // MARK: - Pressione con molla e vibrazione leggera
 
 struct SquishyButtonStyle: ButtonStyle {
