@@ -185,7 +185,13 @@ struct SectionView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if !section.title.isEmpty {
-                SectionTitle(title: section.title)
+                NavigationLink {
+                    SectionGridPage(section: section)
+                } label: {
+                    SectionTitle(title: section.title)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
             }
             if section.allSongs {
                 QuickPicks(items: section.items)
@@ -353,6 +359,76 @@ struct ItemButton<Content: View>: View {
                     SongMenuItems(song: track, onAddToPlaylist: { NamiRouter.shared.addingToPlaylist = track })
                 }
             }
+        }
+    }
+}
+
+/// "Vedi tutto" di una sezione: griglia di copertine, o elenco se sono solo brani.
+struct SectionGridPage: View {
+    let section: HomeSection
+
+    private let columns = [GridItem(.flexible(), spacing: 14, alignment: .top), GridItem(.flexible(), spacing: 14, alignment: .top)]
+
+    var body: some View {
+        ScrollView {
+            if section.allSongs {
+                LazyVStack(spacing: 0) {
+                    ForEach(section.items) { item in
+                        ItemButton(item: item) {
+                            ItemRowLabel(item: item)
+                                .padding(.vertical, 6)
+                        }
+                        Divider().padding(.leading, 62)
+                    }
+                }
+                .padding(.horizontal, 20)
+            } else {
+                LazyVGrid(columns: columns, spacing: 20) {
+                    ForEach(section.items) { item in
+                        GridCard(item: item)
+                    }
+                }
+                .padding(.horizontal, 20)
+            }
+        }
+        .contentMargins(.vertical, 12, for: .scrollContent)
+        .navigationTitle(section.title)
+        .navigationBarTitleDisplayMode(.large)
+    }
+}
+
+/// Card che si allarga alla colonna della griglia.
+private struct GridCard: View {
+    let item: HomeItem
+
+    var body: some View {
+        ItemButton(item: item) {
+            VStack(alignment: item.kind == .artist ? .center : .leading, spacing: 6) {
+                Group {
+                    if item.kind == .artist {
+                        RemoteImage(url: item.artworkURL)
+                            .aspectRatio(1, contentMode: .fit)
+                            .clipShape(Circle())
+                    } else {
+                        ArtworkView(url: item.artworkURL, cornerRadius: 12)
+                    }
+                }
+                .shadow(color: .black.opacity(0.14), radius: 8, y: 4)
+                HStack(spacing: 4) {
+                    Text(item.title)
+                        .font(.subheadline.weight(.medium))
+                        .lineLimit(1)
+                    if item.explicit { ExplicitBadge() }
+                }
+                if !item.subtitle.isEmpty && item.kind != .artist {
+                    Text(item.subtitle)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: item.kind == .artist ? .center : .leading)
+            .contentShape(Rectangle())
         }
     }
 }

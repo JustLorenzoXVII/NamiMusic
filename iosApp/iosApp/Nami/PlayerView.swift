@@ -17,7 +17,10 @@ struct PlayerView: View {
     @State private var scrubValue: TimeInterval?
     @State private var addingToPlaylist: Track?
     @State private var panel: PlayerPanel = .none
-    @Namespace private var artNamespace
+    /// Dove sta la copertina grande e dove quella piccola (testo/coda): la copertina è una sola
+    /// e scivola da un posto all'altro, così l'animazione è continua
+    @State private var bigRect: CGRect = .zero
+    @State private var smallRect: CGRect = .zero
 
     private var track: Track? { player.state.track }
 
@@ -30,7 +33,10 @@ struct PlayerView: View {
                     grabber
                     if panel == .none {
                         Spacer(minLength: 12)
-                        artwork(side: artSide)
+                        Color.clear
+                            .frame(width: artSide, height: artSide)
+                            .frame(maxWidth: .infinity)
+                            .onGeometryChange(for: CGRect.self) { $0.frame(in: .named("player")) } action: { set($bigRect, $0) }
                         Spacer(minLength: 20)
                     } else {
                         compactHeader
@@ -64,7 +70,9 @@ struct PlayerView: View {
                     .padding(.bottom, max(geo.safeAreaInsets.bottom, 16))
                 }
                 .padding(.top, geo.safeAreaInsets.top)
+                floatingArtwork
             }
+            .coordinateSpace(name: "player")
             .ignoresSafeArea()
         }
         .foregroundStyle(.white)
@@ -78,6 +86,35 @@ struct PlayerView: View {
         .sensoryFeedback(.selection, trigger: panel)
     }
 
+    /// Prima misura senza animazione (niente copertina che vola dall'angolo in alto).
+    private func set(_ rect: Binding<CGRect>, _ value: CGRect) {
+        guard rect.wrappedValue != value else { return }
+        if rect.wrappedValue == .zero {
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) { rect.wrappedValue = value }
+        } else {
+            rect.wrappedValue = value
+        }
+    }
+
+    private var floatingArtwork: some View {
+        let compact = panel != .none
+        let rect = compact && smallRect != .zero ? smallRect : bigRect
+        let paused = !compact && !player.state.isPlaying
+        return ArtworkView(url: track?.largeArtworkURL, cornerRadius: compact ? 8 : 12)
+            .frame(width: rect.width, height: rect.height)
+            .shadow(color: .black.opacity(compact ? 0.3 : 0.4), radius: compact ? 10 : 24, y: compact ? 5 : 14)
+            .scaleEffect(paused ? 0.82 : 1)
+            .contentShape(Rectangle())
+            .onTapGesture { if compact { toggle(panel) } }
+            .position(x: rect.midX, y: rect.midY)
+            .opacity(rect == .zero ? 0 : 1)
+            .animation(.spring(response: 0.5, dampingFraction: 0.86), value: rect)
+            .animation(.spring(response: 0.5, dampingFraction: 0.68), value: paused)
+            .allowsHitTesting(compact)
+    }
+
     private func toggle(_ target: PlayerPanel) {
         withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
             panel = panel == target ? .none : target
@@ -87,10 +124,9 @@ struct PlayerView: View {
     /// Copertina piccola con titolo, in alto quando sono aperti testo o coda.
     private var compactHeader: some View {
         HStack(spacing: 14) {
-            ArtworkView(url: track?.largeArtworkURL, size: 64, cornerRadius: 8)
-                .matchedGeometryEffect(id: "artwork", in: artNamespace)
-                .shadow(color: .black.opacity(0.35), radius: 10, y: 5)
-                .onTapGesture { toggle(panel) }
+            Color.clear
+                .frame(width: 64, height: 64)
+                .onGeometryChange(for: CGRect.self) { $0.frame(in: .named("player")) } action: { set($smallRect, $0) }
             VStack(alignment: .leading, spacing: 2) {
                 Text(track?.title ?? "")
                     .font(.headline)
@@ -132,15 +168,6 @@ struct PlayerView: View {
             .contentShape(Rectangle())
             .onTapGesture { dismiss() }
             .accessibilityLabel("Chiudi")
-    }
-
-    private func artwork(side: CGFloat) -> some View {
-        ArtworkView(url: track?.largeArtworkURL, size: side, cornerRadius: 12)
-            .matchedGeometryEffect(id: "artwork", in: artNamespace)
-            .shadow(color: .black.opacity(0.4), radius: 24, y: 14)
-            .scaleEffect(player.state.isPlaying ? 1 : 0.82)
-            .animation(.spring(response: 0.5, dampingFraction: 0.68), value: player.state.isPlaying)
-            .frame(maxWidth: .infinity)
     }
 
     private var titleRow: some View {
@@ -196,8 +223,9 @@ struct PlayerView: View {
                 }
             }
         } label: {
-            GlassIconLabel(systemName: "ellipsis")
+            GlassMenuLabel(systemName: "ellipsis")
         }
+        .menuGlassStyle()
     }
 
     private var repeatLabel: String {
@@ -386,10 +414,47 @@ struct GlassIconButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        if #available(iOS 26.0, *) {
+            Button(action: action) {
+                Image(systemName: systemName)
+                    .font(.system(size: 17, weight: .semibold))
+                    .contentTransition(.symbolEffect(.replace))
+                    .frame(width: 30, height: 30)
+            }
+            .buttonStyle(.glass)
+            .buttonBorderShape(.circle)
+        } else {
+            Button(action: action) {
+                GlassIconLabel(systemName: systemName)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+}
+
+/// Etichetta del menu ⋯: su iOS 26 è un pulsante di vetro di sistema, così il menu si apre
+/// e si richiude "trasformandosi" dal cerchio senza angoli strani.
+struct GlassMenuLabel: View {
+    let systemName: String
+
+    var body: some View {
+        if #available(iOS 26.0, *) {
+            Image(systemName: systemName)
+                .font(.system(size: 17, weight: .semibold))
+                .frame(width: 30, height: 30)
+        } else {
             GlassIconLabel(systemName: systemName)
         }
-        .buttonStyle(.plain)
+    }
+}
+
+extension View {
+    @ViewBuilder func menuGlassStyle() -> some View {
+        if #available(iOS 26.0, *) {
+            buttonStyle(.glass).buttonBorderShape(.circle)
+        } else {
+            self
+        }
     }
 }
 

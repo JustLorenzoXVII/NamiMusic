@@ -242,7 +242,13 @@ private struct MixesSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
-                SectionTitle(title: "Fatte per te", subtitle: "Dai tuoi ascolti, ogni settimana")
+                NavigationLink {
+                    MixesPage()
+                } label: {
+                    SectionTitle(title: "Fatte per te", subtitle: "Dai tuoi ascolti, ogni settimana")
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
                 Button {
                     spins += 1
                     home.refreshMixes()
@@ -281,6 +287,7 @@ private struct MixesSection: View {
 
 private struct MixCard: View {
     let mix: MixItem
+    var zoomID: String? = nil
 
     private var colors: [Color] {
         switch mix.kind {
@@ -309,14 +316,16 @@ private struct MixCard: View {
                 }
                 .padding(14)
             }
-            .frame(width: 180, height: 180)
-            .zoomSource("mix:" + mix.id)
+            .frame(width: zoomID == nil ? 180 : nil, height: zoomID == nil ? 180 : nil)
+            .aspectRatio(1, contentMode: .fit)
+            .zoomSource(zoomID ?? "mix:" + mix.id)
             .shadow(color: colors[1].opacity(0.35), radius: 12, y: 6)
             Text(mix.subtitle)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
-                .frame(width: 180, alignment: .leading)
+                .frame(width: zoomID == nil ? 180 : nil, alignment: .leading)
+                .frame(maxWidth: zoomID == nil ? nil : .infinity, alignment: .leading)
         }
         .contentShape(Rectangle())
     }
@@ -338,6 +347,55 @@ struct MixPage: View {
     }
 }
 
+/// Tutti i mix "Fatte per te" in griglia.
+private struct MixesPage: View {
+    @ObservedObject private var home = HomeStore.shared
+    private let columns = [GridItem(.adaptive(minimum: 160), spacing: 14, alignment: .top)]
+
+    var body: some View {
+        ScrollView {
+            LazyVGrid(columns: columns, spacing: 20) {
+                ForEach(home.mixes) { mix in
+                    NavigationLink {
+                        MixPage(mix: mix)
+                            .zoomDestination("mixgrid:" + mix.id)
+                    } label: {
+                        MixCard(mix: mix, zoomID: "mixgrid:" + mix.id)
+                    }
+                    .buttonStyle(.squishy)
+                }
+            }
+            .padding(.horizontal, 20)
+        }
+        .contentMargins(.vertical, 12, for: .scrollContent)
+        .navigationTitle("Fatte per te")
+    }
+}
+
+/// Tutti gli ascoltati di recente.
+private struct RecentPage: View {
+    @ObservedObject private var home = HomeStore.shared
+    @ObservedObject private var player = PlayerStore.shared
+
+    var body: some View {
+        List {
+            ForEach(Array(home.recent.enumerated()), id: \.offset) { index, song in
+                Button {
+                    home.playRecent(at: index)
+                } label: {
+                    SongRow(song: song, playing: player.state.track?.id == song.id)
+                }
+                .buttonStyle(.plain)
+                .contextMenu {
+                    SongMenuItems(song: song, onAddToPlaylist: { NamiRouter.shared.addingToPlaylist = song })
+                }
+            }
+        }
+        .listStyle(.plain)
+        .navigationTitle("Ascoltati di recente")
+    }
+}
+
 // MARK: - Ascoltati di recente
 
 private struct RecentSection: View {
@@ -346,7 +404,13 @@ private struct RecentSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionTitle(title: "Ascoltati di recente")
+            NavigationLink {
+                RecentPage()
+            } label: {
+                SectionTitle(title: "Ascoltati di recente")
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(alignment: .top, spacing: 14) {
                     ForEach(Array(songs.enumerated()), id: \.offset) { index, song in
