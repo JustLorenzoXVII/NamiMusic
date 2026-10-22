@@ -214,6 +214,11 @@ final class LibraryStore: ObservableObject {
 
     func createPlaylist(name: String, onYouTube: Bool, firstSong: Track? = nil) {
         NamiBridge.shared.createPlaylist(name: name, onYouTube: onYouTube, firstSongId: firstSong?.id)
+        if let firstSong {
+            ToastCenter.shared.show(LF("Aggiunto a «{0}»", name), subtitle: firstSong.title, artwork: firstSong.artworkURL)
+        } else {
+            ToastCenter.shared.show(LF("Playlist «{0}» creata", name), systemImage: "music.note.list")
+        }
     }
 
     func rename(_ playlist: PlaylistItem, to name: String) {
@@ -234,14 +239,25 @@ final class LibraryStore: ObservableObject {
 
     func add(_ song: Track, to playlist: PlaylistItem) {
         NamiBridge.shared.addToPlaylist(playlistId: playlist.id, songId: song.id)
+        ToastCenter.shared.show(LF("Aggiunto a «{0}»", playlist.title), subtitle: song.title, artwork: song.artworkURL)
     }
 
     // Menu dei brani
 
     func isLiked(_ song: Track) -> Bool { likedIds.contains(song.id) }
-    func toggleLike(_ song: Track) { NamiBridge.shared.toggleLikeSong(songId: song.id) }
-    func playNext(_ song: Track) { NamiBridge.shared.playNext(songId: song.id) }
-    func addToQueue(_ song: Track) { NamiBridge.shared.addToQueue(songId: song.id) }
+    func toggleLike(_ song: Track) {
+        let wasLiked = isLiked(song)
+        NamiBridge.shared.toggleLikeSong(songId: song.id)
+        ToastCenter.shared.show(wasLiked ? L("Tolto dai preferiti") : L("Aggiunto ai preferiti"), systemImage: wasLiked ? "heart.slash.fill" : "heart.fill", subtitle: song.title, artwork: song.artworkURL)
+    }
+    func playNext(_ song: Track) {
+        NamiBridge.shared.playNext(songId: song.id)
+        ToastCenter.shared.show(L("Riprodotto dopo questo brano"), systemImage: "text.line.first.and.arrowtriangle.forward", subtitle: song.title, artwork: song.artworkURL)
+    }
+    func addToQueue(_ song: Track) {
+        NamiBridge.shared.addToQueue(songId: song.id)
+        ToastCenter.shared.show(L("Aggiunto in coda"), systemImage: "text.line.last.and.arrowtriangle.forward", subtitle: song.title, artwork: song.artworkURL)
+    }
 }
 
 /// I brani di una playlist, osservati finché la pagina è aperta.
@@ -405,7 +421,10 @@ final class CollectionStore: ObservableObject {
 
     deinit { savedSubscription?.cancel() }
 
-    func toggleSave() { NamiBridge.shared.toggleSaveCollection(key: key) }
+    func toggleSave() {
+        NamiBridge.shared.toggleSaveCollection(key: key)
+        ToastCenter.shared.show(saved ? L("Tolto dalla Libreria") : L("Salvato in Libreria"), systemImage: saved ? "minus.circle.fill" : "checkmark.circle.fill", subtitle: title, artwork: artworkURL)
+    }
 
     func load() {
         loading = true

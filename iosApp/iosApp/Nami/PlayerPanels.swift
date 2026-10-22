@@ -4,6 +4,8 @@ import SwiftUI
 // scorre da solo; tocca una riga per saltarci) e coda "Successivi" da riordinare.
 
 struct LyricsPanel: View {
+    @Environment(\.playerInk) private var ink
+    @Environment(\.playerPaper) private var paper
     let onSeek: (TimeInterval) -> Void
     @ObservedObject private var player = PlayerStore.shared
     @ObservedObject private var store = LyricsStore.shared
@@ -20,7 +22,7 @@ struct LyricsPanel: View {
         Group {
             if store.loading {
                 ProgressView()
-                    .tint(.white)
+                    .tint(ink)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let lyrics = store.lyrics {
                 if lyrics.synced {
@@ -29,7 +31,7 @@ struct LyricsPanel: View {
                     ScrollView {
                         Text(lyrics.plain ?? "")
                             .font(.title3.weight(.semibold))
-                            .foregroundStyle(.white.opacity(0.85))
+                            .foregroundStyle(ink.opacity(0.85))
                             .lineSpacing(8)
                             .padding(.horizontal, 28)
                             .padding(.vertical, 24)
@@ -41,10 +43,10 @@ struct LyricsPanel: View {
                 VStack(spacing: 10) {
                     Image(systemName: "quote.bubble")
                         .font(.system(size: 40, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.5))
+                        .foregroundStyle(ink.opacity(0.5))
                     Text(L("Testo non disponibile"))
                         .font(.headline)
-                        .foregroundStyle(.white.opacity(0.7))
+                        .foregroundStyle(ink.opacity(0.7))
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -71,7 +73,7 @@ struct LyricsPanel: View {
                         let distance = abs(line.id - (activeIndex ?? 0))
                         Text(line.text)
                             .font(.system(size: 30, weight: .bold))
-                            .foregroundStyle(.white.opacity(active ? 1 : 0.32))
+                            .foregroundStyle(ink.opacity(active ? 1 : 0.32))
                             .blur(radius: active || userScrolling ? 0 : min(Double(distance) * 0.6, 2.2))
                             .scaleEffect(active ? 1 : 0.96, anchor: .leading)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -107,6 +109,8 @@ struct LyricsPanel: View {
 // MARK: - Coda
 
 struct QueuePanel: View {
+    @Environment(\.playerInk) private var ink
+    @Environment(\.playerPaper) private var paper
     @ObservedObject private var store = QueueStore.shared
     @ObservedObject private var player = PlayerStore.shared
 
@@ -120,7 +124,7 @@ struct QueuePanel: View {
                     if let title = store.queue.title, !title.isEmpty {
                         Text(LF("Da {0}", title))
                             .font(.subheadline)
-                            .foregroundStyle(.white.opacity(0.6))
+                            .foregroundStyle(ink.opacity(0.6))
                             .lineLimit(1)
                     }
                 }
@@ -136,14 +140,14 @@ struct QueuePanel: View {
             if store.autoplay {
                 Text(L("Alla fine della coda continua con brani simili."))
                     .font(.footnote)
-                    .foregroundStyle(.white.opacity(0.6))
+                    .foregroundStyle(ink.opacity(0.6))
                     .padding(.horizontal, 24)
                     .transition(.opacity)
             }
             if upNext.isEmpty {
                 Text(L("Non c'è altro in coda"))
                     .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.6))
+                    .foregroundStyle(ink.opacity(0.6))
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 List {
@@ -159,7 +163,7 @@ struct QueuePanel: View {
                                         .lineLimit(1)
                                     Text(entry.track.artist)
                                         .font(.subheadline)
-                                        .foregroundStyle(.white.opacity(0.6))
+                                        .foregroundStyle(ink.opacity(0.6))
                                         .lineLimit(1)
                                 }
                                 Spacer(minLength: 0)
@@ -168,7 +172,7 @@ struct QueuePanel: View {
                         }
                         .buttonStyle(.plain)
                         .listRowBackground(Color.clear)
-                        .listRowSeparatorTint(.white.opacity(0.12))
+                        .listRowSeparatorTint(ink.opacity(0.12))
                         .listRowInsets(EdgeInsets(top: 6, leading: 24, bottom: 6, trailing: 16))
                         .contextMenu {
                             Button(role: .destructive) {
@@ -196,6 +200,8 @@ struct QueuePanel: View {
 }
 
 private struct ToggleChip: View {
+    @Environment(\.playerInk) private var ink
+    @Environment(\.playerPaper) private var paper
     let systemName: String
     let active: Bool
     let action: () -> Void
@@ -204,10 +210,10 @@ private struct ToggleChip: View {
         Button(action: action) {
             Image(systemName: systemName)
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(active ? Color.black.opacity(0.8) : .white)
+                .foregroundStyle(active ? paper : ink)
                 .contentTransition(.symbolEffect(.replace))
                 .frame(width: 38, height: 32)
-                .background(Capsule().fill(.white.opacity(active ? 0.9 : 0.14)))
+                .background(Capsule().fill(ink.opacity(active ? 0.9 : 0.14)))
         }
         .buttonStyle(.squishy)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: active)

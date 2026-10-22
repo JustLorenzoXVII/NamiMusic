@@ -136,6 +136,10 @@ struct MosaicArtwork: View {
 struct ArtworkPalette: Equatable {
     var top: Color
     var bottom: Color
+    /// Per il player "Edizione": carta chiara tinta dalla copertina, inchiostro scuro e un accento
+    var paper: Color = Color(white: 0.94)
+    var ink: Color = Color(white: 0.12)
+    var accent: Color = Color(white: 0.4)
 
     static let fallback = ArtworkPalette(top: Color(white: 0.25), bottom: Color(white: 0.08))
 }
@@ -155,7 +159,13 @@ enum PaletteExtractor {
                 let bottomRect = CGRect(x: extent.minX, y: extent.minY, width: extent.width, height: extent.height / 2)
                 let top = average(ci, in: topRect) ?? UIColor(white: 0.3, alpha: 1)
                 let bottom = average(ci, in: bottomRect) ?? UIColor(white: 0.1, alpha: 1)
-                let result = ArtworkPalette(top: Color(darkened(top, to: 0.42)), bottom: Color(darkened(bottom, to: 0.22)))
+                let result = ArtworkPalette(
+                    top: Color(darkened(top, to: 0.42)),
+                    bottom: Color(darkened(bottom, to: 0.22)),
+                    paper: Color(shade(top, saturation: 0.16, brightness: 0.93)),
+                    ink: Color(shade(bottom, saturation: 0.45, brightness: 0.17)),
+                    accent: Color(shade(top, saturation: 0.55, brightness: 0.42))
+                )
                 DispatchQueue.main.async {
                     cache[url] = result
                     completion(result)
@@ -170,6 +180,13 @@ enum PaletteExtractor {
         var pixel = [UInt8](repeating: 0, count: 4)
         context.render(output, toBitmap: &pixel, rowBytes: 4, bounds: CGRect(x: 0, y: 0, width: 1, height: 1), format: .RGBA8, colorSpace: nil)
         return UIColor(red: CGFloat(pixel[0]) / 255, green: CGFloat(pixel[1]) / 255, blue: CGFloat(pixel[2]) / 255, alpha: 1)
+    }
+
+    /// Stessa tinta con saturazione e luminosità date (la saturazione non supera quella originale × 1.6).
+    private static func shade(_ color: UIColor, saturation: CGFloat, brightness: CGFloat) -> UIColor {
+        var h: CGFloat = 0, s: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        color.getHue(&h, saturation: &s, brightness: &b, alpha: &a)
+        return UIColor(hue: h, saturation: min(saturation, s * 1.6), brightness: brightness, alpha: 1)
     }
 
     /// Stessa tinta, luminosità al massimo [to] e saturazione un po' più alta.

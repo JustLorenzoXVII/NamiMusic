@@ -666,3 +666,117 @@ struct ErrorView: View {
         }
     }
 }
+
+// MARK: - Avvisi ("Aggiunto a…")
+
+struct Toast: Identifiable, Equatable {
+    let id = UUID()
+    let title: String
+    let subtitle: String?
+    let systemImage: String
+    let artwork: URL?
+}
+
+/// Avviso che scende dall'alto per un paio di secondi: conferma che un'azione è avvenuta
+/// (aggiunto a una playlist, in coda, ai preferiti, download iniziato…).
+final class ToastCenter: ObservableObject {
+    static let shared = ToastCenter()
+    @Published private(set) var toast: Toast?
+    private var hideWork: DispatchWorkItem?
+
+    func show(_ title: String, systemImage: String = "checkmark.circle.fill", subtitle: String? = nil, artwork: URL? = nil) {
+        let new = Toast(title: title, subtitle: subtitle, systemImage: systemImage, artwork: artwork)
+        withAnimation(.spring(response: 0.45, dampingFraction: 0.78)) { toast = new }
+        hideWork?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.9)) { self?.toast = nil }
+        }
+        hideWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.4, execute: work)
+    }
+
+    func dismiss() {
+        hideWork?.cancel()
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.9)) { toast = nil }
+    }
+}
+
+private struct ToastView: View {
+    let toast: Toast
+
+    var body: some View {
+        HStack(spacing: 12) {
+            if let artwork = toast.artwork {
+                ArtworkView(url: artwork, size: 40, cornerRadius: 8)
+                    .overlay(alignment: .bottomTrailing) {
+                        Image(systemName: toast.systemImage)
+                            .font(.system(size: 16, weight: .bold))
+                            .symbolRenderingMode(.palette)
+                            .foregroundStyle(.white, .tint)
+                            .background(Circle().fill(.background).padding(2))
+                            .offset(x: 6, y: 6)
+                            .symbolEffect(.bounce, value: toast.id)
+                    }
+            } else {
+                Image(systemName: toast.systemImage)
+                    .font(.system(size: 26, weight: .semibold))
+                    .foregroundStyle(.tint)
+                    .symbolEffect(.bounce, value: toast.id)
+            }
+            VStack(alignment: .leading, spacing: 1) {
+                Text(toast.title)
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(1)
+                if let subtitle = toast.subtitle {
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.leading, 12)
+        .padding(.trailing, 18)
+        .padding(.vertical, 10)
+        .frame(maxWidth: 360)
+        .toastGlass()
+        .shadow(color: .black.opacity(0.18), radius: 16, y: 8)
+        .padding(.horizontal, 16)
+    }
+}
+
+private extension View {
+    @ViewBuilder func toastGlass() -> some View {
+        if #available(iOS 26.0, *) {
+            glassEffect(.regular, in: Capsule())
+        } else {
+            background(.regularMaterial, in: Capsule())
+        }
+    }
+}
+
+private struct ToastHost: ViewModifier {
+    @ObservedObject private var center = ToastCenter.shared
+
+    func body(content: Content) -> some View {
+        content.overlay(alignment: .top) {
+            if let toast = center.toast {
+                ToastView(toast: toast)
+                    .id(toast.id)
+                    .padding(.top, 6)
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .top).combined(with: .scale(scale: 0.85, anchor: .top)).combined(with: .opacity),
+                        removal: .move(edge: .top).combined(with: .opacity)
+                    ))
+                    .onTapGesture { center.dismiss() }
+                    .gesture(DragGesture(minimumDistance: 10).onEnded { g in if g.translation.height < 0 { center.dismiss() } })
+                    .sensoryFeedback(.success, trigger: toast.id)
+            }
+        }
+    }
+}
+
+extension View {
+    func toastHost() -> some View { modifier(ToastHost()) }
+}

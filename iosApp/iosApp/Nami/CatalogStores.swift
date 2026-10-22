@@ -264,7 +264,10 @@ final class PageStore: ObservableObject {
 
     deinit { followSubscription?.cancel() }
 
-    func toggleFollow() { NamiCatalog.shared.toggleFollowArtist(key: key) }
+    func toggleFollow() {
+        NamiCatalog.shared.toggleFollowArtist(key: key)
+        ToastCenter.shared.show(followed ? L("Non segui più") : L("Ora segui"), systemImage: followed ? "person.fill.xmark" : "person.fill.checkmark", subtitle: page?.title)
+    }
 
     func load() {
         loading = true
@@ -390,8 +393,14 @@ final class DownloadsStore: ObservableObject {
     }
 
     func info(_ song: Track) -> DownloadInfo? { states[song.id] }
-    func download(_ song: Track) { NamiCatalog.shared.download(songId: song.id) }
-    func downloadAll(_ songs: [Track]) { NamiCatalog.shared.downloadAll(songIds: songs.map(\.id)) }
+    func download(_ song: Track) {
+        NamiCatalog.shared.download(songId: song.id)
+        ToastCenter.shared.show(L("Download iniziato"), systemImage: "arrow.down.circle.fill", subtitle: song.title, artwork: song.artworkURL)
+    }
+    func downloadAll(_ songs: [Track]) {
+        NamiCatalog.shared.downloadAll(songIds: songs.map(\.id))
+        ToastCenter.shared.show(LF("Download di {0} brani iniziato", songs.count), systemImage: "arrow.down.circle.fill")
+    }
     func remove(_ song: Track) { NamiCatalog.shared.removeDownload(songId: song.id) }
 
     func play(from index: Int, shuffle: Bool) {

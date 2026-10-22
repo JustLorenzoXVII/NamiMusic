@@ -33,6 +33,7 @@ struct SettingsView: View {
     @ObservedObject private var downloads = DownloadsStore.shared
     @Environment(\.dismiss) private var dismiss
 
+    @AppStorage("nami.playerStyle") private var playerStyle = PlayerStyle.classic.rawValue
     @State private var loggingIn = false
     @State private var confirmLogout = false
     @State private var confirmDeleteDownloads = false
@@ -52,6 +53,35 @@ struct SettingsView: View {
                         Stat(value: downloads.songs.count, label: "Scaricati", systemImage: "arrow.down.circle.fill")
                     }
                     .padding(.vertical, 4)
+                }
+
+                Section {
+                    ForEach(PlayerStyle.allCases) { style in
+                        Button {
+                            withAnimation(.snappy) { playerStyle = style.rawValue }
+                        } label: {
+                            HStack(spacing: 14) {
+                                PlayerStyleThumb(style: style)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(style.label)
+                                        .font(.body.weight(.semibold))
+                                        .foregroundStyle(.primary)
+                                    Text(style.detail)
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer(minLength: 0)
+                                Image(systemName: playerStyle == style.rawValue ? "checkmark.circle.fill" : "circle")
+                                    .font(.title3)
+                                    .foregroundStyle(playerStyle == style.rawValue ? AnyShapeStyle(.tint) : AnyShapeStyle(.tertiary))
+                                    .contentTransition(.symbolEffect(.replace))
+                            }
+                            .padding(.vertical, 2)
+                        }
+                    }
+                    .sensoryFeedback(.selection, trigger: playerStyle)
+                } header: {
+                    Text(L("Stile del player"))
                 }
 
                 Section(L("Riproduzione")) {
@@ -310,5 +340,46 @@ private struct OptionPicker: View {
         .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always))
         .navigationTitle(L(title))
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+/// Miniatura dello stile del player (schizzo dei suoi elementi).
+private struct PlayerStyleThumb: View {
+    let style: PlayerStyle
+
+    var body: some View {
+        ZStack {
+            switch style {
+            case .classic:
+                LinearGradient(colors: [Color(white: 0.35), Color(white: 0.1)], startPoint: .top, endPoint: .bottom)
+                VStack(spacing: 4) {
+                    RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.85)).frame(width: 26, height: 26)
+                    Capsule().fill(.white.opacity(0.5)).frame(width: 28, height: 2)
+                    HStack(spacing: 4) {
+                        ForEach(0..<3, id: \.self) { _ in Circle().fill(.white.opacity(0.8)).frame(width: 5, height: 5) }
+                    }
+                }
+            case .modules:
+                LinearGradient(colors: [Color.orange, Color.pink, Color.purple], startPoint: .topLeading, endPoint: .bottomTrailing)
+                VStack(spacing: 3) {
+                    RoundedRectangle(cornerRadius: 4).fill(.white.opacity(0.85)).frame(width: 20, height: 20)
+                    RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.35)).frame(width: 32, height: 7)
+                    HStack(spacing: 3) {
+                        RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.35)).frame(width: 20, height: 12)
+                        RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.9)).frame(width: 9, height: 12)
+                    }
+                }
+            case .edition:
+                Color(red: 0.92, green: 0.93, blue: 0.88)
+                VStack(alignment: .leading, spacing: 3) {
+                    RoundedRectangle(cornerRadius: 1).fill(Color(red: 0.31, green: 0.42, blue: 0.24)).frame(width: 30, height: 24)
+                    Text("Aa").font(.system(size: 9, weight: .bold, design: .serif)).foregroundStyle(Color(white: 0.12))
+                    Capsule().fill(Color(white: 0.15).opacity(0.8)).frame(width: 30, height: 5)
+                }
+            }
+        }
+        .frame(width: 44, height: 64)
+        .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(.primary.opacity(0.12), lineWidth: 0.5))
     }
 }

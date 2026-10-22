@@ -31,6 +31,7 @@ struct NamiRootView: View {
             }
         }
         .namiTint()
+        .toastHost()
         .onChange(of: tab) { _, newTab in router.activeTab = newTab }
         .onChange(of: router.pending) { _, route in
             // Dal player: prima si chiude, poi si apre la pagina
