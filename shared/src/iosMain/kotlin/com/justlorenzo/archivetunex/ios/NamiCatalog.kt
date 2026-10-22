@@ -248,6 +248,17 @@ object NamiCatalog {
         }
     }
 
+    /** Registra una pagina di YouTube Music (per esempio il filtro "Podcast") e ne restituisce la chiave per [loadMood]. */
+    fun registerBrowse(
+        browseId: String,
+        params: String?,
+        title: String,
+    ): String {
+        val key = "browse:$browseId:$params"
+        moods[key] = title to BrowseEndpoint(browseId = browseId, params = params)
+        return key
+    }
+
     fun loadMood(
         key: String,
         callback: (NamiPage?, String?) -> Unit,

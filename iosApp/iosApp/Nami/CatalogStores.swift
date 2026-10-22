@@ -51,6 +51,15 @@ struct MoodItem: Identifiable, Hashable {
     }
 }
 
+extension MoodItem {
+    /// Pagina di un filtro della Home che non filtra ma apre una pagina (Podcast).
+    init(chip: HomeChip, color: Color) {
+        id = NamiCatalog.shared.registerBrowse(browseId: chip.browseId ?? "", params: chip.params, title: chip.title)
+        title = chip.title
+        self.color = color
+    }
+}
+
 struct MoodGroup: Identifiable {
     var id: String { title }
     let title: String

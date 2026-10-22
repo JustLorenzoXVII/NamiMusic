@@ -92,6 +92,8 @@ data class NamiSection(
 data class NamiChip(
     val title: String,
     val params: String?,
+    /** Pagina da aprire se il filtro non è della Home (per esempio "Podcast"). */
+    val browseId: String?,
 )
 
 data class NamiHome(
@@ -458,7 +460,7 @@ object NamiBridge {
                                 allSongs = section.items.all { it is SongItem },
                             )
                         }
-                    val chips = page.chips.orEmpty().map { NamiChip(it.title, it.endpoint?.params) }
+                    val chips = page.chips.orEmpty().map { NamiChip(it.title, it.endpoint?.params, it.endpoint?.browseId?.takeIf { id -> id != "FEmusic_home" }) }
                     callback(NamiHome(chips, sections), null)
                 },
                 onFailure = { callback(null, friendlyError(it)) },

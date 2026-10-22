@@ -341,8 +341,18 @@ private struct ChipsRow: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(chips) { chip in
-                    ChipButton(title: chip.title, selected: chip.params != nil && chip.params == selected) {
-                        onSelect(chip)
+                    if chip.browseId != nil {
+                        // "Podcast" e simili: si apre la loro pagina
+                        NavigationLink {
+                            MoodPageView(mood: MoodItem(chip: chip, color: AccentStore.shared.color))
+                        } label: {
+                            ChipLabel(title: chip.title, selected: false)
+                        }
+                        .buttonStyle(.squishy)
+                    } else {
+                        ChipButton(title: chip.title, selected: chip.params != nil && chip.params == selected) {
+                            onSelect(chip)
+                        }
                     }
                 }
             }
@@ -353,28 +363,49 @@ private struct ChipsRow: View {
     }
 }
 
+/// Filtro a capsula di vetro. Non è un Button di sistema: il tocco vale solo dentro la capsula
+/// (con i pulsanti di vetro in una riga che scorre, a volte il tocco finiva sull'elemento sotto).
 struct ChipButton: View {
     let title: String
     let selected: Bool
     let action: () -> Void
+    var body: some View {
+        ChipLabel(title: title, selected: selected)
+            .contentShape(Capsule())
+            .onTapGesture(perform: action)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction(action)
+    }
+}
+
+struct ChipLabel: View {
+    let title: String
+    let selected: Bool
 
     var body: some View {
-        if #available(iOS 26.0, *) {
-            if selected {
-                Button(L(title), action: action)
-                    .buttonStyle(.glassProminent)
-            } else {
-                Button(L(title), action: action)
-                    .buttonStyle(.glass)
+        Text(L(title))
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(selected ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
+            .padding(.horizontal, 16)
+            .padding(.vertical, 9)
+            .background {
+                if selected {
+                    Capsule().fill(.tint)
+                }
             }
+            .chipGlass(selected: selected)
+            .animation(.snappy, value: selected)
+    }
+}
+
+private extension View {
+    @ViewBuilder func chipGlass(selected: Bool) -> some View {
+        if selected {
+            self
+        } else if #available(iOS 26.0, *) {
+            glassEffect(.regular, in: Capsule())
         } else {
-            if selected {
-                Button(L(title), action: action)
-                    .buttonStyle(.borderedProminent)
-            } else {
-                Button(L(title), action: action)
-                    .buttonStyle(.bordered)
-            }
+            background(.thinMaterial, in: Capsule())
         }
     }
 }

@@ -293,6 +293,8 @@ struct HomeChip: Identifiable, Equatable, Hashable {
     var id: String { title }
     let title: String
     let params: String?
+    /// Filtro che è una pagina a parte (per esempio "Podcast"): si apre invece di filtrare la Home
+    var browseId: String? = nil
 }
 
 struct MixItem: Identifiable, Equatable, Hashable {
@@ -354,7 +356,7 @@ final class HomeStore: ObservableObject {
             if let home {
                 self.error = nil
                 if !home.chips.isEmpty || self.chips.isEmpty {
-                    self.chips = home.chips.map { HomeChip(title: $0.title, params: $0.params) }
+                    self.chips = home.chips.map { HomeChip(title: $0.title, params: $0.params, browseId: $0.browseId) }
                 }
                 self.sections = home.sections.enumerated().map { index, section in
                     HomeSection(id: "\(index)-\(section.title)", title: section.title, items: section.items.map { HomeItem($0) }, allSongs: section.allSongs)
