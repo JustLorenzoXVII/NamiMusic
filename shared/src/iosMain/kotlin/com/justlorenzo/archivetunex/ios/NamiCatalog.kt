@@ -1,6 +1,8 @@
 package com.justlorenzo.archivetunex.ios
 
+import com.justlorenzo.archivetunex.insights.ArtistResolver
 import com.justlorenzo.archivetunex.insights.Insights
+import com.justlorenzo.archivetunex.insights.ListeningStats
 import com.justlorenzo.archivetunex.insights.StatsPeriod
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -128,7 +130,7 @@ object NamiCatalog {
         return NamiSection(title = title, items = converted, allSongs = forceList || items.all { it is SongItem })
     }
 
-    private fun failure(error: Throwable): String = error.message?.takeIf { it.isNotBlank() } ?: "Errore di rete"
+    private fun failure(error: Throwable): String = friendlyError(error)
 
     // region Ricerca
 
@@ -468,27 +470,39 @@ object NamiCatalog {
                 callback(null)
                 return@launch
             }
-            callback(
-                NamiStats(
-                    totalMs = stats.totalMs,
-                    plays = stats.plays,
-                    distinctSongs = stats.distinctSongs,
-                    distinctArtists = stats.distinctArtists,
-                    topSongs =
-                        stats.topSongs.take(25).map {
-                            val track = it.song.toNamiTrack()
-                            NamiStatRow(track.id, track.title, track.artist, track.artworkUrl, it.timeMs, it.plays)
-                        },
-                    topArtists =
-                        stats.topArtists.take(25).map {
-                            NamiStatRow(it.id ?: "", it.name, "", it.thumbnailUrl?.resize(400, 400), it.timeMs, it.plays)
-                        },
-                    byHourMinutes = stats.byHour.map { (it / 60_000L).toInt() },
-                    genres = stats.genres.take(8).map { NamiGenre(it.genre.label, it.share) },
-                ),
-            )
+            callback(stats.toNami())
+            // Foto e pagina vera degli artisti (nella cronologia hanno spesso un codice interno che
+            // YouTube non conosce): si cercano una volta sola, poi si aggiorna la schermata
+            val missing = stats.topArtists.take(25).filter { ArtistResolver.get(it.name)?.browseId == null && !ArtistResolver.isYouTubeId(it.id) }
+            if (missing.isNotEmpty()) {
+                runCatching { ArtistResolver.resolve(stats.topArtists.take(25).map { it.name to it.id }) }
+                callback(stats.toNami())
+            }
         }
     }
+
+    private fun ListeningStats.toNami(): NamiStats =
+        NamiStats(
+            totalMs = totalMs,
+            plays = plays,
+            distinctSongs = distinctSongs,
+            distinctArtists = distinctArtists,
+            topSongs =
+                topSongs.take(25).map {
+                    val track = it.song.toNamiTrack()
+                    NamiStatRow(track.id, track.title, track.artist, track.artworkUrl, it.timeMs, it.plays)
+                },
+            topArtists =
+                topArtists.take(25).map {
+                    val found = ArtistResolver.get(it.name)
+                    // Si apre solo un artista che esiste su YouTube Music
+                    val pageId = found?.browseId ?: it.id?.takeIf { id -> ArtistResolver.isYouTubeId(id) }
+                    val photo = it.thumbnailUrl ?: found?.thumbnailUrl
+                    NamiStatRow(pageId ?: "", it.name, "", photo?.resize(400, 400), it.timeMs, it.plays)
+                },
+            byHourMinutes = byHour.map { (it / 60_000L).toInt() },
+            genres = genres.take(8).map { NamiGenre(it.genre.label, it.share) },
+        )
 
     // endregion
 }

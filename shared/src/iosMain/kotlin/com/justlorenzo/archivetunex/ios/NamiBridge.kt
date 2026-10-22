@@ -418,7 +418,7 @@ object NamiBridge {
                     val chips = page.chips.orEmpty().map { NamiChip(it.title, it.endpoint?.params) }
                     callback(NamiHome(chips, sections), null)
                 },
-                onFailure = { callback(null, it.message ?: "Errore di rete") },
+                onFailure = { callback(null, friendlyError(it)) },
             )
         }
     }
@@ -516,7 +516,7 @@ object NamiBridge {
                     collections[key] = title to metadata
                     callback(NamiCollection(key, title, subtitle, data.second?.resize(1080, 1080), metadata.map { it.toNamiTrack() }), null)
                 },
-                onFailure = { callback(null, it.message ?: "Errore di rete") },
+                onFailure = { callback(null, friendlyError(it)) },
             )
         }
     }
@@ -583,4 +583,17 @@ internal fun MediaMetadata.toNamiTrack(): NamiTrack {
         durationMs = duration * 1000L,
         isExplicit = explicit,
     )
+}
+
+/** Messaggio d'errore leggibile (niente risposte HTTP grezze a schermo). */
+internal fun friendlyError(error: Throwable): String {
+    val name = error::class.simpleName.orEmpty()
+    val text = error.message.orEmpty()
+    return when {
+        name.contains("Timeout", true) || name.contains("UnresolvedAddress", true) || name.contains("IOException", true) ||
+            text.contains("offline", true) || text.contains("Unable to resolve", true) ->
+            "Sembra che tu sia offline. Controlla la connessione e riprova."
+        text.contains("Non disponibile") -> "Questo contenuto non è disponibile."
+        else -> "YouTube Music non ha risposto come previsto. Riprova tra poco."
+    }
 }
