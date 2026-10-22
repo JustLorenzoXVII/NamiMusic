@@ -115,7 +115,7 @@ final class NamiApp: ObservableObject {
         subscription = NamiBridge.shared.observeIosUi { [weak self] value in
             let enabled = value.boolValue
             if self?.iosUI != enabled {
-                withAnimation(.easeInOut(duration: 0.25)) { self?.iosUI = enabled }
+                self?.iosUI = enabled
             }
         }
     }
