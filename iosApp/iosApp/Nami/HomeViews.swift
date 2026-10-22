@@ -374,7 +374,7 @@ struct ChipButton: View {
             .contentShape(Capsule())
             .onTapGesture(perform: action)
             .accessibilityAddTraits(.isButton)
-            .accessibilityAction(action)
+            .accessibilityAction { action() }
     }
 }
 
