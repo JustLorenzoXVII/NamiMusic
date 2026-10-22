@@ -43,6 +43,10 @@ data class NamiTrack(
     val largeArtworkUrl: String?,
     val durationMs: Long,
     val isExplicit: Boolean,
+    /** Pagina dell'artista e album (per "Vai all'artista" / "Vai all'album"). */
+    val artistId: String?,
+    val albumId: String?,
+    val albumTitle: String?,
 )
 
 /** Lo stato del player. */
@@ -479,32 +483,45 @@ object NamiBridge {
     }
 
     /** Apre un album o una playlist di YouTube Music (dalla chiave di un [NamiItem]). */
+    /** Album e playlist aperti, per salvarli in Libreria. */
+    internal val albumPages = HashMap<String, moe.rukamori.archivetune.innertube.pages.AlbumPage>()
+    internal val playlistPages = HashMap<String, Pair<PlaylistItem, List<SongItem>>>()
+
+    /**
+     * Album o playlist di YouTube Music: [key] è la chiave di un elemento (Home, ricerca) oppure
+     * "1:<id album>" / "2:<id playlist>" (per esempio da "Vai all'album" o dalla Libreria).
+     */
     fun loadCollection(
         key: String,
         callback: (NamiCollection?, String?) -> Unit,
     ) {
         val item = items[key]
+        val albumId = (item as? AlbumItem)?.browseId ?: key.takeIf { item == null && it.startsWith("1:") }?.removePrefix("1:")
+        val playlistId = (item as? PlaylistItem)?.id ?: key.takeIf { item == null && it.startsWith("2:") }?.removePrefix("2:")
         scope.launch {
             val result =
                 withContext(Dispatchers.Default) {
                     runCatching {
-                        when (item) {
-                            is AlbumItem -> {
-                                val page = YouTube.album(item.browseId).getOrThrow()
+                        when {
+                            albumId != null -> {
+                                val page = YouTube.album(albumId).getOrThrow()
+                                albumPages[key] = page
                                 Triple(page.album.title, page.album.artists?.joinToString(", ") { it.name }.orEmpty(), page.songs to page.album.thumbnail)
                             }
-                            is PlaylistItem -> {
-                                val first = YouTube.playlist(item.id).getOrThrow()
+                            playlistId != null -> {
+                                val first = YouTube.playlist(playlistId).getOrThrow()
                                 val songs = first.songs.toMutableList()
                                 var continuation = first.songsContinuation ?: first.continuation
                                 var pages = 0
                                 while (continuation != null && pages < 20) {
-                                    val next = YouTube.playlistContinuation(continuation, item.id).getOrNull() ?: break
+                                    val next = YouTube.playlistContinuation(continuation, playlistId).getOrNull() ?: break
                                     songs += next.songs
                                     continuation = next.continuation
                                     pages++
                                 }
-                                Triple(first.playlist.title, first.playlist.author?.name.orEmpty(), songs.distinctBy { it.id } to first.playlist.thumbnail)
+                                val distinct = songs.distinctBy { it.id }
+                                playlistPages[key] = first.playlist to distinct
+                                Triple(first.playlist.title, first.playlist.author?.name.orEmpty(), distinct to first.playlist.thumbnail)
                             }
                             else -> error("Non disponibile")
                         }
@@ -518,6 +535,44 @@ object NamiBridge {
                 },
                 onFailure = { callback(null, friendlyError(it)) },
             )
+        }
+    }
+
+    /** true se l'album o la playlist aperti sono salvati in Libreria. */
+    fun observeCollectionSaved(
+        key: String,
+        listener: (Boolean) -> Unit,
+    ): NamiSubscription {
+        val item = items[key]
+        val albumId = (item as? AlbumItem)?.browseId ?: key.takeIf { it.startsWith("1:") }?.removePrefix("1:")
+        val playlistId = (item as? PlaylistItem)?.id ?: key.takeIf { it.startsWith("2:") }?.removePrefix("2:")
+        val flow =
+            when {
+                albumId != null -> database.album(albumId).map { it?.album?.bookmarkedAt != null }
+                playlistId != null -> database.playlistByBrowseId(playlistId).map { it != null }
+                else -> kotlinx.coroutines.flow.flowOf(false)
+            }
+        return collect(flow.distinctUntilChanged(), listener)
+    }
+
+    /** Salva o toglie dalla Libreria l'album o la playlist aperti con [loadCollection]. */
+    fun toggleSaveCollection(key: String) {
+        albumPages[key]?.let { page ->
+            database.transaction {
+                insert(page)
+                album(page.album.browseId).first()?.album?.let { update(it.toggleLike()) }
+            }
+            return
+        }
+        playlistPages[key]?.let { (playlist, songs) ->
+            scope.launch {
+                val saved = database.playlistByBrowseId(playlist.id).first() != null
+                if (saved) {
+                    actions?.unsaveYouTubePlaylist(playlist.id)
+                } else {
+                    actions?.saveYouTubePlaylist(playlist, songs.map { it.toMediaMetadata() })
+                }
+            }
         }
     }
 
@@ -582,6 +637,9 @@ internal fun MediaMetadata.toNamiTrack(): NamiTrack {
         largeArtworkUrl = thumbnailUrl?.resize(1080, 1080),
         durationMs = duration * 1000L,
         isExplicit = explicit,
+        artistId = artists.firstOrNull { !it.id.isNullOrBlank() }?.id,
+        albumId = album?.id,
+        albumTitle = album?.title,
     )
 }
 

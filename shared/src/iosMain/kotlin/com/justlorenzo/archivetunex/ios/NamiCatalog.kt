@@ -315,6 +315,73 @@ object NamiCatalog {
         bridge.actions?.playEndpoint(endpoint)
     }
 
+    private fun artistId(key: String): String = artists[key]?.artist?.id ?: (bridge.items[key] as? ArtistItem)?.id ?: key.removePrefix("3:")
+
+    /** true se segui l'artista (compare nella Libreria). */
+    fun observeArtistFollowed(
+        key: String,
+        listener: (Boolean) -> Unit,
+    ): NamiSubscription =
+        bridge.collect(database.artist(artistId(key)).map { it?.artist?.bookmarkedAt != null }.distinctUntilChanged(), listener)
+
+    fun toggleFollowArtist(key: String) {
+        val id = artistId(key)
+        val item = artists[key]?.artist ?: (bridge.items[key] as? ArtistItem)
+        database.transaction {
+            val existing = artist(id).first()?.artist
+            val entity =
+                existing ?: moe.rukamori.archivetune.db.entities.ArtistEntity(
+                    id = id,
+                    name = item?.title ?: "",
+                    thumbnailUrl = item?.thumbnail,
+                    channelId = item?.channelId,
+                ).also { insert(it) }
+            update(entity.toggleLike())
+        }
+    }
+
+    /** Album salvati in Libreria (chiave "1:<id>", si aprono con loadCollection). */
+    fun observeSavedAlbums(listener: (List<NamiItem>) -> Unit): NamiSubscription =
+        bridge.collect(
+            database.albumsLikedByCreateDateAsc().map { list ->
+                list.reversed().map { a ->
+                    NamiItem(
+                        key = "1:" + a.album.id,
+                        kind = 1,
+                        title = a.album.title,
+                        subtitle = a.artists.joinToString(", ") { it.name },
+                        artworkUrl = a.album.thumbnailUrl?.resize(400, 400),
+                        isExplicit = false,
+                    )
+                }
+            },
+            listener,
+        )
+
+    /** Artisti seguiti (chiave "3:<id>", si aprono con loadArtist). */
+    fun observeFollowedArtists(listener: (List<NamiItem>) -> Unit): NamiSubscription =
+        bridge.collect(
+            database.artistsBookmarkedByCreateDateAsc().map { list ->
+                list.reversed().map { a ->
+                    NamiItem(
+                        key = "3:" + a.artist.id,
+                        kind = 3,
+                        title = a.artist.name,
+                        subtitle = "",
+                        artworkUrl = a.artist.thumbnailUrl?.resize(400, 400),
+                        isExplicit = false,
+                    )
+                }
+            },
+            listener,
+        )
+
+    /** Radio del brano: parte lui e poi brani simili. */
+    fun startRadio(songId: String) {
+        val song = bridge.knownSongs[songId] ?: return
+        bridge.actions?.playSong(song)
+    }
+
     /** Il brano di un elemento (Home, ricerca), per il menu "tieni premuto". */
     fun trackForItem(key: String): NamiTrack? = (bridge.items[key] as? SongItem)?.toMediaMetadata()?.toNamiTrack()
 
