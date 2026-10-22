@@ -221,11 +221,11 @@ final class PlaybackClock: ObservableObject {
 }
 
 /// Ridisegna solo il proprio contenuto quando il tempo del brano cambia.
-struct WithClock<Content: View>: View {
+struct WithClock<Content: SwiftUI.View>: SwiftUI.View {
     @ObservedObject private var clock = PlaybackClock.shared
     @ViewBuilder let content: () -> Content
 
-    var body: some View { content() }
+    var body: some SwiftUI.View { content() }
 }
 
 /// Il player a schermo intero è aperto: le animazioni continue sotto di lui si fermano.

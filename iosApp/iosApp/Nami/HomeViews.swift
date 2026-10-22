@@ -156,6 +156,15 @@ struct AmbientGlow: View {
 
 // MARK: - In riproduzione
 
+/// Barra sottile del brano nella card: si aggiorna da sola col tempo che scorre.
+private struct NowPlayingProgress: View {
+    @ObservedObject private var clock = PlaybackClock.shared
+
+    var body: some View {
+        ProgressView(value: clock.duration > 0 ? min(clock.position / clock.duration, 1) : 0)
+    }
+}
+
 /// Card grande col brano che sta suonando: colori della copertina, Liquid Glass sul pulsante.
 private struct NowPlayingCard: View {
     @ObservedObject private var player = PlayerStore.shared
@@ -182,9 +191,7 @@ private struct NowPlayingCard: View {
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.75))
                     .lineLimit(1)
-                WithClock {
-                    ProgressView(value: player.duration > 0 ? min(player.position / player.duration, 1) : 0)
-                }
+                NowPlayingProgress()
                     .tint(.white)
                     .scaleEffect(x: 1, y: 0.7, anchor: .center)
                     .padding(.top, 4)
