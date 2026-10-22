@@ -1,5 +1,6 @@
 package com.justlorenzo.archivetunex.player
 
+import moe.rukamori.archivetune.ui.utils.resize
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -108,6 +109,7 @@ class QueuePlayer(
             // vengono tutti gli altri (prima poteva capitare in fondo e la riproduzione si fermava)
             if (value && items.size > 1) order = currentFirstShuffle()
             prefetched = null
+            engine.cancelPreload()
             if (prepared && loadJob?.isActive != true && currentMediaItem != null) prefetchNext()
             dispatch(setOf(Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED)) { it.onShuffleModeEnabledChanged(value) }
         }
@@ -423,7 +425,10 @@ class QueuePlayer(
         val uid = uids[index]
         loadJob?.cancel()
         prefetchJob?.cancel()
-        engine.stop()
+        // Già pronto? (URL chiesto in anticipo e, su iPhone, brano già in coda nel motore)
+        val readyMedia = prefetched?.takeIf { it.uid === uid && nowMs() - it.atMs < PREFETCH_MAX_AGE_MS }?.media
+        // Se il motore ha già in coda proprio questo brano non lo si ferma: parte senza pause
+        if (readyMedia == null || !engine.hasPreloaded(readyMedia.url)) engine.stop()
         // Nuovo brano: lo stato del motore riparte da zero (sarà lui a dire quando suona)
         engineIsPlaying = false
         engineBuffering = false
@@ -435,7 +440,7 @@ class QueuePlayer(
         updateIsPlaying()
 
         // Già pronto? Parte subito, senza passare dalla rete
-        val ready = prefetched?.takeIf { it.uid === uid && nowMs() - it.atMs < PREFETCH_MAX_AGE_MS }?.media
+        val ready = readyMedia
         prefetched = null
         if (ready != null) {
             startEngine(item, ready)
@@ -465,17 +470,10 @@ class QueuePlayer(
         media: ResolvedMedia,
     ) {
         knownDurationMs = media.durationMs ?: C.TIME_UNSET
-        val metadata = item.mediaMetadata
         engine.load(
             url = media.url,
             headers = media.headers,
-            info =
-                NowPlayingInfo(
-                    title = metadata.title?.toString().orEmpty(),
-                    artist = metadata.artist?.toString().orEmpty(),
-                    artworkUrl = metadata.artworkUri?.toString(),
-                    durationMs = media.durationMs,
-                ),
+            info = nowPlayingInfo(item, media),
             playWhenReady = false,
         )
         engine.speed = playbackParameters.speed
@@ -486,24 +484,49 @@ class QueuePlayer(
         if (playWhenReady) engine.play()
     }
 
-    /** Chiede in anticipo l'URL del brano successivo (se non è già pronto). */
+    /** Dati per la schermata di blocco e il display dell'auto: copertina grande, album se c'è. */
+    private fun nowPlayingInfo(
+        item: MediaItem,
+        media: ResolvedMedia,
+    ): NowPlayingInfo {
+        val metadata = item.mediaMetadata
+        val artist = metadata.artist?.toString().orEmpty()
+        return NowPlayingInfo(
+            title = metadata.title?.toString().orEmpty(),
+            artist = artist,
+            // Le copertine di YouTube arrivano spesso piccole: per l'auto ne serve una grande
+            artworkUrl = metadata.artworkUri?.toString()?.let { runCatching { it.resize(600, 600) }.getOrDefault(it) },
+            durationMs = media.durationMs,
+            album = metadata.albumTitle?.toString()?.takeIf { it.isNotBlank() } ?: artist.takeIf { it.isNotBlank() },
+        )
+    }
+
+    /** Chiede in anticipo l'URL del brano successivo (se non è già pronto) e lo fa preparare al motore. */
     private fun prefetchNext() {
         prefetchJob?.cancel()
         val nextIndex =
             if (repeatMode == Player.REPEAT_MODE_ONE) {
+                engine.cancelPreload()
                 return
             } else {
                 currentTimeline.getNextWindowIndex(index, repeatMode, shuffleModeEnabled)
             }
-        if (nextIndex == C.INDEX_UNSET) return
+        if (nextIndex == C.INDEX_UNSET) {
+            engine.cancelPreload()
+            return
+        }
         val nextItem = items.getOrNull(nextIndex) ?: return
         val nextUid = uids.getOrNull(nextIndex) ?: return
-        if (prefetched?.uid === nextUid) return
+        prefetched?.takeIf { it.uid === nextUid }?.let { ready ->
+            engine.preload(ready.media.url, ready.media.headers, nowPlayingInfo(nextItem, ready.media))
+            return
+        }
         prefetchJob =
             scope.launch {
                 try {
                     val media = resolver(nextItem)
                     prefetched = Prefetched(nextUid, media, nowMs())
+                    engine.preload(media.url, media.headers, nowPlayingInfo(nextItem, media))
                 } catch (cancellation: CancellationException) {
                     throw cancellation
                 } catch (_: Throwable) {

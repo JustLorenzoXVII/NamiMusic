@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import platform.AVFAudio.*
 import platform.AVFoundation.*
+import platform.CoreGraphics.*
 import platform.CoreMedia.*
 import platform.Foundation.*
 import platform.MediaPlayer.*
@@ -34,7 +35,18 @@ actual fun preferredAudioItag(): Int? = 140
 internal class IosAudioEngine : AudioEngine {
     override var listener: AudioEngine.Listener? = null
 
-    private val player = AVPlayer()
+    /**
+     * AVQueuePlayer: oltre al brano attuale tiene in coda il successivo ([preload]), che inizia a
+     * scaricarsi prima della fine e parte senza pause (come le app di streaming).
+     */
+    private val player = AVQueuePlayer()
+
+    /** Il brano attualmente caricato (per riconoscere la sua fine anche dopo il passaggio automatico). */
+    private var currentItem: AVPlayerItem? = null
+
+    /** Il brano successivo, già in coda nel player. */
+    private var preloadedItem: AVPlayerItem? = null
+    private var preloadedUrl: String? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var stateJob: Job? = null
     private var artworkJob: Job? = null
@@ -83,7 +95,7 @@ internal class IosAudioEngine : AudioEngine {
             queue = NSOperationQueue.mainQueue,
         ) { note ->
             val item = note?.`object` as? AVPlayerItem
-            if (item != null && item === player.currentItem) reportEnded()
+            if (item != null && item === currentItem) reportEnded()
         }
         // Il brano non è riuscito ad arrivare alla fine (rete persa, stream chiuso)
         center.addObserverForName(
@@ -92,7 +104,7 @@ internal class IosAudioEngine : AudioEngine {
             queue = NSOperationQueue.mainQueue,
         ) { note ->
             val item = note?.`object` as? AVPlayerItem
-            if (item != null && item === player.currentItem && !errorReported) {
+            if (item != null && item === currentItem && !errorReported) {
                 errorReported = true
                 val error = note.userInfo?.get(AVPlayerItemFailedToPlayToEndTimeErrorKey) as? NSError
                 listener?.onError(error?.localizedDescription ?: "Riproduzione interrotta")
@@ -146,6 +158,9 @@ internal class IosAudioEngine : AudioEngine {
         this.info = info
         // Copertina già in memoria: compare subito sulla schermata di blocco
         artwork = info.artworkUrl?.let { artworkCache[it] }
+        val wasPreloaded = preloadedItem?.takeIf { preloadedUrl == url }
+        preloadedItem = null
+        preloadedUrl = null
         errorReported = false
         endReported = false
         stuckAtEndChecks = 0
@@ -153,18 +168,75 @@ internal class IosAudioEngine : AudioEngine {
         lastIsPlaying = false
         lastIsBuffering = false
         // "AVURLAssetHTTPHeaderFieldsKey": chiave non documentata ma usata da tutti per gli header HTTP
+        if (wasPreloaded != null) {
+            // Il brano era già in coda: se AVQueuePlayer non ci è ancora passato da solo, ci si va ora
+            if (player.currentItem !== wasPreloaded) {
+                if ((player.items() as List<*>).any { it === wasPreloaded }) {
+                    while (player.currentItem != null && player.currentItem !== wasPreloaded) player.advanceToNextItem()
+                } else {
+                    player.removeAllItems()
+                    player.insertItem(wasPreloaded, afterItem = null)
+                }
+            }
+            currentItem = wasPreloaded
+            player.actionAtItemEnd = AVPlayerActionAtItemEndPause
+        } else {
+            val item = makeItem(nsUrl, headers)
+            player.removeAllItems()
+            player.insertItem(item, afterItem = null)
+            currentItem = item
+            player.actionAtItemEnd = AVPlayerActionAtItemEndPause
+        }
+        if (playWhenReady || (wasPreloaded != null && wantsPlay)) play()
+        startStateUpdates()
+        updateNowPlaying()
+        loadArtwork(info.artworkUrl)
+    }
+
+    private fun makeItem(
+        nsUrl: NSURL,
+        headers: Map<String, String>,
+    ): AVPlayerItem {
+        // "AVURLAssetHTTPHeaderFieldsKey": chiave non documentata ma usata da tutti per gli header HTTP
         val asset =
             AVURLAsset(
                 uRL = nsUrl,
                 // Il Range lo gestisce AVPlayer da solo.
                 options = mapOf<Any?, Any?>("AVURLAssetHTTPHeaderFieldsKey" to headers.filterKeys { !it.equals("Range", ignoreCase = true) }),
             )
-        player.replaceCurrentItemWithPlayerItem(AVPlayerItem(asset = asset))
-        if (playWhenReady) play()
-        startStateUpdates()
-        updateNowPlaying()
-        loadArtwork(info.artworkUrl)
+        return AVPlayerItem(asset = asset)
     }
+
+    override fun preload(
+        url: String,
+        headers: Map<String, String>,
+        info: NowPlayingInfo,
+    ) {
+        // Copertina del prossimo brano già pronta: in auto compare insieme al titolo
+        prefetchArtwork(info.artworkUrl)
+        if (preloadedUrl == url && preloadedItem != null) return
+        cancelPreload()
+        val current = currentItem ?: return
+        if (player.currentItem !== current) return
+        val nsUrl = (if (url.startsWith("file://")) NSURL.fileURLWithPath(url.removePrefix("file://")) else NSURL.URLWithString(url)) ?: return
+        val item = makeItem(nsUrl, headers)
+        if (!player.canInsertItem(item, afterItem = current)) return
+        player.insertItem(item, afterItem = current)
+        preloadedItem = item
+        preloadedUrl = url
+        // Alla fine del brano passa da solo al successivo, senza silenzio
+        player.actionAtItemEnd = AVPlayerActionAtItemEndAdvance
+    }
+
+    override fun cancelPreload() {
+        preloadedItem?.let { item -> if (item !== player.currentItem) player.removeItem(item) }
+        preloadedItem = null
+        preloadedUrl = null
+        // Senza un successivo pronto, a fine brano resta fermo lì (ripeti brano, fine coda)
+        player.actionAtItemEnd = AVPlayerActionAtItemEndPause
+    }
+
+    override fun hasPreloaded(url: String): Boolean = preloadedItem != null && preloadedUrl == url
 
     override val bufferedPositionMs: Long
         get() {
@@ -224,7 +296,11 @@ internal class IosAudioEngine : AudioEngine {
     override fun stop() {
         wantsPlay = false
         player.pause()
-        player.replaceCurrentItemWithPlayerItem(null)
+        player.removeAllItems()
+        currentItem = null
+        preloadedItem = null
+        preloadedUrl = null
+        player.actionAtItemEnd = AVPlayerActionAtItemEndPause
         lastIsPlaying = false
         lastIsBuffering = false
     }
@@ -339,6 +415,7 @@ internal class IosAudioEngine : AudioEngine {
         val nowPlaying = mutableMapOf<Any?, Any?>()
         nowPlaying[MPMediaItemPropertyTitle] = current.title
         nowPlaying[MPMediaItemPropertyArtist] = current.artist
+        current.album?.let { nowPlaying[MPMediaItemPropertyAlbumTitle] = it }
         (current.durationMs ?: durationMs)?.let { nowPlaying[MPMediaItemPropertyPlaybackDuration] = it / 1000.0 }
         nowPlaying[MPNowPlayingInfoPropertyElapsedPlaybackTime] = positionMs / 1000.0
         // Play/pausa sulla schermata di blocco: conta se sta davvero suonando
@@ -356,30 +433,76 @@ internal class IosAudioEngine : AudioEngine {
         if (artworkCache.containsKey(url)) return
         artworkJob =
             scope.launch {
-                // Fino a 3 tentativi: con rete lenta la prima richiesta può fallire
-                var image: UIImage? = null
-                for (attempt in 0 until 3) {
-                    image =
-                        withContext(Dispatchers.Default) {
-                            val nsUrl = (if (url.startsWith("file://")) NSURL.fileURLWithPath(url.removePrefix("file://")) else NSURL.URLWithString(url))
-                                ?: return@withContext null
-                            val data = NSData.dataWithContentsOfURL(nsUrl) ?: return@withContext null
-                            UIImage.imageWithData(data)
-                        }
-                    if (image != null) break
-                    delay(1_000L * (attempt + 1))
+                // Se la stava già scaricando il prefetch, si aspetta che finisca
+                var item = fetchArtwork(url)
+                var waited = 0
+                while (item == null && url in fetching && waited < 60) {
+                    delay(250)
+                    waited++
+                    item = artworkCache[url]
                 }
-                val loaded = image ?: return@launch
-                val size = loaded.size
-                val item = MPMediaItemArtwork(boundsSize = size) { _ -> loaded }
-                artworkCache[url] = item
-                if (artworkCache.size > 30) artworkCache.remove(artworkCache.keys.first())
+                if (item == null) item = artworkCache[url] ?: return@launch
                 // Solo se è ancora il brano di questa copertina
                 if (artworkUrl == url) {
                     artwork = item
                     updateNowPlaying()
                 }
             }
+    }
+
+    /** Scarica in anticipo la copertina del brano successivo (senza mostrarla). */
+    private fun prefetchArtwork(url: String?) {
+        if (url.isNullOrBlank() || artworkCache.containsKey(url)) return
+        scope.launch { fetchArtwork(url) }
+    }
+
+    private val fetching = mutableSetOf<String>()
+
+    /**
+     * Scarica la copertina (fino a 3 tentativi) e la prepara per schermata di blocco e auto:
+     * quadrata (le miniature dei video sono 16:9) e di 600 px, una misura che tutte le auto accettano.
+     */
+    private suspend fun fetchArtwork(url: String): MPMediaItemArtwork? {
+        artworkCache[url]?.let { return it }
+        if (!fetching.add(url)) return null
+        try {
+            var image: UIImage? = null
+            for (attempt in 0 until 3) {
+                image =
+                    withContext(Dispatchers.Default) {
+                        val nsUrl = (if (url.startsWith("file://")) NSURL.fileURLWithPath(url.removePrefix("file://")) else NSURL.URLWithString(url))
+                            ?: return@withContext null
+                        val data = NSData.dataWithContentsOfURL(nsUrl) ?: return@withContext null
+                        UIImage.imageWithData(data)
+                    }
+                if (image != null) break
+                delay(1_000L * (attempt + 1))
+            }
+            val loaded = image?.let { squareImage(it, 600.0) } ?: return null
+            val item = MPMediaItemArtwork(boundsSize = loaded.size) { _ -> loaded }
+            artworkCache[url] = item
+            if (artworkCache.size > 30) artworkCache.remove(artworkCache.keys.first())
+            return item
+        } finally {
+            fetching.remove(url)
+        }
+    }
+
+    /** Ritaglio quadrato al centro, ridimensionato a [side] punti (scala 1). */
+    private fun squareImage(
+        image: UIImage,
+        side: Double,
+    ): UIImage {
+        val (width, height) = image.size.useContents { width to height }
+        if (width <= 0.0 || height <= 0.0) return image
+        val scale = maxOf(side / width, side / height)
+        val drawWidth = width * scale
+        val drawHeight = height * scale
+        UIGraphicsBeginImageContextWithOptions(CGSizeMake(side, side), true, 1.0)
+        image.drawInRect(CGRectMake((side - drawWidth) / 2, (side - drawHeight) / 2, drawWidth, drawHeight))
+        val result = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return result ?: image
     }
 
     private fun setUpRemoteCommands() {

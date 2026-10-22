@@ -6,6 +6,8 @@ data class NowPlayingInfo(
     val artist: String,
     val artworkUrl: String?,
     val durationMs: Long?,
+    /** Album (schermata di blocco, display dell'auto). */
+    val album: String? = null,
 )
 
 /**
@@ -70,6 +72,22 @@ interface AudioEngine {
     fun seekTo(positionMs: Long)
 
     fun stop()
+
+    /**
+     * Prepara in anticipo il brano successivo (iPhone: lo mette in coda ad AVQueuePlayer, che inizia
+     * a scaricarlo e lo fa partire senza pause alla fine di quello attuale).
+     */
+    fun preload(
+        url: String,
+        headers: Map<String, String>,
+        info: NowPlayingInfo,
+    ) {}
+
+    /** Il brano preparato non è più quello giusto (coda cambiata, ripeti brano…). */
+    fun cancelPreload() {}
+
+    /** true se [url] è il brano preparato con [preload] (allora [load] lo usa al volo). */
+    fun hasPreloaded(url: String): Boolean = false
 }
 
 /** Crea il motore audio della piattaforma. */
