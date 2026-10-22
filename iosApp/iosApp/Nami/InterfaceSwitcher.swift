@@ -3,139 +3,141 @@ import UIKit
 
 /// Passaggio tra l'interfaccia Material (Compose) e quella Liquid Glass (SwiftUI).
 ///
-/// Si fotografa lo schermo così com'è e la foto resta sopra a tutto mentre, sotto, si cambia
-/// interfaccia senza animazioni (niente salti a metà). Poi la foto si anima da sola con UIKit,
-/// che è fluido anche quando sotto c'è l'interfaccia Compose:
-/// - verso Liquid Glass: la vecchia interfaccia si stacca come una card, si sfoca nel vetro,
-///   si rimpicciolisce e sparisce; quella nuova arriva ingrandendosi appena.
-/// - verso Material: il vetro si "scioglie": la foto si sfoca, si ingrandisce e sfuma via.
+/// Durante il passaggio le due interfacce sono vive una sopra l'altra: quella che se ne va sta
+/// sopra e si anima, quella nuova è già pronta sotto. Niente foto dello schermo (con Compose, che
+/// disegna con Metal, la foto usciva grigia).
+/// - verso Liquid Glass: Material si stacca come una card con gli angoli dello schermo, si
+///   copre di vetro, poi scivola giù rimpicciolendosi e sparisce; Liquid Glass si assesta da 1.05.
+/// - verso Material: il vetro si "scioglie" (si sfoca e si allarga) e sfuma, scoprendo Material.
 struct InterfaceSwitcher<Ios: View, Compose: View>: View {
     @ViewBuilder let ios: () -> Ios
     @ViewBuilder let compose: () -> Compose
     @StateObject private var app = NamiApp.shared
-    @State private var showingIos = NamiApp.shared.iosUI
+
+    private enum Side { case ios, compose }
+
+    /// Interfaccia mostrata (quella "sotto" durante il passaggio)
+    @State private var current: Side = NamiApp.shared.iosUI ? .ios : .compose
+    /// Interfaccia che se ne va (sopra), finché l'animazione non finisce
+    @State private var leaving: Side?
+    /// 0 ferma, 1 staccata e coperta di vetro, 2 andata via
+    @State private var phase = 0
     @State private var arriving = false
 
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            Group {
-                if showingIos {
-                    ios()
-                        .id(app.language)
-                } else {
-                    compose()
-                }
+            if current == .ios || leaving == .ios {
+                layer(.ios) { ios().id(app.language) }
             }
-            .scaleEffect(arriving ? 1.05 : 1)
-            .opacity(arriving ? 0.6 : 1)
+            if current == .compose || leaving == .compose {
+                layer(.compose) { compose() }
+            }
+        }
+        .onChange(of: app.iosUI) { _, enabled in
+            switchTo(enabled ? .ios : .compose)
         }
         .onChange(of: app.language) { _, _ in
             InterfaceTransition.crossfade()
         }
-        .onChange(of: app.iosUI) { _, newValue in
-            guard newValue != showingIos else { return }
-            InterfaceTransition.run(towardsIos: newValue) {
-                // Sotto la foto: cambio secco, senza animazioni
-                var transaction = Transaction()
-                transaction.disablesAnimations = true
-                withTransaction(transaction) {
-                    showingIos = newValue
-                    arriving = true
+    }
+
+    @ViewBuilder
+    private func layer<Content: View>(_ side: Side, @ViewBuilder content: () -> Content) -> some View {
+        let isLeaving = leaving == side
+        let towardsIos = leaving == .compose
+        content()
+            .scaleEffect(scale(isLeaving: isLeaving, towardsIos: towardsIos))
+            .offset(y: isLeaving && towardsIos && phase == 2 ? 140 : 0)
+            .overlay {
+                if isLeaving {
+                    GlassVeil(towardsIos: towardsIos, strength: phase == 0 ? 0 : 1)
+                        .ignoresSafeArea()
+                        .allowsHitTesting(false)
                 }
-            } reveal: {
-                withAnimation(.spring(response: 0.7, dampingFraction: 0.88)) { arriving = false }
+            }
+            // La maschera copre tutto lo schermo (anche sotto l'ora): a riposo non taglia niente
+            .mask {
+                RoundedRectangle(cornerRadius: isLeaving && phase > 0 ? 52 : 0, style: .continuous)
+                    .ignoresSafeArea()
+            }
+            .opacity(isLeaving && phase == 2 ? 0 : 1)
+            .shadow(color: .black.opacity(isLeaving && phase == 1 ? 0.35 : 0), radius: 30, y: 16)
+            .zIndex(isLeaving ? 1 : 0)
+            .allowsHitTesting(!isLeaving)
+    }
+
+    private func scale(isLeaving: Bool, towardsIos: Bool) -> CGFloat {
+        if isLeaving {
+            switch phase {
+            case 1: return towardsIos ? 0.88 : 1.04
+            case 2: return towardsIos ? 0.72 : 1.16
+            default: return 1
+            }
+        }
+        return arriving ? 1.05 : 1
+    }
+
+    private func switchTo(_ target: Side) {
+        guard target != current, leaving == nil else { return }
+        // Chiude i fogli aperti (impostazioni) prima di partire
+        InterfaceTransition.dismissPresented()
+        var instant = Transaction()
+        instant.disablesAnimations = true
+        withTransaction(instant) {
+            leaving = current
+            current = target
+            phase = 0
+            arriving = true
+        }
+        // 1) la vecchia interfaccia si stacca e diventa vetro
+        withAnimation(.spring(response: 0.42, dampingFraction: 0.9)) { phase = 1 }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.42) {
+            // 2) se ne va, la nuova si assesta
+            withAnimation(.spring(response: 0.55, dampingFraction: 0.92)) {
+                phase = 2
+                arriving = false
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                withTransaction(instant) {
+                    leaving = nil
+                    phase = 0
+                }
             }
         }
     }
 }
 
+/// Il velo di vetro colorato sopra l'interfaccia che se ne va.
+private struct GlassVeil: View {
+    let towardsIos: Bool
+    let strength: Double
+
+    var body: some View {
+        ZStack {
+            Rectangle().fill(towardsIos ? .ultraThinMaterial : .thickMaterial)
+            LinearGradient(
+                colors: towardsIos
+                    ? [Color(red: 0.55, green: 0.56, blue: 1.0).opacity(0.35), Color(red: 0.95, green: 0.5, blue: 0.75).opacity(0.25)]
+                    : [Color(red: 0.35, green: 0.8, blue: 0.7).opacity(0.35), Color(red: 0.3, green: 0.4, blue: 0.95).opacity(0.3)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            Image(systemName: towardsIos ? "sparkles" : "square.grid.2x2.fill")
+                .font(.system(size: 54, weight: .semibold))
+                .foregroundStyle(.white)
+                .scaleEffect(0.7 + 0.3 * strength)
+        }
+        .opacity(strength)
+    }
+}
+
 enum InterfaceTransition {
-    private static var running = false
-
-    static func run(towardsIos: Bool, swap: @escaping () -> Void, reveal: @escaping () -> Void) {
-        guard !running, let window = keyWindow, let snapshot = window.snapshotView(afterScreenUpdates: false) else {
-            swap()
-            reveal()
-            return
-        }
-        running = true
-
-        // La foto dello schermo, con un velo di vetro sopra che all'inizio è trasparente
-        let container = UIView(frame: window.bounds)
-        container.isUserInteractionEnabled = true
-        container.backgroundColor = .clear
-        snapshot.frame = container.bounds
-        snapshot.layer.cornerCurve = .continuous
-        snapshot.clipsToBounds = true
-        container.addSubview(snapshot)
-        let blur = UIVisualEffectView(effect: nil)
-        blur.frame = container.bounds
-        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        snapshot.addSubview(blur)
-        let tint = UIView(frame: container.bounds)
-        tint.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        tint.backgroundColor = towardsIos
-            ? UIColor(red: 0.55, green: 0.56, blue: 1.0, alpha: 1)
-            : UIColor(red: 0.35, green: 0.75, blue: 0.7, alpha: 1)
-        tint.alpha = 0
-        snapshot.addSubview(tint)
-        window.addSubview(container)
-
-        // I fogli aperti (impostazioni) si chiudono sotto la foto
-        window.rootViewController?.presentedViewController?.dismiss(animated: false)
-
-        // Sotto la foto si cambia interfaccia
-        swap()
-
-        let screenRadius: CGFloat = 52
-        if towardsIos {
-            // 1) la vecchia interfaccia si stacca come una card e diventa vetro
-            snapshot.layer.cornerRadius = screenRadius
-            let lift = UIViewPropertyAnimator(duration: 0.45, dampingRatio: 0.9) {
-                snapshot.transform = CGAffineTransform(scaleX: 0.88, y: 0.88)
-                blur.effect = UIBlurEffect(style: .systemUltraThinMaterial)
-                tint.alpha = 0.18
-            }
-            lift.addCompletion { _ in
-                // 2) la card scivola giù e sparisce, la nuova interfaccia arriva
-                reveal()
-                let away = UIViewPropertyAnimator(duration: 0.55, dampingRatio: 0.95) {
-                    snapshot.transform = CGAffineTransform(translationX: 0, y: window.bounds.height * 0.18).scaledBy(x: 0.7, y: 0.7)
-                    snapshot.alpha = 0
-                }
-                away.addCompletion { _ in
-                    container.removeFromSuperview()
-                    running = false
-                }
-                away.startAnimation()
-            }
-            lift.startAnimation()
-        } else {
-            // 1) il vetro si "scioglie": sfocatura e colore
-            let melt = UIViewPropertyAnimator(duration: 0.4, curve: .easeIn) {
-                blur.effect = UIBlurEffect(style: .systemThickMaterial)
-                tint.alpha = 0.22
-                snapshot.transform = CGAffineTransform(scaleX: 1.04, y: 1.04)
-            }
-            melt.addCompletion { _ in
-                // 2) si allarga e sfuma, scoprendo l'interfaccia Material
-                reveal()
-                let fade = UIViewPropertyAnimator(duration: 0.55, curve: .easeOut) {
-                    snapshot.transform = CGAffineTransform(scaleX: 1.15, y: 1.15)
-                    snapshot.alpha = 0
-                }
-                fade.addCompletion { _ in
-                    container.removeFromSuperview()
-                    running = false
-                }
-                fade.startAnimation()
-            }
-            melt.startAnimation()
-        }
+    static func dismissPresented() {
+        keyWindow?.rootViewController?.presentedViewController?.dismiss(animated: false)
     }
 
-    /// Cambio lingua: la foto dello schermo sfuma sulla nuova interfaccia.
+    /// Cambio lingua: la foto dello schermo sfuma sulla nuova interfaccia (solo SwiftUI, quindi la foto viene bene).
     static func crossfade() {
         guard let window = keyWindow, let snapshot = window.snapshotView(afterScreenUpdates: false) else { return }
         snapshot.frame = window.bounds

@@ -76,13 +76,22 @@ struct PlayerView: View {
                 Group {
                     if panel != .none {
                         panelLayout(geo)
-                            .transition(.opacity)
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .offset(y: 24)),
+                                removal: .opacity.combined(with: .offset(y: 24))
+                            ))
                     } else {
-                        switch style {
-                        case .classic: classicLayout(geo)
-                        case .modules: modulesLayout(geo)
-                        case .edition: editionLayout(geo)
+                        Group {
+                            switch style {
+                            case .classic: classicLayout(geo)
+                            case .modules: modulesLayout(geo)
+                            case .edition: editionLayout(geo)
+                            }
                         }
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .scale(scale: 0.97, anchor: .bottom)),
+                            removal: .opacity.combined(with: .scale(scale: 0.97, anchor: .bottom))
+                        ))
                     }
                 }
                 .padding(.top, geo.safeAreaInsets.top)
@@ -256,9 +265,7 @@ struct PlayerView: View {
         HStack {
             PanelToggle(systemName: "quote.bubble", active: panel == .lyrics) { toggle(.lyrics) }
             Spacer()
-            AirPlayButton()
-                .frame(width: 44, height: 44)
-                .modifier(GlassCircle())
+            AirPlayGlassButton(tint: .white)
             Spacer()
             PanelToggle(systemName: "list.bullet", active: panel == .queue) { toggle(.queue) }
         }
@@ -296,14 +303,10 @@ struct PlayerView: View {
                     Button { toggle(.queue) } label: {
                         Label(queueLabel, systemImage: "list.bullet")
                             .font(.subheadline.weight(.semibold))
-                            .frame(maxWidth: .infinity, minHeight: 56)
-                            .contentShape(Rectangle())
+                            .frame(maxWidth: .infinity, minHeight: PlayerButtonMetrics.icon)
                     }
-                    .buttonStyle(.squishy)
-                    .glassModule(radius: 28)
-                    AirPlayButton()
-                        .frame(width: 56, height: 56)
-                        .glassModule(radius: 28)
+                    .playerGlassCapsule()
+                    AirPlayGlassButton(tint: .white)
                     moreMenu
                 }
             }
@@ -420,9 +423,7 @@ struct PlayerView: View {
                         .contentTransition(.numericText())
                 }
                 Spacer()
-                AirPlayButton(tint: UIColor(palette.ink))
-                    .frame(width: 40, height: 40)
-                    .modifier(GlassCircle())
+                AirPlayGlassButton(tint: UIColor(palette.ink))
                 moreMenu
             }
             .padding(.top, 14)
@@ -843,15 +844,56 @@ struct PanelToggle: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: active && systemName == "quote.bubble" ? "quote.bubble.fill" : systemName)
-                .font(.system(size: 17, weight: .semibold))
+                .font(.system(size: PlayerButtonMetrics.symbol, weight: .semibold))
                 .foregroundStyle(active ? paper : ink)
                 .contentTransition(.symbolEffect(.replace))
-                .frame(width: 44, height: 44)
-                .background(Circle().fill(ink.opacity(active ? 0.9 : 0)))
-                .modifier(GlassCircle())
+                .frame(width: PlayerButtonMetrics.icon, height: PlayerButtonMetrics.icon)
         }
-        .buttonStyle(.plain)
+        .playerGlassCircle(prominent: active, tint: ink)
         .animation(.spring(response: 0.35, dampingFraction: 0.7), value: active)
+    }
+}
+
+/// Tutti i pulsanti tondi del player hanno la stessa misura: icona 17 pt in un cerchio di vetro
+/// di sistema (su iOS 26 il vetro aggiunge lo stesso margine a tutti).
+enum PlayerButtonMetrics {
+    static let symbol: CGFloat = 17
+    static let icon: CGFloat = 28
+}
+
+extension View {
+    @ViewBuilder func playerGlassCircle(prominent: Bool = false, tint: Color = .white) -> some View {
+        if #available(iOS 26.0, *) {
+            if prominent {
+                buttonStyle(.glassProminent).buttonBorderShape(.circle).controlSize(.large).tint(tint)
+            } else {
+                buttonStyle(.glass).buttonBorderShape(.circle).controlSize(.large)
+            }
+        } else {
+            buttonStyle(.bordered).buttonBorderShape(.circle).controlSize(.large).tint(prominent ? tint : .white)
+        }
+    }
+
+    @ViewBuilder func playerGlassCapsule() -> some View {
+        if #available(iOS 26.0, *) {
+            buttonStyle(.glass).buttonBorderShape(.capsule).controlSize(.large)
+        } else {
+            buttonStyle(.bordered).buttonBorderShape(.capsule).controlSize(.large)
+        }
+    }
+}
+
+/// AirPlay nello stesso cerchio di vetro degli altri pulsanti (il selettore di sistema sta dentro).
+struct AirPlayGlassButton: View {
+    var tint: UIColor = .white
+
+    var body: some View {
+        Button {} label: {
+            AirPlayButton(tint: tint)
+                .frame(width: PlayerButtonMetrics.icon, height: PlayerButtonMetrics.icon)
+        }
+        .playerGlassCircle()
+        .accessibilityLabel("AirPlay")
     }
 }
 
@@ -939,12 +981,11 @@ struct GlassIconButton: View {
         if #available(iOS 26.0, *) {
             Button(action: action) {
                 Image(systemName: systemName)
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.system(size: PlayerButtonMetrics.symbol, weight: .semibold))
                     .contentTransition(.symbolEffect(.replace))
-                    .frame(width: 30, height: 30)
+                    .frame(width: PlayerButtonMetrics.icon, height: PlayerButtonMetrics.icon)
             }
-            .buttonStyle(.glass)
-            .buttonBorderShape(.circle)
+            .playerGlassCircle()
         } else {
             Button(action: action) {
                 GlassIconLabel(systemName: systemName)
@@ -962,8 +1003,8 @@ struct GlassMenuLabel: View {
     var body: some View {
         if #available(iOS 26.0, *) {
             Image(systemName: systemName)
-                .font(.system(size: 17, weight: .semibold))
-                .frame(width: 30, height: 30)
+                .font(.system(size: PlayerButtonMetrics.symbol, weight: .semibold))
+                .frame(width: PlayerButtonMetrics.icon, height: PlayerButtonMetrics.icon)
         } else {
             GlassIconLabel(systemName: systemName)
         }
@@ -973,7 +1014,7 @@ struct GlassMenuLabel: View {
 extension View {
     @ViewBuilder func menuGlassStyle() -> some View {
         if #available(iOS 26.0, *) {
-            buttonStyle(.glass).buttonBorderShape(.circle)
+            buttonStyle(.glass).buttonBorderShape(.circle).controlSize(.large)
         } else {
             self
         }
