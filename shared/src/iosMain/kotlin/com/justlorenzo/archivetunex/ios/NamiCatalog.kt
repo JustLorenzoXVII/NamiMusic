@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import androidx.datastore.preferences.core.edit
+import moe.rukamori.archivetune.utils.dataStore
 import kotlinx.coroutines.withContext
 import moe.rukamori.archivetune.compat.media3.Download
 import moe.rukamori.archivetune.db.entities.LyricsEntity
@@ -482,6 +484,21 @@ object NamiCatalog {
         val count = connection.player.mediaItemCount
         if (from == to || from !in 0 until count || to !in 0 until count) return
         connection.player.moveMediaItem(from, to)
+    }
+
+    /** Riproduzione automatica: alla fine della coda continua con brani simili (come su Android). */
+    fun observeAutoplay(listener: (Boolean) -> Unit): NamiSubscription =
+        bridge.collect(
+            moe.rukamori.archivetune.compat.AppContext.dataStore.data
+                .map { it[moe.rukamori.archivetune.constants.AutoLoadMoreKey] ?: true }
+                .distinctUntilChanged(),
+            listener,
+        )
+
+    fun setAutoplay(enabled: Boolean) {
+        scope.launch {
+            moe.rukamori.archivetune.compat.AppContext.dataStore.edit { it[moe.rukamori.archivetune.constants.AutoLoadMoreKey] = enabled }
+        }
     }
 
     /** Toglie tutto quello che viene dopo il brano in riproduzione. */

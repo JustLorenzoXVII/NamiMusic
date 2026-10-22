@@ -127,10 +127,19 @@ struct QueuePanel: View {
                 Spacer()
                 ToggleChip(systemName: "shuffle", active: player.state.shuffle, action: player.toggleShuffle)
                 ToggleChip(systemName: player.state.repeatMode == 1 ? "repeat.1" : "repeat", active: player.state.repeatMode != 0, action: player.cycleRepeat)
+                ToggleChip(systemName: "infinity", active: store.autoplay, action: store.toggleAutoplay)
+                    .accessibilityLabel(L("Automatica"))
             }
             .padding(.horizontal, 24)
             .padding(.top, 16)
 
+            if store.autoplay {
+                Text(L("Alla fine della coda continua con brani simili."))
+                    .font(.footnote)
+                    .foregroundStyle(.white.opacity(0.6))
+                    .padding(.horizontal, 24)
+                    .transition(.opacity)
+            }
             if upNext.isEmpty {
                 Text(L("Non c'è altro in coda"))
                     .font(.subheadline)

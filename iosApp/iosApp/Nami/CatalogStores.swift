@@ -338,9 +338,19 @@ final class QueueStore: ObservableObject {
     static let shared = QueueStore()
 
     @Published private(set) var queue = QueueSnapshot()
+    @Published private(set) var autoplay = true
     private var subscription: NamiSubscription?
+    private var autoplaySubscription: NamiSubscription?
+
+    func toggleAutoplay() {
+        autoplay.toggle()
+        NamiCatalog.shared.setAutoplay(enabled: autoplay)
+    }
 
     private init() {
+        autoplaySubscription = NamiCatalog.shared.observeAutoplay { [weak self] value in
+            if self?.autoplay != value.boolValue { self?.autoplay = value.boolValue }
+        }
         subscription = NamiCatalog.shared.observeQueue { [weak self] q in
             let snapshot = QueueSnapshot(title: q.title, tracks: q.tracks.map { Track($0) }, currentIndex: Int(q.currentIndex))
             if snapshot != self?.queue { self?.queue = snapshot }
